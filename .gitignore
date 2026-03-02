@@ -1,0 +1,42 @@
+## Build artifacts (.NET)
+bin/
+obj/
+
+## User-specific files
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+*.userprefs
+
+## IDE / editor settings
+.vs/
+.vscode/
+.idea/
+
+## Logs and temp
+*.log
+*.tmp
+*.temp
+~$*
+
+## Test results and coverage
+TestResults/
+coverage/
+coverage.cobertura.xml
+*.trx
+
+## OS-specific
+.DS_Store
+Thumbs.db
+
+## Docker / containers
+docker-compose.override.yml
+
+## Node / frontend (caso venham a ser adicionados)
+node_modules/
+dist/
+build/
+
+## Ferramentas do Cursor (manter fora do controle de versão)
+.cursor/
