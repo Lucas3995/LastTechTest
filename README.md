@@ -20,9 +20,15 @@ O objetivo é permitir que um sistema interno crie, liste, aprove/recuse e simul
 
 ---
 
-## Como rodar o projeto localmente (visão geral)
+## Estrutura do repositório
 
-Assim que a solução .NET for criada (card `TA-001`), o fluxo esperado para execução local será:
+- **`backend/`** – Código do backend .NET 9 (solution, projetos em `src/` e testes em `tests/`).
+- **`tarefas/`** – Cards de tarefa em markdown.
+- **`docker/`** – Arquivos do Docker: `docker-compose.yml` para subir o projeto com um único comando (a partir da raiz: `docker compose -f docker/docker-compose.yml up`).
+
+## Como rodar o projeto
+
+O projeto é executado **via Docker** a partir da **raiz do repositório**:
 
 1. **Clonar o repositório**
    ```bash
@@ -30,31 +36,29 @@ Assim que a solução .NET for criada (card `TA-001`), o fluxo esperado para exe
    cd LastTechTest
    ```
 
-2. **Subir via Docker Compose** (quando os arquivos de containerização estiverem presentes)
+2. **Subir a API** (na raiz do projeto)
    ```bash
-   docker compose up --build
+   docker compose -f docker/docker-compose.yml up
    ```
+   Ou em background: `docker compose -f docker/docker-compose.yml up -d`.
 
-3. **Rodar a API localmente com .NET CLI** (modo alternativo, sem Docker)
-   ```bash
-   dotnet restore
-   dotnet build
-   dotnet run --project src/LastTechTest.Antecipacao.Api
-   ```
+   A API fica disponível em **http://localhost:8080**.
 
-4. **Acessar a API**
-   - Endpoint de saúde (exemplo do card `TA-001`): `GET /health`
-   - Endpoints de negócio (criação, listagem, aprovação/recusa, simulação) serão documentados conforme os cards `TA-020` a `TA-100`.
+3. **Acessar a API**
+   - **Swagger UI** (documentação e testes dos endpoints): [http://localhost:8080](http://localhost:8080)
+   - **Health check**: `GET http://localhost:8080/health`
+   - Endpoints de negócio (criação, listagem, aprovação/recusa, simulação) serão documentados conforme os cards em `tarefas/`.
 
-> Enquanto a solução ainda não estiver criada, estes comandos são uma **referência de intenção** e podem precisar de ajuste conforme o nome final dos projetos/pastas.
+A documentação OpenAPI (Swagger) é gerada automaticamente e exibida na raiz da API; o documento JSON está em `/swagger/v1/swagger.json`.
 
 ---
 
 ## Como rodar os testes
 
-Após a criação dos projetos de teste (durante a implementação dos cards com TDD), o fluxo previsto é:
+A solution e os projetos de teste ficam em `backend/`. Para rodar os testes:
 
 ```bash
+cd backend
 dotnet test
 ```
 
