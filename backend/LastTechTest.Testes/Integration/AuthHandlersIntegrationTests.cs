@@ -26,6 +26,8 @@ public class AuthHandlersIntegrationTests : IAsyncLifetime
     {
         var services = new ServiceCollection();
 
+        services.AddLogging();
+
         var inMemorySettings = new Dictionary<string, string?>
         {
             ["Jwt:Secret"] = "integration-test-secret-key-should-be-long-enough",
