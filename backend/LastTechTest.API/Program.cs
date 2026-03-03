@@ -105,6 +105,13 @@ builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
+// Ensure database schema exists on startup (simplified for SQLite placeholder).
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.EnsureCreated();
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
