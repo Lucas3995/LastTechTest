@@ -2,36 +2,82 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ Master, Dev ]
   pull_request:
-    branches: [ main ]
+    branches: [ Master, Dev ]
+
+env:
+  DOTNET_VERSION: "10.0.x"
+  SOLUTION_PATH: backend/LastTechTest.sln
+  TEST_PROJECT: backend/LastTechTest.Testes/LastTechTest.Testes.csproj
 
 jobs:
-  build-test:
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup .NET 10
+      - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 10.0.x
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore
-        run: dotnet restore backend/LastTechTest.sln
+        run: dotnet restore ${{ env.SOLUTION_PATH }}
+
+      - name: Format check
+        run: dotnet format ${{ env.SOLUTION_PATH }} --verify-no-changes --verbosity normal
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+          cache: "dotnet"
+
+      - name: Restore
+        run: dotnet restore ${{ env.SOLUTION_PATH }}
 
       - name: Build
-        run: dotnet build backend/LastTechTest.sln --configuration Release --no-restore
+        run: dotnet build ${{ env.SOLUTION_PATH }} --configuration Release --no-restore
 
-      - name: Test with coverage
+  unit-tests:
+    name: Unit tests
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+          cache: "dotnet"
+
+      - name: Restore
+        run: dotnet restore ${{ env.SOLUTION_PATH }}
+
+      - name: Build
+        run: dotnet build ${{ env.SOLUTION_PATH }} --configuration Release --no-restore
+
+      - name: Unit tests with coverage
         run: >
-          dotnet test backend/LastTechTest.Testes/LastTechTest.Testes.csproj
+          dotnet test ${{ env.TEST_PROJECT }}
           --configuration Release
           --no-build
+          --filter "Category=Unit"
           --collect:"XPlat Code Coverage"
           --results-directory TestResults
+          --logger "trx;LogFileName=unit-tests.trx"
 
       - name: Enforce minimal coverage (30%)
         run: |
@@ -54,3 +100,79 @@ jobs:
             exit 1
           fi
 
+  integration-tests:
+    name: Integration tests
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+          cache: "dotnet"
+
+      - name: Restore
+        run: dotnet restore ${{ env.SOLUTION_PATH }}
+
+      - name: Build
+        run: dotnet build ${{ env.SOLUTION_PATH }} --configuration Release --no-restore
+
+      - name: Integration tests
+        run: >
+          dotnet test ${{ env.TEST_PROJECT }}
+          --configuration Release
+          --no-build
+          --filter "Category=Integration"
+          --logger "trx;LogFileName=integration-tests.trx"
+
+  e2e-tests:
+    name: E2E tests
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+          cache: "dotnet"
+
+      - name: Restore
+        run: dotnet restore ${{ env.SOLUTION_PATH }}
+
+      - name: Build
+        run: dotnet build ${{ env.SOLUTION_PATH }} --configuration Release --no-restore
+
+      - name: E2E tests
+        run: >
+          dotnet test ${{ env.TEST_PROJECT }}
+          --configuration Release
+          --no-build
+          --filter "Category=E2E"
+          --logger "trx;LogFileName=e2e-tests.trx"
+
+  vulnerability-scan:
+    name: Vulnerable packages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+          cache: "dotnet"
+
+      - name: Restore
+        run: dotnet restore ${{ env.SOLUTION_PATH }}
+
+      - name: Check for vulnerable packages
+        run: |
+          echo "Checking for vulnerable packages (direct and transitive)..."
+          dotnet list ${{ env.SOLUTION_PATH }} package --vulnerable --include-transitive

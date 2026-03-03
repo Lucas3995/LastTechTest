@@ -1,4 +1,5 @@
 using LastTechTest.Dominio.Entities;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -32,4 +33,3 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(x => x.LastLoginAtUtc);
     }
 }
-

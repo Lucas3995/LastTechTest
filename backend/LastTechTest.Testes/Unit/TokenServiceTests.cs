@@ -1,11 +1,15 @@
 using System.IdentityModel.Tokens.Jwt;
+
 using FluentAssertions;
+
 using LastTechTest.Dominio.Entities;
 using LastTechTest.Infrastrutura;
+
 using Microsoft.Extensions.Configuration;
 
 namespace LastTechTest.Testes.Unit;
 
+[Trait("Category", "Unit")]
 public class TokenServiceTests
 {
     [Fact]
@@ -37,4 +41,3 @@ public class TokenServiceTests
         jwt.Claims.Should().Contain(c => c.Type == JwtRegisteredClaimNames.Sub && c.Value == user.Id.ToString());
     }
 }
-

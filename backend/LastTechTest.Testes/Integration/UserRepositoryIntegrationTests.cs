@@ -1,12 +1,15 @@
 using FluentAssertions;
+
 using LastTechTest.Dominio.Entities;
 using LastTechTest.Persistencia;
 using LastTechTest.Persistencia.Repositories;
+
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
 namespace LastTechTest.Testes.Integration;
 
+[Trait("Category", "Integration")]
 public class UserRepositoryIntegrationTests : IAsyncLifetime
 {
     private readonly SqliteConnection _connection;
@@ -49,4 +52,3 @@ public class UserRepositoryIntegrationTests : IAsyncLifetime
         await _connection.DisposeAsync();
     }
 }
-
