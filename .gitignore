@@ -30,6 +30,9 @@ coverage.cobertura.xml
 .DS_Store
 Thumbs.db
 
+## Instruções internas do projeto (não versionar)
+InstrucoesProjeto
+
 ## Docker / containers
 docker-compose.override.yml
 
