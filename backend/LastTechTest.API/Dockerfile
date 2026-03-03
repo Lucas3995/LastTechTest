@@ -1,7 +1,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
-COPY ../.. .
+COPY . .
 
 RUN dotnet restore backend/LastTechTest.sln
 RUN dotnet publish backend/LastTechTest.API/LastTechTest.API.csproj -c Release -o /app/publish

@@ -10,15 +10,18 @@ public sealed class RegisterUserCommandHandler : IRequestHandler<RegisterUserCom
     private readonly IUserRepository _userRepository;
     private readonly IUserPasswordHasher _passwordHasher;
     private readonly ITokenService _tokenService;
+    private readonly IUserTokenRepository _userTokenRepository;
 
     public RegisterUserCommandHandler(
         IUserRepository userRepository,
         IUserPasswordHasher passwordHasher,
-        ITokenService tokenService)
+        ITokenService tokenService,
+        IUserTokenRepository userTokenRepository)
     {
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
         _tokenService = tokenService;
+        _userTokenRepository = userTokenRepository;
     }
 
     public async Task<AuthTokensDto> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
@@ -35,9 +38,14 @@ public sealed class RegisterUserCommandHandler : IRequestHandler<RegisterUserCom
         var hash = _passwordHasher.HashPassword(user, request.Password);
         user.SetPasswordHash(hash);
 
+        var tokens = _tokenService.GenerateTokens(user);
+
+        var refreshTokenEntity = new UserToken();
+        refreshTokenEntity.Initialize(user.Id, tokens.RefreshToken, TokenType.Refresh, tokens.RefreshTokenExpiresAtUtc);
+        await _userTokenRepository.AddAsync(refreshTokenEntity, cancellationToken);
+
         await _userRepository.AddAsync(user, cancellationToken);
 
-        var tokens = _tokenService.GenerateTokens(user);
         return new AuthTokensDto(tokens.AccessToken, tokens.RefreshToken, tokens.AccessTokenExpiresAtUtc, tokens.RefreshTokenExpiresAtUtc);
     }
 }
