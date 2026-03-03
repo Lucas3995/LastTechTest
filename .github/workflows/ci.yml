@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore backend/LastTechTest.sln
+
+      - name: Build
+        run: dotnet build backend/LastTechTest.sln --configuration Release --no-restore
+
+      - name: Test with coverage
+        run: >
+          dotnet test backend/LastTechTest.Testes/LastTechTest.Testes.csproj
+          --configuration Release
+          --no-build
+          --collect:"XPlat Code Coverage"
+          --results-directory TestResults
+
+      - name: Enforce minimal coverage (30%)
+        run: |
+          echo "Checking coverage threshold (30%)..."
+          COV_FILE=$(find TestResults -name 'coverage.cobertura.xml' | head -n 1)
+          if [ -z "$COV_FILE" ]; then
+            echo "Coverage file not found."
+            exit 1
+          fi
+          TOTAL_LINES=$(grep -oP 'lines-valid="\K[0-9]+' "$COV_FILE" | awk '{s+=$1} END {print s}')
+          COVERED_LINES=$(grep -oP 'lines-covered="\K[0-9]+' "$COV_FILE" | awk '{s+=$1} END {print s}')
+          if [ "$TOTAL_LINES" -eq 0 ]; then
+            echo "No lines counted for coverage."
+            exit 1
+          fi
+          PERCENT=$((100 * COVERED_LINES / TOTAL_LINES))
+          echo "Coverage: $PERCENT% (threshold: 30%)"
+          if [ "$PERCENT" -lt 30 ]; then
+            echo "Coverage below threshold."
+            exit 1
+          fi
+
