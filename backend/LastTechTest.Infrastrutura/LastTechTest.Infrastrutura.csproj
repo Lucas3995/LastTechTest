@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\LastTechTest.Aplicacao\LastTechTest.Aplicacao.csproj" />
+    <ProjectReference Include="..\LastTechTest.Dominio\LastTechTest.Dominio.csproj" />
+    <ProjectReference Include="..\LastTechTest.Persistencia\LastTechTest.Persistencia.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>

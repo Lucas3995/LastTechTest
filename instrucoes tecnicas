@@ -1,0 +1,143 @@
+Titulo do projeto
+
+Breve texto de descrição do projeto + tecnologias e metodologias utilizadas
+
+status do projeto quanto a numeroDeTestesPassando/numeroDeTestesExistentes (porcentagemDeTestesPassando%)  e porcentagem de cobertura de código por eles
+
+Arquitetura
+
+Principios basicos da arquitetura limpa
+
+Principios SOLID
+Principios da coesão de componentes
+Separação explicita em camadas seguindo uma direção de dependencias clara
+            essa camada A  ---depende---> dessa cadada B
+            a camada B não tem conhecimento de nada que existe dentro da camada A, nem mesmo sabe que a camada A existe
+            --
+            Frameworks e Drivers (Web, UI, DB, Dispositivos, Interfaces EXTERNAS) ---> Adaptadores de Interface (Apresentadores, Controladores, Gateway) ---> Regras de negocio da APLICACAO (Casos de Uso) ---> Regras de negocio da EMPRESA (Entidades)
+
+Estrutura de confirações de projeto
+```
+LastTechTest/
+├── .github/                  # GitHub Actions e CI/CD
+├── deploy/                   # Deploy e Infraestrutura
+├── docker/                   # Docker e Containerização
+├── scripts/                  # Scripts de Automação
+├── docs/                     # Documentação
+```
+
+Estrutura de backend
+```
+LastTechTest/
+├── backend/LastTechTest.API/           # Camada de Apresentação
+├── backend/LastTechTest.Aplicacao/     # Camada de Aplicação
+├── backend/LastTechTest.Dominio/       # Camada de Domínio
+├── backend/LastTechTest.Infrastrutura/ # Camada de Infraestrutura
+├── backend/LastTechTest.Persistencia/  # Camada de Persistência
+└── backend/LastTechTest.Testes/        # Testes
+```
+
+Modulos base do backend e suas responsabilidades
+
+LastTechTest.API (Modulo de configuração e porta de entrada)
+- Controllers - Endpoints da API REST
+- Middlewares - Validação JWT, tratamento de exceções
+- Program.cs - Configuração da aplicação
+- appsettings.json - Configurações da aplicação
+
+LastTechTest.Applicacao (Modulo de casos de uso)
+- **Commands** - Comandos CQRS (Create, Update, Delete)
+- **Queries** - Consultas CQRS (Read)
+- **Handlers** - Manipuladores de comandos e consultas
+- **Validations** - Validações de entrada
+- **Responses** - DTOs de resposta
+- **Pipeline** - Comportamentos de pipeline (validação)
+
+LastTechTest.Dominio (Modulo de entidades, com regras de negocio)
+- **Entidades** - Entidades de negócio
+- **Enums** - Enumerações do domínio
+- **Interfaces** - Contratos de serviços
+- **Utils** - Utilitários do domínio
+
+LastTechTest.Infrastrutura (Modulo de coisas relacionadas ao funcionamento de um sistema)
+  - MfaService (autenticação de dois fatores)
+  - TokenService (geração de JWT)
+  - SmtpEmailService (envio de emails)
+  - KeyGenerator - Geração de chaves
+  - Security - Segurança de arquivos
+
+LastTechTest.Persistencia (Modulo de persistência e comunicação com o banco de dados)
+- **ApplicacaoDbContext** - Contexto do Entity Framework
+- **Migrations** - Migrações do banco de dados
+
+Padrões Arquiteturais
+
+CQRS (Command Query Responsibility Segregation)
+```
+Commands/          # Modificam o estado
+├── CriarSolicitacaoCommand.cs
+└── AlterarStatusSolicitacaoCommand.cs
+
+Queries/           # Consultam dados
+├── ListarSolicitacoesQuery.cs
+└── SimularSolicitacaoQuery.cs
+```
+
+Mediator Pattern
+    - Handlers: implementam o padrão mediator
+    - Separação clara entre comandos e consultas
+    - Processamento através de pipelines
+
+Repository Pattern
+    - Entity Framework como ORM
+    - DbContext como repositório genérico
+    - Entidades mapeadas para tabelas
+
+JWT Authentication
+    - Middleware de validação JWT
+    - TokenService para geração de tokens
+    - Refresh tokens implementados
+
+Tecnologias e Frameworks
+
+Backend
+- .NET 10 - Framework web
+- C# 14   - Linguagem de programação
+
+Banco de Dados
+- SQLite - Banco de dados principal
+- Entity Framework Core 10 - ORM
+
+Autenticação e Segurança
+- JWT Bearer - Autenticação baseada em tokens
+- MFA - Autenticação de dois fatores
+
+Padrões Arquiteturais
+- CQRS - Command Query Responsibility Segregation
+- MediatR - Framework para implementação do padrão Mediator
+- Repository Pattern - Padrão de repositório
+- Dependency Injection - Padrao para desacoplar a instanciação das classes uma das outras
+
+Validação e Documentação
+- FluentValidation - Validação de dados
+- Swagger/OpenAPI - Documentação da API
+- Swashbuckle.AspNetCore - Geração de documentação
+
+Testes
+- xUnit - Framework de testes
+- Moq - Framework para mocking para testes
+- FluentAssertions - Assertions expressivas
+- Coverlet - Cobertura de código
+
+Ferramentas de Desenvolvimento
+- Docker - Containerização
+- ReportGenerator - Relatórios de cobertura
+- Cursor - Agente AI
+- Entity Framework CLI - Migrações e scaffolding
+
+### **Deploy e Infraestrutura**
+- GitHub Actions - CI/CD Pipeline
+- Docker Compose - Orquestração de containers
+- SQLite - Banco de dados de produção
+- Cursor Bugbot - Revisor de PRs
+

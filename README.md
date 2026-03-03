@@ -1,112 +1,187 @@
-## Desafio Técnico – LastTechTest: Serviço de Antecipação de Valores
+## LastTechTest Backend (.NET 10, Clean Architecture)
 
-Este repositório contém a implementação de uma API REST para gestão de **solicitações de antecipação de valores** para criadores da LastTechTest, com foco em **clareza de código**, **boas práticas de engenharia**, **testes automatizados** e **estrutura preparada para evoluir**.
+[![.NET](https://img.shields.io/badge/.NET-10.0-blue.svg)](https://dotnet.microsoft.com/download)
+[![Architecture](https://img.shields.io/badge/Architecture-Clean%20Architecture-orange.svg)](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
+[![Tests](https://img.shields.io/badge/Tests-Unit%20%7C%20Integration%20%7C%20E2E-brightgreen.svg)](#-piramide-de-testes)
+[![Docker](https://img.shields.io/badge/Docker-Compose-blue.svg)](#-como-rodar-com-docker-recomendado)
+[![CI](https://img.shields.io/badge/GitHub-Actions-lightgrey.svg)](#-ci-e-fitness-functions)
 
-O objetivo é permitir que um sistema interno crie, liste, aprove/recuse e simule solicitações de antecipação, seguindo as regras descritas no arquivo `InstrucoesProjeto`.
+Backend de referência inspirado na [OmniSuite API](https://github.com/DuoMasterGestaoTecnologia/nueva_api/blob/main/README.md), utilizando **.NET 10 / C# 14**, **Clean Architecture**, **CQRS + MediatR**, **EF Core 10 + SQLite**, autenticação **JWT** e pirâmide de testes completa (unitário, integração e E2E), totalmente containerizado.
 
----
-
-## Stack prevista
-
-- **Backend**: C# / .NET 9
-- **Arquitetura**: Arquitetura Limpa, SOLID, DDD, CQRS com MediatR, Repository Pattern
-- **Validações**: FluentValidation
-- **Autenticação**: JWT com MFA (a ser definido conforme necessidade do desafio)
-- **Persistência**: banco em memória com Entity Framework, com opção de alternar para SQLite
-- **Testes**: xUnit, Moq, FluentAssertions, Coverlet
-- **Containerização**: Docker + Docker Compose
-
-> Observação: parte da estrutura ainda será construída conforme os cards de tarefa em `tarefas/` forem implementados usando TDD.
+> **Objetivo**: ser um _blueprint_ de backend monolítico moderno, fácil de entender, extender e rodar com um único comando Docker.
 
 ---
 
-## Como rodar o projeto localmente (visão geral)
+### 🔧 Stack principal
 
-Assim que a solução .NET for criada (card `TA-001`), o fluxo esperado para execução local será:
-
-1. **Clonar o repositório**
-   ```bash
-   git clone <url-do-repo>
-   cd LastTechTest
-   ```
-
-2. **Subir via Docker Compose** (quando os arquivos de containerização estiverem presentes)
-   ```bash
-   docker compose up --build
-   ```
-
-3. **Rodar a API localmente com .NET CLI** (modo alternativo, sem Docker)
-   ```bash
-   dotnet restore
-   dotnet build
-   dotnet run --project src/LastTechTest.Antecipacao.Api
-   ```
-
-4. **Acessar a API**
-   - Endpoint de saúde (exemplo do card `TA-001`): `GET /health`
-   - Endpoints de negócio (criação, listagem, aprovação/recusa, simulação) serão documentados conforme os cards `TA-020` a `TA-100`.
-
-> Enquanto a solução ainda não estiver criada, estes comandos são uma **referência de intenção** e podem precisar de ajuste conforme o nome final dos projetos/pastas.
+- **Framework**: .NET 10 (`net10.0`), ASP.NET Core 10
+- **Arquitetura**: Clean Architecture (Domínio isolado de frameworks), CQRS, DI nativa
+- **Persistência**: EF Core 10 + SQLite (placeholder para futuros bancos)
+- **Autenticação**: JWT (access + refresh token), estrutura para MFA
+- **Testes**: xUnit, FluentAssertions, Coverlet (cobertura), WebApplicationFactory para E2E
+- **DevOps**: Docker + docker compose, GitHub Actions (build + testes + cobertura mínima)
 
 ---
 
-## Como rodar os testes
+### 🧱 Visão geral da solução
 
-Após a criação dos projetos de teste (durante a implementação dos cards com TDD), o fluxo previsto é:
+| Camada / Projeto                | Responsabilidade principal                                                                 |
+|---------------------------------|-------------------------------------------------------------------------------------------|
+| `LastTechTest.Dominio`         | Entidades, enums e interfaces de domínio, sem dependência de frameworks                   |
+| `LastTechTest.Aplicacao`       | Casos de uso (Commands/Queries/Handlers), validações, DTOs                               |
+| `LastTechTest.Persistencia`    | `ApplicationDbContext`, configurações EF Core 10, repositórios SQLite                    |
+| `LastTechTest.Infrastrutura`   | Serviços técnicos (TokenService, PasswordHasher, MFA, Email, KeyGenerator)               |
+| `LastTechTest.API`             | Endpoints HTTP (minimal API), autenticação JWT, Swagger/OpenAPI, wiring de DI            |
+| `LastTechTest.Testes`          | Testes unitários, integração e E2E                                                       |
 
-```bash
-dotnet test
+Estrutura de pastas (resumida):
+
+```text
+backend/
+  LastTechTest.API/
+  LastTechTest.Aplicacao/
+  LastTechTest.Dominio/
+  LastTechTest.Infrastrutura/
+  LastTechTest.Persistencia/
+  LastTechTest.Testes/
+docker/
+  docker-compose.yml
+docs/
+  architecture/ADR-001-clean-architecture.md
+  architecture/ADR-002-sqlite-placeholder.md
+  architecture/ADR-003-observability-and-security.md
+  tracability.md
 ```
 
-Com o tempo, podem ser adicionados:
+---
 
-- Coleta de cobertura com Coverlet.
-- Geração de relatório com ReportGenerator.
-- Execução automática via GitHub Actions em cada push/PR.
+### 🔐 Endpoints principais de autenticação
 
-As suítes de testes (unitários, de integração e E2E) serão organizadas conforme os cards de regra de negócio, sempre iniciando a implementação pelos testes.
+- `POST /auth/register` – registra usuário básico (email/senha)
+- `POST /auth/login` – autentica e retorna access/refresh token
+- `POST /auth/refresh` – renova access token a partir do refresh
+- `DELETE /auth/logout` – invalida refresh token
+- `GET /user/logged` – retorna dados do usuário autenticado
+
+Swagger/OpenAPI disponível em `/swagger` quando a API estiver rodando.
 
 ---
 
-## Organização por cards de tarefa (`tarefas/`)
+### ▶️ Como rodar com Docker (recomendado)
 
-A pasta `tarefas/` conterá os **cards de tarefa** em formato markdown, cada um representando um conjunto coeso de regras de negócio a ser implementado via TDD.
+**Pré-requisitos**
 
-- Os IDs seguem o padrão `TA-XXX` (por exemplo, `TA-020`) para cards principais.
-- Subcards, quando necessários, seguem o padrão `TA-XXX-YY` (por exemplo, `TA-020-01`).
+- Docker e Docker Compose instalados
 
-Cada card descreve:
+**Passos**
 
-- Contexto e objetivo em linguagem de negócio.
-- Escopo da regra de negócio.
-- Critérios de aceite como **cenários de teste**.
-- Estratégia TDD para atacar a tarefa.
-- Dependências entre cards.
+```bash
+git clone <url-do-repositorio>
+cd LastTechTest
 
-Para começar a implementação, abra os arquivos em `tarefas/` e siga o fluxo descrito em cada card, sempre iniciando pelos testes.
+docker compose -f docker/docker-compose.yml up --build
+```
+
+A API ficará acessível em:
+
+- `http://localhost:5114` (HTTP)
+- `http://localhost:5114/swagger` (Swagger UI)
+
+O banco SQLite é persistido em um volume Docker (`lasttechtest-data`), configurado em `docker/docker-compose.yml`.
 
 ---
 
-## Resumo do domínio (a partir de `InstrucoesProjeto`)
+### ▶️ Como rodar localmente (sem Docker)
 
-Regras principais:
+**Pré-requisitos**
 
-- **Criar solicitação de antecipação**
-  - Entrada: `creator_id`, `valor_solicitado`, `data_solicitacao`.
-  - Aplicar taxa de **5%** sobre o valor solicitado.
-  - Calcular e retornar: `valor_liquido`, `status` (default = `pendente`).
-- **Listar solicitações por `creator_id`**.
-- **Aprovar ou recusar uma solicitação**
-  - Atualizar `status` para `aprovada` ou `recusada`.
-- **Simulação de antecipação (GET com query params)**
-  - Calcular os valores de antecipação sem criar a solicitação.
+- .NET SDK 10 instalado
 
-Regras de negócio:
+**Comandos**
 
-- Valor solicitado deve ser **maior que R$ 100,00**.
-- Um `creator_id` não pode ter mais de **uma solicitação pendente** ao mesmo tempo.
-- Taxa de antecipação fixa: **5%** sobre o valor bruto.
-- Toda solicitação inicia com status **`pendente`**.
+```bash
+cd backend
+dotnet restore
+dotnet run --project LastTechTest.API/LastTechTest.API.csproj
+```
 
-Essas regras estão decompostas em cards de tarefa na pasta `tarefas/`.
+A API ficará disponível nas URLs padrão definidas pelo ASP.NET Core (ou `http://localhost:5114` se configurado).
+
+---
+
+### 🧪 Pirâmide de testes
+
+Dentro da pasta `backend`:
+
+```bash
+dotnet test LastTechTest.Testes/LastTechTest.Testes.csproj
+```
+
+**Cobertura por nível:**
+
+- **Unitários**:
+  - Entidades de domínio (`User`)
+  - Serviços de infraestrutura (`PasswordHasher`, `TokenService`)
+- **Integração**:
+  - Repositórios EF Core (SQLite in-memory) – `UserRepository`
+  - Fluxos de autenticação via MediatR – `AuthHandlersIntegrationTests`
+- **E2E**:
+  - Fluxo completo `register -> login -> /user/logged` via `WebApplicationFactory<Program>`
+
+Diagrama conceitual:
+
+```text
+      E2E     (fluxos completos HTTP)
+   Integração (handlers + EF Core + SQLite)
+Unitário      (domínio + serviços puros)
+```
+
+---
+
+### 🏗️ Arquitetura em alto nível
+
+- **Domínio** não conhece EF Core, ASP.NET ou bibliotecas externas.
+- **Aplicação** orquestra casos de uso via MediatR (Commands/Queries) e FluentValidation.
+- **Infraestrutura/Persistência** implementam interfaces de domínio e são plugadas via DI na API.
+- **API** expõe endpoints HTTP mínimos e integra autenticação JWT + Swagger.
+
+Para detalhes aprofundados da arquitetura, veja:
+
+- `docs/architecture/ADR-001-clean-architecture.md`
+- `docs/architecture/ADR-002-sqlite-placeholder.md`
+- `docs/architecture/ADR-003-observability-and-security.md`
+
+---
+
+### 📊 CI e fitness functions
+
+Pipeline em `.github/workflows/ci.yml`:
+
+- Roda em `ubuntu-latest` com `.NET 10.0.x`.
+- Etapas:
+  - `dotnet restore` da solução.
+  - `dotnet build` em modo Release.
+  - `dotnet test` com coleta de cobertura (`XPlat Code Coverage`).
+  - Verificação automática de **cobertura mínima (30%)** a partir do arquivo `coverage.cobertura.xml`.
+- Se a cobertura cair abaixo do limiar, o pipeline falha, atuando como _fitness function_ de qualidade.
+
+---
+
+### 🔍 Rastreamento requisitos → casos de uso → testes
+
+O arquivo `docs/tracability.md` descreve como requisitos de autenticação (registro, login, refresh, logout, usuário logado) se ligam a:
+
+- Commands/Queries/Handlers (por exemplo, `RegisterUserCommand`, `LoginCommand`, `GetLoggedUserQuery`).
+- Endpoints HTTP (`/auth/*`, `/user/logged`).
+- Testes correspondentes (unit, integração e E2E).
+
+Esse mapeamento é pensado para dialogar diretamente com o fluxo das skills `tradutor`, `maestro` e `quadro-de-recompensas`.
+
+---
+
+### 🔭 Próximos passos sugeridos
+
+- Aumentar gradualmente a cobertura de testes acima do limite inicial de 30%.
+- Evoluir MFA de stub para implementação real (TOTP, por exemplo).
+- Integrar métricas e tracing (OpenTelemetry) usando a base já preparada de logs estruturados.
 
