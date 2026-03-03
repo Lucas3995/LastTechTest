@@ -40,11 +40,11 @@ public sealed class RegisterUserCommandHandler : IRequestHandler<RegisterUserCom
 
         var tokens = _tokenService.GenerateTokens(user);
 
+        await _userRepository.AddAsync(user, cancellationToken);
+
         var refreshTokenEntity = new UserToken();
         refreshTokenEntity.Initialize(user.Id, tokens.RefreshToken, TokenType.Refresh, tokens.RefreshTokenExpiresAtUtc);
         await _userTokenRepository.AddAsync(refreshTokenEntity, cancellationToken);
-
-        await _userRepository.AddAsync(user, cancellationToken);
 
         return new AuthTokensDto(tokens.AccessToken, tokens.RefreshToken, tokens.AccessTokenExpiresAtUtc, tokens.RefreshTokenExpiresAtUtc);
     }
