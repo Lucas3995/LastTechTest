@@ -15,4 +15,3 @@ public sealed class RegisterUserCommandValidator : AbstractValidator<RegisterUse
             .MinimumLength(8);
     }
 }
-

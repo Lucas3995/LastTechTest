@@ -4,4 +4,3 @@ public interface ICurrentUserService
 {
     Guid? GetCurrentUserId();
 }
-

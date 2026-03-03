@@ -1,6 +1,7 @@
 using LastTechTest.Aplicacao.Common.Responses;
 using LastTechTest.Dominio.Entities;
 using LastTechTest.Dominio.Interfaces;
+
 using MediatR;
 
 namespace LastTechTest.Aplicacao.Authentication.Commands.RefreshToken;
@@ -47,4 +48,3 @@ public sealed class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCom
         return new AuthTokensDto(tokens.AccessToken, tokens.RefreshToken, tokens.AccessTokenExpiresAtUtc, tokens.RefreshTokenExpiresAtUtc);
     }
 }
-

@@ -1,9 +1,11 @@
 using FluentAssertions;
+
 using LastTechTest.Dominio.Entities;
 using LastTechTest.Infrastrutura;
 
 namespace LastTechTest.Testes.Unit;
 
+[Trait("Category", "Unit")]
 public class PasswordHasherTests
 {
     [Fact]

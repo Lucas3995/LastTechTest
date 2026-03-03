@@ -1,4 +1,5 @@
 using LastTechTest.Dominio.Entities;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace LastTechTest.Persistencia;
@@ -23,4 +24,3 @@ public class ApplicationDbContext : DbContext
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
     }
 }
-

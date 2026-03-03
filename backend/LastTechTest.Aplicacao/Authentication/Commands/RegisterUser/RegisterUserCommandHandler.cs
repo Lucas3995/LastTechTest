@@ -1,6 +1,7 @@
 using LastTechTest.Aplicacao.Common.Responses;
 using LastTechTest.Dominio.Entities;
 using LastTechTest.Dominio.Interfaces;
+
 using MediatR;
 
 namespace LastTechTest.Aplicacao.Authentication.Commands.RegisterUser;
@@ -49,4 +50,3 @@ public sealed class RegisterUserCommandHandler : IRequestHandler<RegisterUserCom
         return new AuthTokensDto(tokens.AccessToken, tokens.RefreshToken, tokens.AccessTokenExpiresAtUtc, tokens.RefreshTokenExpiresAtUtc);
     }
 }
-

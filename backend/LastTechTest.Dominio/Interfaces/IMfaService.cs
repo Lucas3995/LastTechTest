@@ -8,4 +8,3 @@ public interface IMfaService
 
     Task<bool> VerifyCodeAsync(User user, string code, CancellationToken cancellationToken = default);
 }
-

@@ -37,4 +37,3 @@ public class UserToken
         Revoked = true;
     }
 }
-

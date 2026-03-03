@@ -1,5 +1,6 @@
 using LastTechTest.Dominio.Entities;
 using LastTechTest.Dominio.Interfaces;
+
 using MediatR;
 
 namespace LastTechTest.Aplicacao.Authentication.Commands.Logout;
@@ -27,4 +28,3 @@ public sealed class LogoutCommandHandler : IRequestHandler<LogoutCommand, Unit>
         return Unit.Value;
     }
 }
-
