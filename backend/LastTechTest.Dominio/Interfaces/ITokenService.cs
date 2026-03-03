@@ -10,4 +10,3 @@ public interface ITokenService
 
     Guid? GetUserIdFromExpiredAccessToken(string token);
 }
-

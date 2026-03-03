@@ -1,4 +1,5 @@
 using FluentAssertions;
+
 using LastTechTest.Aplicacao.Authentication.Commands.Login;
 using LastTechTest.Aplicacao.Authentication.Commands.RegisterUser;
 using LastTechTest.Aplicacao.Common.Interfaces;
@@ -6,7 +7,9 @@ using LastTechTest.Dominio.Interfaces;
 using LastTechTest.Infrastrutura;
 using LastTechTest.Persistencia;
 using LastTechTest.Persistencia.Repositories;
+
 using MediatR;
+
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -14,6 +17,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace LastTechTest.Testes.Integration;
 
+[Trait("Category", "Integration")]
 public class AuthHandlersIntegrationTests : IAsyncLifetime
 {
     private readonly ServiceProvider _provider;
@@ -91,4 +95,3 @@ public class AuthHandlersIntegrationTests : IAsyncLifetime
         public Guid? GetCurrentUserId() => null;
     }
 }
-

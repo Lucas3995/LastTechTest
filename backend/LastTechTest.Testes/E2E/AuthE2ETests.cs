@@ -1,15 +1,19 @@
 using System.Net;
 using System.Net.Http.Json;
+
 using FluentAssertions;
+
 using LastTechTest.API;
 using LastTechTest.Aplicacao.Authentication.Commands.Login;
 using LastTechTest.Aplicacao.Authentication.Commands.Logout;
 using LastTechTest.Aplicacao.Authentication.Commands.RefreshToken;
 using LastTechTest.Aplicacao.Authentication.Commands.RegisterUser;
+
 using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace LastTechTest.Testes.E2E;
 
+[Trait("Category", "E2E")]
 public class AuthE2ETests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly CustomWebApplicationFactory _factory;
@@ -120,4 +124,3 @@ public class AuthE2ETests : IClassFixture<CustomWebApplicationFactory>
         public string RefreshToken { get; set; } = string.Empty;
     }
 }
-
