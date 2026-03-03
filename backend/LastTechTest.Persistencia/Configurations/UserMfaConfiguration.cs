@@ -1,4 +1,5 @@
 using LastTechTest.Dominio.Entities;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -28,4 +29,3 @@ public class UserMfaConfiguration : IEntityTypeConfiguration<UserMfa>
             .OnDelete(DeleteBehavior.Cascade);
     }
 }
-

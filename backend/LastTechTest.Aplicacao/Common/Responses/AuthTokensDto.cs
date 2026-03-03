@@ -5,4 +5,3 @@ public sealed record AuthTokensDto(
     string RefreshToken,
     DateTime AccessTokenExpiresAtUtc,
     DateTime RefreshTokenExpiresAtUtc);
-

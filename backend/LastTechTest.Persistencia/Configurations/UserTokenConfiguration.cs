@@ -1,4 +1,5 @@
 using LastTechTest.Dominio.Entities;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -37,4 +38,3 @@ public class UserTokenConfiguration : IEntityTypeConfiguration<UserToken>
             .OnDelete(DeleteBehavior.Cascade);
     }
 }
-

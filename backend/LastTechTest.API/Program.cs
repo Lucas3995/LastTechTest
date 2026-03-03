@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text;
+
 using LastTechTest.Aplicacao.Authentication.Commands.Login;
 using LastTechTest.Aplicacao.Authentication.Commands.Logout;
 using LastTechTest.Aplicacao.Authentication.Commands.RefreshToken;
@@ -10,13 +11,17 @@ using LastTechTest.Dominio.Interfaces;
 using LastTechTest.Infrastrutura;
 using LastTechTest.Persistencia;
 using LastTechTest.Persistencia.Repositories;
+
 using MediatR;
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+
 using Scalar.AspNetCore;
+
 using Serilog;
 using Serilog.Events;
 

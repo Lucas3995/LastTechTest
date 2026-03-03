@@ -1,5 +1,6 @@
 using LastTechTest.Aplicacao.Common.Interfaces;
 using LastTechTest.Dominio.Interfaces;
+
 using MediatR;
 
 namespace LastTechTest.Aplicacao.Authentication.Queries.GetLoggedUser;
@@ -34,4 +35,3 @@ public sealed class GetLoggedUserQueryHandler : IRequestHandler<GetLoggedUserQue
         return new GetLoggedUserResponse(user.Id, user.Email, user.Status.ToString());
     }
 }
-

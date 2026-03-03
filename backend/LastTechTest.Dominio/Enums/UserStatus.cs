@@ -6,4 +6,3 @@ public enum UserStatus
     Inactive = 2,
     Locked = 3
 }
-

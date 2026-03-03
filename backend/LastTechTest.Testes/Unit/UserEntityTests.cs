@@ -1,8 +1,10 @@
 using FluentAssertions;
+
 using LastTechTest.Dominio.Entities;
 
 namespace LastTechTest.Testes.Unit;
 
+[Trait("Category", "Unit")]
 public class UserEntityTests
 {
     [Fact]
@@ -14,4 +16,3 @@ public class UserEntityTests
         user.CreatedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
     }
 }
-

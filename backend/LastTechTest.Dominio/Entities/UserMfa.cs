@@ -24,4 +24,3 @@ public class UserMfa
         Enabled = false;
     }
 }
-

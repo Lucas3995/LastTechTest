@@ -1,5 +1,6 @@
 using LastTechTest.Dominio.Entities;
 using LastTechTest.Dominio.Interfaces;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace LastTechTest.Persistencia.Repositories;
@@ -31,4 +32,3 @@ public class UserTokenRepository : IUserTokenRepository
         await _context.SaveChangesAsync(cancellationToken);
     }
 }
-

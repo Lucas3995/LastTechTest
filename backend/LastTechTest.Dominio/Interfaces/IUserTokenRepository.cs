@@ -10,4 +10,3 @@ public interface IUserTokenRepository
 
     Task UpdateAsync(UserToken token, CancellationToken cancellationToken = default);
 }
-
