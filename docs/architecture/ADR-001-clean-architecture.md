@@ -2,7 +2,7 @@
 
 ### Contexto
 
-O backend deve servir como **modelo de referência** para futuros projetos, privilegiando manutenibilidade, testabilidade e independência de frameworks, alinhado às instruções de `instrucoes tecnicas` e à referência [ API](https://github.com/DuoMasterGestaoTecnologia/nueva_api/blob/main/README.md).
+O backend deve priorizar manutenibilidade, testabilidade e independência de frameworks, alinhado às instruções de `instrucoes tecnicas`.
 
 ### Decisão
 

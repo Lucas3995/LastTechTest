@@ -6,7 +6,7 @@
 [![Docker](https://img.shields.io/badge/Docker-Compose-blue.svg)](#-como-rodar-com-docker-recomendado)
 [![CI](https://img.shields.io/badge/GitHub-Actions-lightgrey.svg)](#-ci-e-fitness-functions)
 
-Backend de referência inspirado na [ API](https://github.com/DuoMasterGestaoTecnologia/nueva_api/blob/main/README.md), utilizando **.NET 10 / C# 14**, **Clean Architecture**, **CQRS + MediatR**, **EF Core 10 + SQLite**, autenticação **JWT** e pirâmide de testes completa (unitário, integração e E2E), totalmente containerizado.
+Backend em **.NET 10 / C# 14**, com **Clean Architecture**, **CQRS + MediatR**, **EF Core 10 + SQLite**, autenticação **JWT** e pirâmide de testes completa (unitário, integração e E2E), totalmente containerizado.
 
 > **Objetivo**: ser um _blueprint_ de backend monolítico moderno, fácil de entender, extender e rodar com um único comando Docker.
 
