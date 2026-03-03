@@ -35,7 +35,15 @@ public class UserRepository : IUserRepository
 
     public async Task UpdateAsync(User user, CancellationToken cancellationToken = default)
     {
-        _context.Users.Update(user);
+        var tracked = await _context.Users.FindAsync(new object[] { user.Id }, cancellationToken);
+        if (tracked is not null)
+        {
+            _context.Entry(tracked).CurrentValues.SetValues(user);
+        }
+        else
+        {
+            _context.Users.Update(user);
+        }
         await _context.SaveChangesAsync(cancellationToken);
     }
 }

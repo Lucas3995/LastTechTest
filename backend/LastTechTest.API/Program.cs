@@ -9,11 +9,14 @@ using LastTechTest.Aplicacao.Common.Interfaces;
 using LastTechTest.Dominio.Interfaces;
 using LastTechTest.Infrastrutura;
 using LastTechTest.Persistencia;
+using LastTechTest.Persistencia.Repositories;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
 
@@ -114,8 +117,8 @@ using (var scope = app.Services.CreateScope())
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.MapSwagger("/openapi/{documentName}.json");
+    app.MapScalarApiReference(options => options.WithTitle("LastTechTest Auth API"));
 }
 
 app.UseSerilogRequestLogging();
@@ -124,25 +127,53 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapPost("/auth/register", async (RegisterUserCommand command, ISender sender, CancellationToken ct) =>
+static IResult MapException(Exception ex)
 {
-    var result = await sender.Send(command, ct);
-    return Results.Ok(result);
+    return ex is InvalidOperationException
+        ? Results.BadRequest(new { error = ex.Message })
+        : Results.Json(new { error = "An error occurred." }, statusCode: 500);
+}
+
+app.MapPost("/auth/register", async ([FromBody] RegisterUserCommand command, [FromServices] ISender sender, CancellationToken ct) =>
+{
+    try
+    {
+        var result = await sender.Send(command, ct);
+        return Results.Ok(result);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return MapException(ex);
+    }
 });
 
-app.MapPost("/auth/login", async (LoginCommand command, ISender sender, CancellationToken ct) =>
+app.MapPost("/auth/login", async ([FromBody] LoginCommand command, [FromServices] ISender sender, CancellationToken ct) =>
 {
-    var result = await sender.Send(command, ct);
-    return Results.Ok(result);
+    try
+    {
+        var result = await sender.Send(command, ct);
+        return Results.Ok(result);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return MapException(ex);
+    }
 });
 
-app.MapPost("/auth/refresh", async (RefreshTokenCommand command, ISender sender, CancellationToken ct) =>
+app.MapPost("/auth/refresh", async ([FromBody] RefreshTokenCommand command, [FromServices] ISender sender, CancellationToken ct) =>
 {
-    var result = await sender.Send(command, ct);
-    return Results.Ok(result);
+    try
+    {
+        var result = await sender.Send(command, ct);
+        return Results.Ok(result);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return MapException(ex);
+    }
 });
 
-app.MapDelete("/auth/logout", async (LogoutCommand command, ISender sender, CancellationToken ct) =>
+app.MapDelete("/auth/logout", async ([FromBody] LogoutCommand command, [FromServices] ISender sender, CancellationToken ct) =>
 {
     await sender.Send(command, ct);
     return Results.NoContent();
@@ -150,8 +181,15 @@ app.MapDelete("/auth/logout", async (LogoutCommand command, ISender sender, Canc
 
 app.MapGet("/user/logged", async (ISender sender, CancellationToken ct) =>
 {
-    var result = await sender.Send(new GetLoggedUserQuery(), ct);
-    return Results.Ok(result);
+    try
+    {
+        var result = await sender.Send(new GetLoggedUserQuery(), ct);
+        return Results.Ok(result);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return MapException(ex);
+    }
 }).RequireAuthorization();
 
 app.Run();
@@ -165,14 +203,12 @@ public sealed class CurrentUserService : ICurrentUserService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public Guid? UserId
+    public Guid? GetCurrentUserId()
     {
-        get
-        {
-            var user = _httpContextAccessor.HttpContext?.User;
-            var sub = user?.FindFirstValue(ClaimTypes.NameIdentifier)
-                      ?? user?.FindFirstValue("sub");
-            return Guid.TryParse(sub, out var id) ? id : null;
-        }
+        var user = _httpContextAccessor.HttpContext?.User;
+        if (user?.Claims is null) return null;
+        var sub = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value
+                  ?? user.Claims.FirstOrDefault(c => c.Type == "sub")?.Value;
+        return Guid.TryParse(sub, out var id) ? id : null;
     }
 }

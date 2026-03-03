@@ -31,7 +31,7 @@ Backend de referência inspirado na [OmniSuite API](https://github.com/DuoMaster
 | `LastTechTest.Aplicacao`       | Casos de uso (Commands/Queries/Handlers), validações, DTOs                               |
 | `LastTechTest.Persistencia`    | `ApplicationDbContext`, configurações EF Core 10, repositórios SQLite                    |
 | `LastTechTest.Infrastrutura`   | Serviços técnicos (TokenService, PasswordHasher, MFA, Email, KeyGenerator)               |
-| `LastTechTest.API`             | Endpoints HTTP (minimal API), autenticação JWT, Swagger/OpenAPI, wiring de DI            |
+| `LastTechTest.API`             | Endpoints HTTP (minimal API), autenticação JWT, Scalar/OpenAPI, wiring de DI            |
 | `LastTechTest.Testes`          | Testes unitários, integração e E2E                                                       |
 
 Estrutura de pastas (resumida):
@@ -63,7 +63,7 @@ docs/
 - `DELETE /auth/logout` – invalida refresh token
 - `GET /user/logged` – retorna dados do usuário autenticado
 
-Swagger/OpenAPI disponível em `/swagger` quando a API estiver rodando.
+Documentação OpenAPI (Scalar) disponível em `/scalar` quando a API estiver rodando.
 
 ---
 
@@ -82,10 +82,16 @@ cd LastTechTest
 docker compose -f docker/docker-compose.yml up --build
 ```
 
+Se aparecer aviso de _orphan containers_ (ex.: `Found orphan containers (docker-frontend-1 docker-backend-1)...`), use `--remove-orphans` para limpar containers de outro compose que não fazem mais parte deste projeto:
+
+```bash
+docker compose -f docker/docker-compose.yml up --build --remove-orphans
+```
+
 A API ficará acessível em:
 
 - `http://localhost:5114` (HTTP)
-- `http://localhost:5114/swagger` (Swagger UI)
+- `http://localhost:5114/scalar` (Scalar API Reference)
 
 O banco SQLite é persistido em um volume Docker (`lasttechtest-data`), configurado em `docker/docker-compose.yml`.
 
@@ -111,10 +117,16 @@ A API ficará disponível nas URLs padrão definidas pelo ASP.NET Core (ou `http
 
 ### 🧪 Pirâmide de testes
 
-Dentro da pasta `backend`:
+Com .NET SDK 10 instalado, na raiz do repositório ou em `backend`:
 
 ```bash
-dotnet test LastTechTest.Testes/LastTechTest.Testes.csproj
+dotnet test backend/LastTechTest.Testes/LastTechTest.Testes.csproj -c Release
+```
+
+Sem .NET 10 no host (execução via Docker):
+
+```bash
+./scripts/run-tests-docker.sh
 ```
 
 **Cobertura por nível:**
@@ -126,7 +138,8 @@ dotnet test LastTechTest.Testes/LastTechTest.Testes.csproj
   - Repositórios EF Core (SQLite in-memory) – `UserRepository`
   - Fluxos de autenticação via MediatR – `AuthHandlersIntegrationTests`
 - **E2E**:
-  - Fluxo completo `register -> login -> /user/logged` via `WebApplicationFactory<Program>`
+  - Fluxo completo `register -> login -> /user/logged` via `WebApplicationFactory<ProgramEntry>` (CustomWebApplicationFactory)
+  - Fluxos de refresh token, logout, e casos de erro (401 sem token, 400 email duplicado, refresh inválido)
 
 Diagrama conceitual:
 
@@ -143,7 +156,7 @@ Unitário      (domínio + serviços puros)
 - **Domínio** não conhece EF Core, ASP.NET ou bibliotecas externas.
 - **Aplicação** orquestra casos de uso via MediatR (Commands/Queries) e FluentValidation.
 - **Infraestrutura/Persistência** implementam interfaces de domínio e são plugadas via DI na API.
-- **API** expõe endpoints HTTP mínimos e integra autenticação JWT + Swagger.
+- **API** expõe endpoints HTTP mínimos e integra autenticação JWT + Scalar (documentação OpenAPI).
 
 Para detalhes aprofundados da arquitetura, veja:
 
@@ -176,6 +189,22 @@ O arquivo `docs/tracability.md` descreve como requisitos de autenticação (regi
 - Testes correspondentes (unit, integração e E2E).
 
 Esse mapeamento é pensado para dialogar diretamente com o fluxo das skills `tradutor`, `maestro` e `quadro-de-recompensas`.
+
+---
+
+### ⚠️ Troubleshooting
+
+**Build: "Access to the path '.../obj/Release/net10.0/...' is denied"**
+
+Se o repositório estiver num disco externo ou montagem só-leitura, o `dotnet build` pode falhar ao escrever em `obj/` e `bin/`. Soluções:
+
+- Garantir que a pasta do projeto tem permissão de escrita (ex.: montagem com `rw`).
+- Rodar build e testes dentro de Docker: `./scripts/run-tests-docker.sh` (não depende das permissões do host).
+- Ou clonar/copiar o repo para um diretório com permissão de escrita (ex.: `~/projects/`) e buildar a partir daí.
+
+**E2E: "DirectoryNotFoundException: /src/backend/LastTechTest.API/"**
+
+Os testes E2E usam `CustomWebApplicationFactory`, que define o content root do host para a pasta do projeto API. Se o erro aparecer ao rodar testes no host (e não em Docker), execute os testes a partir da raiz do repositório (`dotnet test backend/LastTechTest.Testes/...`) ou use `./scripts/run-tests-docker.sh`.
 
 ---
 

@@ -120,8 +120,8 @@ Padrões Arquiteturais
 
 Validação e Documentação
 - FluentValidation - Validação de dados
-- Swagger/OpenAPI - Documentação da API
-- Swashbuckle.AspNetCore - Geração de documentação
+- Scalar/OpenAPI - Documentação da API (UI Scalar consome spec OpenAPI)
+- Swashbuckle.AspNetCore - Geração do documento OpenAPI
 
 Testes
 - xUnit - Framework de testes
