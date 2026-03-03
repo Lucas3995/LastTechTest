@@ -11,7 +11,7 @@ O backend deve servir como **modelo de referência** para futuros projetos, priv
   - `LastTechTest.Aplicacao` – casos de uso (CQRS + MediatR), orquestração de domínio.
   - `LastTechTest.Persistencia` – EF Core 10 + SQLite, `ApplicationDbContext` e repositórios.
   - `LastTechTest.Infrastrutura` – serviços técnicos (JWT, hashing, MFA, email, key generator).
-  - `LastTechTest.API` – camada HTTP (endpoints, autenticação, Swagger).
+  - `LastTechTest.API` – camada HTTP (endpoints, autenticação, Scalar/OpenAPI).
   - `LastTechTest.Testes` – testes unitários, integração e E2E.
 - Respeitar a regra de dependência:
   - Domínio não referencia frameworks externos.

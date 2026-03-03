@@ -2,9 +2,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Encodings.Web;
 using LastTechTest.Dominio.Entities;
 using LastTechTest.Dominio.Interfaces;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
@@ -80,7 +80,7 @@ public sealed class TokenService : ITokenService
         try
         {
             var principal = handler.ValidateToken(token, tokenValidationParameters, out _);
-            var sub = principal.FindFirstValue(JwtRegisteredClaimNames.Sub);
+            var sub = principal.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub)?.Value;
             return Guid.TryParse(sub, out var id) ? id : null;
         }
         catch

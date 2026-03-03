@@ -1,6 +1,5 @@
 using FluentAssertions;
 using LastTechTest.Dominio.Entities;
-using LastTechTest.Dominio.Enums;
 
 namespace LastTechTest.Testes.Unit;
 
