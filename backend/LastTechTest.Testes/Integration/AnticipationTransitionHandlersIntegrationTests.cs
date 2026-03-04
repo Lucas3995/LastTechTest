@@ -242,6 +242,13 @@ public class AnticipationTransitionHandlersIntegrationTests : IAsyncLifetime
         return (entity.Id, creatorId);
     }
 
+    public Task InitializeAsync() => Task.CompletedTask;
+
+    public async Task DisposeAsync()
+    {
+        await _provider.DisposeAsync();
+    }
+
     private sealed class FakeCurrentUserService : ICurrentUserService
     {
         private Guid? _userId;
