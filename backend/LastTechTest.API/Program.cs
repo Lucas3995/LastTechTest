@@ -2,7 +2,11 @@ using System.Security.Claims;
 using System.Text;
 
 using LastTechTest.API;
+using LastTechTest.Aplicacao.Anticipation.Commands.ApproveAnticipationRequest;
+using LastTechTest.Aplicacao.Anticipation.Commands.CancelAnticipationRequest;
 using LastTechTest.Aplicacao.Anticipation.Commands.CreateAnticipationRequest;
+using LastTechTest.Aplicacao.Anticipation.Commands.RejectAnticipationRequest;
+using LastTechTest.Aplicacao.Anticipation.Services;
 using LastTechTest.Aplicacao.Anticipation.Queries.GetAnticipationRequestById;
 using LastTechTest.Aplicacao.Anticipation.Queries.ListAnticipationRequests;
 using LastTechTest.Aplicacao.Authentication.Commands.AdminCreateUser;
@@ -12,13 +16,18 @@ using LastTechTest.Aplicacao.Authentication.Commands.Logout;
 using LastTechTest.Aplicacao.Authentication.Commands.RefreshToken;
 using LastTechTest.Aplicacao.Authentication.Commands.RegisterUser;
 using LastTechTest.Aplicacao.Authentication.Queries.GetLoggedUser;
+using LastTechTest.Aplicacao.Common.Behaviors;
+using LastTechTest.Aplicacao.Common.Exceptions;
 using LastTechTest.Aplicacao.Common.Interfaces;
 using LastTechTest.Dominio.Interfaces;
 using LastTechTest.Dominio.Services;
 using LastTechTest.Infrastrutura;
 using LastTechTest.Persistencia;
 using LastTechTest.Persistencia.Repositories;
+using LastTechTest.Aplicacao.Common.Services;
+using LastTechTest.Persistencia.Services;
 
+using FluentValidation;
 using MediatR;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -66,6 +75,8 @@ builder.Services.AddMediatR(cfg =>
 {
     cfg.RegisterServicesFromAssemblyContaining<RegisterUserCommand>();
 });
+builder.Services.AddValidatorsFromAssemblyContaining<CreateAnticipationRequestCommand>();
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IUserPasswordHasher, PasswordHasher>();
@@ -80,6 +91,8 @@ builder.Services.AddScoped<IAnticipationRequestRepository, AnticipationRequestRe
 builder.Services.AddScoped<IReceivableRepository, ReceivableRepository>();
 builder.Services.AddScoped<IAnticipationCalculationService, AnticipationCalculationService>();
 builder.Services.AddScoped<IEligibilityService, EligibilityService>();
+builder.Services.AddScoped<IAnticipationAuditService, NoOpAnticipationAuditService>();
+builder.Services.AddScoped<IAnticipationTransitionExecutor, AnticipationTransitionExecutor>();
 
 var jwtSection = builder.Configuration.GetSection("Jwt");
 var secret = jwtSection["Secret"] ?? "change-me-in-production-super-secret-key";
@@ -177,6 +190,7 @@ static IResult MapException(Exception ex)
 {
     return ex switch
     {
+        NotFoundException => Results.Json(new { error = ex.Message }, statusCode: 404),
         UnauthorizedAccessException => Results.Json(new { error = ex.Message }, statusCode: 403),
         InvalidOperationException => Results.BadRequest(new { error = ex.Message }),
         _ => Results.Json(new { error = "An error occurred." }, statusCode: 500)
@@ -327,6 +341,10 @@ app.MapPost("/api/v1/anticipations", async ([FromBody] CreateAnticipationRequest
         var result = await sender.Send(command, ct);
         return Results.Created($"/api/v1/anticipations/{result.Id}", new { result.Id, result.Protocol, NetAmount = result.NetAmount, Status = result.Status.ToString() });
     }
+    catch (ValidationException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
     catch (UnauthorizedAccessException ex)
     {
         return MapException(ex);
@@ -337,10 +355,70 @@ app.MapPost("/api/v1/anticipations", async ([FromBody] CreateAnticipationRequest
     }
 }).RequireAuthorization();
 
+// RA-3: approve / reject / cancel (stub until handlers implemented)
+app.MapPost("/api/v1/anticipations/{id:guid}/approve", async (Guid id, [FromBody] ApproveAnticipationRequestDto? body, [FromServices] ISender sender, CancellationToken ct) =>
+{
+    try
+    {
+        var result = await sender.Send(new ApproveAnticipationRequestCommand(id, body?.Observation), ct);
+        return Results.Ok(new { result.Id, result.Protocol, Status = result.Status.ToString() });
+    }
+    catch (NotImplementedException)
+    {
+        return Results.Json(new { error = "Not implemented." }, statusCode: 501);
+    }
+    catch (NotFoundException ex) { return MapException(ex); }
+    catch (UnauthorizedAccessException ex) { return MapException(ex); }
+    catch (InvalidOperationException ex) { return MapException(ex); }
+}).RequireAuthorization(policy => policy.RequireRole(LastTechTest.Dominio.Authorization.KnownRoles.Analista, LastTechTest.Dominio.Authorization.KnownRoles.Admin));
+
+app.MapPost("/api/v1/anticipations/{id:guid}/reject", async (Guid id, [FromBody] RejectAnticipationRequestDto? body, [FromServices] ISender sender, CancellationToken ct) =>
+{
+    if (body is null || string.IsNullOrWhiteSpace(body.Reason))
+        return Results.BadRequest(new { error = "Reason is required." });
+    try
+    {
+        var result = await sender.Send(new RejectAnticipationRequestCommand(id, body.Reason), ct);
+        return Results.Ok(new { result.Id, result.Protocol, Status = result.Status.ToString() });
+    }
+    catch (NotImplementedException)
+    {
+        return Results.Json(new { error = "Not implemented." }, statusCode: 501);
+    }
+    catch (NotFoundException ex) { return MapException(ex); }
+    catch (UnauthorizedAccessException ex) { return MapException(ex); }
+    catch (InvalidOperationException ex) { return MapException(ex); }
+}).RequireAuthorization(policy => policy.RequireRole(LastTechTest.Dominio.Authorization.KnownRoles.Analista, LastTechTest.Dominio.Authorization.KnownRoles.Admin));
+
+app.MapPost("/api/v1/anticipations/{id:guid}/cancel", async (Guid id, [FromBody] CancelAnticipationRequestDto? body, [FromServices] ISender sender, CancellationToken ct) =>
+{
+    try
+    {
+        var result = await sender.Send(new CancelAnticipationRequestCommand(id, body?.Reason), ct);
+        return Results.Ok(new { result.Id, result.Protocol, Status = result.Status.ToString(), result.AlreadyCanceled });
+    }
+    catch (NotImplementedException)
+    {
+        return Results.Json(new { error = "Not implemented." }, statusCode: 501);
+    }
+    catch (NotFoundException ex) { return MapException(ex); }
+    catch (UnauthorizedAccessException ex) { return MapException(ex); }
+    catch (InvalidOperationException ex) { return MapException(ex); }
+}).RequireAuthorization(policy => policy.RequireRole(LastTechTest.Dominio.Authorization.KnownRoles.Creator, LastTechTest.Dominio.Authorization.KnownRoles.Admin));
+
 app.Run();
 
 /// <summary>Contrato de criação de solicitação de antecipação. Apenas 3 campos (padrão .NET PascalCase): RequestedAmount, CreatorId (opcional), RequestedAtUtc (opcional).</summary>
 public sealed record CreateAnticipationRequestDto(decimal RequestedAmount, Guid? CreatorId, DateTime? RequestedAtUtc);
+
+/// <summary>RA-3: body para POST approve. Observation opcional.</summary>
+public sealed record ApproveAnticipationRequestDto(string? Observation);
+
+/// <summary>RA-3: body para POST reject. Reason é obrigatório (validado no endpoint; ausência devolve 400 com "Reason is required.").</summary>
+public sealed record RejectAnticipationRequestDto(string? Reason);
+
+/// <summary>RA-3: body para POST cancel. Reason opcional.</summary>
+public sealed record CancelAnticipationRequestDto(string? Reason);
 
 public sealed class CurrentUserService : ICurrentUserService
 {

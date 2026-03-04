@@ -22,6 +22,8 @@ public class ApplicationDbContext
 
     public DbSet<AnticipationRequest> AnticipationRequests => Set<AnticipationRequest>();
 
+    public DbSet<AnticipationRequestAudit> AnticipationRequestAudits => Set<AnticipationRequestAudit>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

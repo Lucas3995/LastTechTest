@@ -119,6 +119,68 @@ public class CreateAnticipationRequestHandlerIntegrationTests : IAsyncLifetime
             .WithMessage("*limit*");
     }
 
+    /// <summary>RC-1: Repository HasPendingByCreatorAsync must be translatable to SQL (SQLite); direct call exercises LINQ-to-SQL.</summary>
+    [Fact]
+    public async Task I5b_AnticipationRequestRepository_HasPendingByCreatorAsync_Should_TranslateToSql()
+    {
+        var creatorId = Guid.NewGuid();
+        SetFakeUser(creatorId, "Creator");
+        using (var scope = _provider.CreateScope())
+        {
+            var sender = scope.ServiceProvider.GetRequiredService<ISender>();
+            await sender.Send(new CreateAnticipationRequestCommand(100m, CreatorId: null));
+        }
+        using (var scope = _provider.CreateScope())
+        {
+            var repo = scope.ServiceProvider.GetRequiredService<IAnticipationRequestRepository>();
+            var hasPending = await repo.HasPendingByCreatorAsync(creatorId);
+            hasPending.Should().BeTrue();
+        }
+    }
+
+    /// <summary>RC-1: Creator with one request already in analysis (Created/Pending) cannot create a second.</summary>
+    [Fact]
+    public async Task I6_CreateAnticipationRequestHandler_CreatorWithPendingRequest_Should_RejectSecondCreation()
+    {
+        var creatorId = Guid.NewGuid();
+        SetFakeUser(creatorId, "Creator");
+        using (var scope = _provider.CreateScope())
+        {
+            var sender = scope.ServiceProvider.GetRequiredService<ISender>();
+            var first = await sender.Send(new CreateAnticipationRequestCommand(1000m, CreatorId: null));
+            first.Should().NotBeNull();
+        }
+        using (var scope = _provider.CreateScope())
+        {
+            var sender2 = scope.ServiceProvider.GetRequiredService<ISender>();
+            var act = () => sender2.Send(new CreateAnticipationRequestCommand(1000m, CreatorId: null));
+            await act.Should().ThrowAsync<InvalidOperationException>()
+                .WithMessage("*open anticipation request*");
+        }
+    }
+
+    /// <summary>RC-1: Admin creating for a creator who already has a pending request should be rejected.</summary>
+    [Fact]
+    public async Task I7_CreateAnticipationRequestHandler_AdminCreatingForCreatorWithPending_Should_Reject()
+    {
+        var adminUserId = Guid.NewGuid();
+        var targetCreatorId = Guid.NewGuid();
+        SetFakeUser(adminUserId, "Admin");
+        using (var scope = _provider.CreateScope())
+        {
+            var sender = scope.ServiceProvider.GetRequiredService<ISender>();
+            var first = await sender.Send(new CreateAnticipationRequestCommand(1000m, CreatorId: targetCreatorId));
+            first.Should().NotBeNull();
+        }
+        using (var scope = _provider.CreateScope())
+        {
+            var sender = scope.ServiceProvider.GetRequiredService<ISender>();
+            var act = () => sender.Send(new CreateAnticipationRequestCommand(1000m, CreatorId: targetCreatorId));
+            await act.Should().ThrowAsync<InvalidOperationException>()
+                .WithMessage("*open anticipation request*");
+        }
+    }
+
     [Fact]
     public async Task I5_CreateAnticipationRequestHandler_IneligibleReceivables_Should_ReturnValidationError()
     {

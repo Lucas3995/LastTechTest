@@ -40,6 +40,10 @@ public sealed class CreateAnticipationRequestCommandHandler : IRequestHandler<Cr
         if (creatorId is null)
             throw new UnauthorizedAccessException("Creator is not allowed to act on behalf of another creator.");
 
+        var hasPending = await _repository.HasPendingByCreatorAsync(creatorId.Value, cancellationToken);
+        if (hasPending)
+            throw new InvalidOperationException("Creator already has an open anticipation request.");
+
         var (isValid, errorMessage) = _calculationService.ValidateWithinCreatorLimit(creatorId.Value, request.RequestedAmount);
         if (!isValid)
             throw new InvalidOperationException(errorMessage ?? "Validation failed.");

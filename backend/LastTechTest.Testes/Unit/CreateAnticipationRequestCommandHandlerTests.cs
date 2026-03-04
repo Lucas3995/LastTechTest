@@ -36,6 +36,7 @@ public class CreateAnticipationRequestCommandHandlerTests
         var userId = Guid.NewGuid();
         _currentUser.Setup(x => x.GetCurrentUserId()).Returns(userId);
         _currentUser.Setup(x => x.GetRole()).Returns("Creator");
+        _repo.Setup(x => x.HasPendingByCreatorAsync(userId, It.IsAny<CancellationToken>())).ReturnsAsync(false);
         _calculation.Setup(x => x.ValidateWithinCreatorLimit(userId, 1000m)).Returns((true, (string?)null));
         var receivables = new List<ReceivableInfo> { new(Guid.NewGuid(), 5000m, DateTime.UtcNow.AddDays(10), ReceivableStatus.Eligible) };
         _receivableRepo.Setup(x => x.GetEligibleByCreatorIdAsync(userId, It.IsAny<CancellationToken>())).ReturnsAsync(receivables);
@@ -80,10 +81,45 @@ public class CreateAnticipationRequestCommandHandlerTests
         var userId = Guid.NewGuid();
         _currentUser.Setup(x => x.GetCurrentUserId()).Returns(userId);
         _currentUser.Setup(x => x.GetRole()).Returns("Creator");
+        _repo.Setup(x => x.HasPendingByCreatorAsync(userId, It.IsAny<CancellationToken>())).ReturnsAsync(false);
         _calculation.Setup(x => x.ValidateWithinCreatorLimit(userId, 50_000m)).Returns((false, "Over limit"));
 
         var act = () => _sut.Handle(new CreateAnticipationRequestCommand(50_000m, null, null), CancellationToken.None);
 
         await act.Should().ThrowAsync<InvalidOperationException>();
+    }
+
+    [Fact]
+    public async Task Handle_WhenCreatorHasPendingRequest_ThrowsInvalidOperation()
+    {
+        var userId = Guid.NewGuid();
+        _currentUser.Setup(x => x.GetCurrentUserId()).Returns(userId);
+        _currentUser.Setup(x => x.GetRole()).Returns("Creator");
+        _repo.Setup(x => x.HasPendingByCreatorAsync(userId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+
+        var act = () => _sut.Handle(new CreateAnticipationRequestCommand(1000m, null, null), CancellationToken.None);
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*open anticipation request*");
+    }
+
+    [Fact]
+    public async Task Handle_WhenCreatorHasNoPendingRequest_ContinuesToCreate()
+    {
+        var userId = Guid.NewGuid();
+        _currentUser.Setup(x => x.GetCurrentUserId()).Returns(userId);
+        _currentUser.Setup(x => x.GetRole()).Returns("Creator");
+        _repo.Setup(x => x.HasPendingByCreatorAsync(userId, It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        _calculation.Setup(x => x.ValidateWithinCreatorLimit(userId, 101m)).Returns((true, (string?)null));
+        var receivables = new List<ReceivableInfo> { new(Guid.NewGuid(), 500m, DateTime.UtcNow.AddDays(5), ReceivableStatus.Eligible) };
+        _receivableRepo.Setup(x => x.GetEligibleByCreatorIdAsync(userId, It.IsAny<CancellationToken>())).ReturnsAsync(receivables);
+        _eligibility.Setup(x => x.FilterEligible(receivables)).Returns(receivables);
+        _calculation.Setup(x => x.Calculate(101m, receivables)).Returns(new AnticipationCalculationResult(101m, 5.05m, 95.95m));
+        _repo.Setup(x => x.AddAsync(It.IsAny<AnticipationRequest>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+
+        var result = await _sut.Handle(new CreateAnticipationRequestCommand(101m, null, null), CancellationToken.None);
+
+        result.Should().NotBeNull();
+        result.NetAmount.Should().Be(95.95m);
     }
 }

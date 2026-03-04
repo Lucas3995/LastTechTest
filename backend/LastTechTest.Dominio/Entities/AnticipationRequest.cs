@@ -24,7 +24,7 @@ public class AnticipationRequest
         return new AnticipationRequest
         {
             CreatorId = creatorId,
-            Status = AnticipationRequestStatus.Created,
+            Status = AnticipationRequestStatus.Pending,
             RequestedAmount = requestedAmount,
             GrossAmount = grossAmount,
             FeesAmount = feesAmount,
@@ -34,4 +34,29 @@ public class AnticipationRequest
     }
 
     public string Protocol => Id.ToString("N")[..8].ToUpperInvariant();
+
+    /// <summary>RA-3: Applies approval transition. Call only after validating with AnticipationTransitionRules.</summary>
+    public void Approve()
+    {
+        Status = AnticipationRequestStatus.Approved;
+    }
+
+    /// <summary>RA-3: Applies rejection transition. Call only after validating with AnticipationTransitionRules.</summary>
+    public void Reject()
+    {
+        Status = AnticipationRequestStatus.Rejected;
+    }
+
+    /// <summary>RA-3: Applies cancel-by-creator transition. Call only after validating with AnticipationTransitionRules.</summary>
+    public void Cancel()
+    {
+        Status = AnticipationRequestStatus.CanceledByCreator;
+    }
+
+    /// <summary>For integration tests only: set status to simulate an existing state. Do not use in production code.</summary>
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    internal void SetStatusForTest(AnticipationRequestStatus status)
+    {
+        Status = status;
+    }
 }

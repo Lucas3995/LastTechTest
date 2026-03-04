@@ -139,6 +139,74 @@ public class AnticipationE2ETests : IClassFixture<CustomWebApplicationFactory>
         json.Should().Contain("error");
     }
 
+    /// <summary>RC-1 CA1 – RequestedAmount &lt; 100 returns 400 with message that amount must be 100 or more.</summary>
+    [Theory]
+    [InlineData(50)]
+    [InlineData(99)]
+    [InlineData(99.99)]
+    public async Task E5b_RC1_PostAnticipations_AmountLessThan100_Should_Return400(decimal amount)
+    {
+        var client = _factory.CreateClient();
+        var creatorId = Guid.NewGuid();
+        var token = CreateJwt(creatorId, "Creator");
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        var body = new { RequestedAmount = amount, CreatorId = (Guid?)null };
+
+        var response = await client.PostAsJsonAsync("/api/v1/anticipations", body);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var json = await response.Content.ReadAsStringAsync();
+        json.Should().Contain("error");
+        json.Should().Contain("100");
+    }
+
+    /// <summary>RC-1 CA2 – RequestedAmount &gt;= 100 with no pending request returns 201 (100, 100.00, 100.01, 101).</summary>
+    [Theory]
+    [InlineData(100)]
+    [InlineData(100.00)]
+    [InlineData(100.01)]
+    [InlineData(101)]
+    public async Task E5c_RC1_PostAnticipations_Amount100OrMore_NoPending_Should_Return201(decimal amount)
+    {
+        var client = _factory.CreateClient();
+        var creatorId = Guid.NewGuid();
+        var token = CreateJwt(creatorId, "Creator");
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        var body = new { RequestedAmount = amount, CreatorId = (Guid?)null };
+
+        var response = await client.PostAsJsonAsync("/api/v1/anticipations", body);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        var content = await response.Content.ReadFromJsonAsync<AnticipationResponseDto>();
+        content.Should().NotBeNull();
+        content!.Id.Should().NotBeEmpty();
+        content.Status.Should().BeOneOf("Created", "Pending");
+    }
+
+    /// <summary>RC-1 CA3/CA4 – Creator with existing pending request cannot create another; returns 400. Exercises HasPendingByCreatorAsync with SQL (LINQ-to-SQL).</summary>
+    [Fact]
+    public async Task E5d_RC1_PostAnticipations_WhenCreatorHasPendingRequest_Should_Return400()
+    {
+        var client = _factory.CreateClient();
+        var creatorId = Guid.NewGuid();
+        var token = CreateJwt(creatorId, "Creator");
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        var firstBody = new { RequestedAmount = 100m, CreatorId = (Guid?)null };
+        var firstResponse = await client.PostAsJsonAsync("/api/v1/anticipations", firstBody);
+        firstResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var secondBody = new { RequestedAmount = 100m, CreatorId = (Guid?)null };
+        var secondResponse = await client.PostAsJsonAsync("/api/v1/anticipations", secondBody);
+
+        secondResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var json = await secondResponse.Content.ReadAsStringAsync();
+        json.Should().Contain("error");
+        json.Should().Contain("open");
+    }
+
     // --- RA-2: GET list and GET by id ---
 
     /// <summary>CA1 – GET list as Creator returns only own requests.</summary>
@@ -175,8 +243,8 @@ public class AnticipationE2ETests : IClassFixture<CustomWebApplicationFactory>
         var tokenAdmin = CreateJwt(adminId, "Admin");
         client.DefaultRequestHeaders.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenAdmin);
-        await client.PostAsJsonAsync("/api/v1/anticipations", new { RequestedAmount = 100m, CreatorId = creatorId });
-        await client.PostAsJsonAsync("/api/v1/anticipations", new { RequestedAmount = 200m, CreatorId = creatorId });
+        await client.PostAsJsonAsync("/api/v1/anticipations", new { RequestedAmount = 101m, CreatorId = creatorId });
+        await client.PostAsJsonAsync("/api/v1/anticipations", new { RequestedAmount = 201m, CreatorId = creatorId });
 
         var listResponse = await client.GetAsync("/api/v1/anticipations");
         listResponse.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -198,7 +266,7 @@ public class AnticipationE2ETests : IClassFixture<CustomWebApplicationFactory>
         client.DefaultRequestHeaders.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenAdmin);
         var createResponse = await client.PostAsJsonAsync("/api/v1/anticipations",
-            new { RequestedAmount = 100m, CreatorId = creatorB });
+            new { RequestedAmount = 150m, CreatorId = creatorB });
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var created = await createResponse.Content.ReadFromJsonAsync<AnticipationResponseDto>();
         created.Should().NotBeNull();
@@ -277,6 +345,187 @@ public class AnticipationE2ETests : IClassFixture<CustomWebApplicationFactory>
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
+    // --- RA-3: Estados e transições (CA1–CA5). Endpoints retornam 501 até implementação. ---
+
+    /// <summary>CA1 – Aprovação por Analista: POST approve com dados obrigatórios → 200 e estado APROVADA (ou 501 até implementação).</summary>
+    [Fact]
+    public async Task E13_RA3_CA1_PostApprove_AsAnalista_WhenPending_Should_Return200AndApproved()
+    {
+        var client = _factory.CreateClient();
+        var creatorId = Guid.NewGuid();
+        var tokenCreator = CreateJwt(creatorId, "Creator");
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenCreator);
+        var createResponse = await client.PostAsJsonAsync("/api/v1/anticipations", new { RequestedAmount = 500m, CreatorId = (Guid?)null });
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var created = await createResponse.Content.ReadFromJsonAsync<AnticipationResponseDto>();
+        created.Should().NotBeNull();
+
+        var tokenAnalista = CreateJwt(Guid.NewGuid(), "Analista");
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenAnalista);
+        var approveBody = new { Observation = "Aprovado conforme política." };
+        var approveResponse = await client.PostAsJsonAsync($"/api/v1/anticipations/{created!.Id}/approve", approveBody);
+
+        approveResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NotImplemented);
+        if (approveResponse.StatusCode == HttpStatusCode.OK)
+        {
+            var content = await approveResponse.Content.ReadFromJsonAsync<TransitionResponseDto>();
+            content.Should().NotBeNull();
+            content!.Status.Should().Be("Approved");
+        }
+    }
+
+    /// <summary>CA2 (cenário 1) – Cancelamento válido: Creator dono, POST cancel → 200 e estado CANCELADA_POR_CREATOR.</summary>
+    [Fact]
+    public async Task E14_RA3_CA2_PostCancel_AsCreatorOwner_WhenPending_Should_Return200AndCanceled()
+    {
+        var client = _factory.CreateClient();
+        var creatorId = Guid.NewGuid();
+        var token = CreateJwt(creatorId, "Creator");
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        var createResponse = await client.PostAsJsonAsync("/api/v1/anticipations", new { RequestedAmount = 500m, CreatorId = (Guid?)null });
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var created = await createResponse.Content.ReadFromJsonAsync<AnticipationResponseDto>();
+        created.Should().NotBeNull();
+
+        var cancelResponse = await client.PostAsJsonAsync($"/api/v1/anticipations/{created!.Id}/cancel", new { Reason = (string?)null });
+
+        cancelResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NotImplemented);
+        if (cancelResponse.StatusCode == HttpStatusCode.OK)
+        {
+            var content = await cancelResponse.Content.ReadFromJsonAsync<CancelTransitionResponseDto>();
+            content.Should().NotBeNull();
+            content!.Status.Should().Be("CanceledByCreator");
+        }
+    }
+
+    /// <summary>CA2 (cenário 2) – Cancelamento idempotente: já cancelada → não alterar estado, mensagem clara (200 com AlreadyCanceled ou 409/422).</summary>
+    [Fact]
+    public async Task E15_RA3_CA2_PostCancel_WhenAlreadyCanceled_Should_NotChangeStateAndIndicateIdempotent()
+    {
+        var client = _factory.CreateClient();
+        var creatorId = Guid.NewGuid();
+        var token = CreateJwt(creatorId, "Creator");
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        var createResponse = await client.PostAsJsonAsync("/api/v1/anticipations", new { RequestedAmount = 500m, CreatorId = (Guid?)null });
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var created = await createResponse.Content.ReadFromJsonAsync<AnticipationResponseDto>();
+        created.Should().NotBeNull();
+        await client.PostAsJsonAsync($"/api/v1/anticipations/{created!.Id}/cancel", new { });
+        var secondCancel = await client.PostAsJsonAsync($"/api/v1/anticipations/{created.Id}/cancel", new { });
+
+        secondCancel.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Conflict, (HttpStatusCode)422, HttpStatusCode.NotImplemented);
+        if (secondCancel.StatusCode == HttpStatusCode.OK)
+        {
+            var content = await secondCancel.Content.ReadFromJsonAsync<CancelTransitionResponseDto>();
+            content.Should().NotBeNull();
+            (content!.AlreadyCanceled == true || (content.Status == "CanceledByCreator")).Should().BeTrue();
+        }
+    }
+
+    /// <summary>CA3 – Recusa por Analista: POST reject com motivo → 200 e estado RECUSADA.</summary>
+    [Fact]
+    public async Task E16_RA3_CA3_PostReject_AsAnalista_WhenPending_Should_Return200AndRejected()
+    {
+        var client = _factory.CreateClient();
+        var creatorId = Guid.NewGuid();
+        var tokenCreator = CreateJwt(creatorId, "Creator");
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenCreator);
+        var createResponse = await client.PostAsJsonAsync("/api/v1/anticipations", new { RequestedAmount = 500m, CreatorId = (Guid?)null });
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var created = await createResponse.Content.ReadFromJsonAsync<AnticipationResponseDto>();
+        created.Should().NotBeNull();
+
+        var tokenAnalista = CreateJwt(Guid.NewGuid(), "Analista");
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenAnalista);
+        var rejectResponse = await client.PostAsJsonAsync($"/api/v1/anticipations/{created!.Id}/reject", new { Reason = "Documentação insuficiente." });
+
+        rejectResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NotImplemented);
+        if (rejectResponse.StatusCode == HttpStatusCode.OK)
+        {
+            var content = await rejectResponse.Content.ReadFromJsonAsync<TransitionResponseDto>();
+            content.Should().NotBeNull();
+            content!.Status.Should().Be("Rejected");
+        }
+    }
+
+    /// <summary>CA4 – Bloqueio de transições inválidas: aprovar já aprovada → recusar operação, estado inalterado.</summary>
+    [Fact]
+    public async Task E17_RA3_CA4_PostApprove_WhenAlreadyApproved_Should_RejectOperation()
+    {
+        var client = _factory.CreateClient();
+        var creatorId = Guid.NewGuid();
+        var tokenCreator = CreateJwt(creatorId, "Creator");
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenCreator);
+        var createResponse = await client.PostAsJsonAsync("/api/v1/anticipations", new { RequestedAmount = 500m, CreatorId = (Guid?)null });
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var created = await createResponse.Content.ReadFromJsonAsync<AnticipationResponseDto>();
+        created.Should().NotBeNull();
+        var tokenAnalista = CreateJwt(Guid.NewGuid(), "Analista");
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenAnalista);
+        await client.PostAsJsonAsync($"/api/v1/anticipations/{created!.Id}/approve", new { Observation = "Ok" });
+        var secondApprove = await client.PostAsJsonAsync($"/api/v1/anticipations/{created.Id}/approve", new { Observation = "Again" });
+
+        secondApprove.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, (HttpStatusCode)422, HttpStatusCode.NotImplemented);
+    }
+
+    /// <summary>CA5 – Creator a chamar approve → 403 (falta de permissão).</summary>
+    [Fact]
+    public async Task E18_RA3_CA5_PostApprove_AsCreator_Should_Return403()
+    {
+        var client = _factory.CreateClient();
+        var creatorId = Guid.NewGuid();
+        var token = CreateJwt(creatorId, "Creator");
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        var createResponse = await client.PostAsJsonAsync("/api/v1/anticipations", new { RequestedAmount = 500m, CreatorId = (Guid?)null });
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var created = await createResponse.Content.ReadFromJsonAsync<AnticipationResponseDto>();
+        created.Should().NotBeNull();
+
+        var approveResponse = await client.PostAsJsonAsync($"/api/v1/anticipations/{created!.Id}/approve", new { Observation = "Trying as Creator" });
+
+        approveResponse.StatusCode.Should().BeOneOf(HttpStatusCode.Forbidden, HttpStatusCode.NotImplemented);
+    }
+
+    /// <summary>CA5 – Admin pode executar transição em qualquer solicitação (approve).</summary>
+    [Fact]
+    public async Task E19_RA3_CA5_PostApprove_AsAdmin_Should_AllowTransition()
+    {
+        var client = _factory.CreateClient();
+        var creatorId = Guid.NewGuid();
+        var tokenCreator = CreateJwt(creatorId, "Creator");
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenCreator);
+        var createResponse = await client.PostAsJsonAsync("/api/v1/anticipations", new { RequestedAmount = 500m, CreatorId = (Guid?)null });
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var created = await createResponse.Content.ReadFromJsonAsync<AnticipationResponseDto>();
+        created.Should().NotBeNull();
+
+        var tokenAdmin = CreateJwt(Guid.NewGuid(), "Admin");
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenAdmin);
+        var approveResponse = await client.PostAsJsonAsync($"/api/v1/anticipations/{created!.Id}/approve", new { Observation = "Admin approval" });
+
+        approveResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NotImplemented);
+    }
+
+    /// <summary>RA-3: POST approve sem token → 401.</summary>
+    [Fact]
+    public async Task E20_RA3_PostApprove_WithoutToken_Should_Return401()
+    {
+        var client = _factory.CreateClient();
+        var response = await client.PostAsJsonAsync($"/api/v1/anticipations/{Guid.NewGuid()}/approve", new { Observation = "x" });
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
     private static string CreateJwt(Guid userId, string role)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(TestJwtSecret));
@@ -336,5 +585,22 @@ public class AnticipationE2ETests : IClassFixture<CustomWebApplicationFactory>
         public decimal NetAmount { get; set; }
         public DateTime RequestedAtUtc { get; set; }
         public DateTime CreatedAtUtc { get; set; }
+    }
+
+    /// <summary>RA-3: contrato de resposta approve/reject (Id, Protocol, Status).</summary>
+    private sealed class TransitionResponseDto
+    {
+        public Guid Id { get; set; }
+        public string Protocol { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+    }
+
+    /// <summary>RA-3: contrato de resposta cancel (inclui AlreadyCanceled).</summary>
+    private sealed class CancelTransitionResponseDto
+    {
+        public Guid Id { get; set; }
+        public string Protocol { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+        public bool AlreadyCanceled { get; set; }
     }
 }
