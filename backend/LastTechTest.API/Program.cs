@@ -19,6 +19,7 @@ using MediatR;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -27,8 +28,6 @@ using Scalar.AspNetCore;
 
 using Serilog;
 using Serilog.Events;
-
-using Microsoft.Data.Sqlite;
 
 // Keep in-memory connection alive for E2E tests (Testing environment).
 SqliteConnection? testDbConnection = null;
