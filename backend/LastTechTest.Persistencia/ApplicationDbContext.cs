@@ -17,6 +17,8 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<UserMfa> UserMfas => Set<UserMfa>();
 
+    public DbSet<AnticipationRequest> AnticipationRequests => Set<AnticipationRequest>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

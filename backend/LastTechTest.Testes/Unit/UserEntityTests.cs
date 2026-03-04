@@ -15,4 +15,19 @@ public class UserEntityTests
         user.Status.Should().Be(UserStatus.Active);
         user.CreatedAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
     }
+
+    [Fact]
+    public void SetEmail_And_Deactivate_Update_State()
+    {
+        var user = new User();
+        user.SetEmail("a@b.com");
+        user.SetPasswordHash("hash");
+        user.MarkLoggedIn(DateTime.UtcNow);
+        user.Deactivate();
+
+        user.Email.Should().Be("a@b.com");
+        user.PasswordHash.Should().Be("hash");
+        user.LastLoginAtUtc.Should().NotBeNull();
+        user.Status.Should().Be(UserStatus.Inactive);
+    }
 }

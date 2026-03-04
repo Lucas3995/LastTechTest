@@ -3,6 +3,7 @@ using System.IdentityModel.Tokens.Jwt;
 using FluentAssertions;
 
 using LastTechTest.Dominio.Entities;
+
 using LastTechTest.Infrastrutura;
 
 using Microsoft.Extensions.Configuration;
@@ -39,5 +40,22 @@ public class TokenServiceTests
         var jwt = handler.ReadJwtToken(tokens.AccessToken);
 
         jwt.Claims.Should().Contain(c => c.Type == JwtRegisteredClaimNames.Sub && c.Value == user.Id.ToString());
+    }
+
+    [Fact]
+    public void GetUserIdFromExpiredAccessToken_InvalidToken_ReturnsNull()
+    {
+        var inMemorySettings = new Dictionary<string, string?>
+        {
+            ["Jwt:Secret"] = "unit-test-secret-key-should-be-long-enough",
+            ["Jwt:Issuer"] = "UnitTests",
+            ["Jwt:Audience"] = "UnitTests-Audience"
+        };
+        IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings!).Build();
+        var service = new TokenService(configuration, new KeyGenerator());
+
+        var userId = service.GetUserIdFromExpiredAccessToken("invalid.jwt.here");
+
+        userId.Should().BeNull();
     }
 }
