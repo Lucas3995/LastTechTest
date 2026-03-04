@@ -43,4 +43,22 @@ public class AnticipationCalculationServiceTests
         isValid.Should().BeFalse();
         errorMessage.Should().NotBeNullOrWhiteSpace();
     }
+
+    [Fact]
+    public void ValidateWithinCreatorLimit_WithinLimit_Should_ReturnValid()
+    {
+        var (isValid, errorMessage) = _sut.ValidateWithinCreatorLimit(Guid.NewGuid(), 5_000m);
+
+        isValid.Should().BeTrue();
+        errorMessage.Should().BeNull();
+    }
+
+    [Fact]
+    public void ValidateWithinCreatorLimit_ZeroAmount_Should_ReturnInvalid()
+    {
+        var (isValid, errorMessage) = _sut.ValidateWithinCreatorLimit(Guid.NewGuid(), 0m);
+
+        isValid.Should().BeFalse();
+        errorMessage.Should().Contain("positive");
+    }
 }
