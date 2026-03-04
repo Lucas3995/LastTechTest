@@ -1,6 +1,8 @@
 using LastTechTest.Dominio.Entities;
 using LastTechTest.Dominio.Enums;
 using LastTechTest.Dominio.Interfaces;
+using LastTechTest.Dominio.Services;
+using LastTechTest.Dominio.ValueObjects;
 
 using Microsoft.EntityFrameworkCore;
 
@@ -34,36 +36,32 @@ public sealed class AnticipationRequestRepository : IAnticipationRequestReposito
         await _context.SaveChangesAsync(cancellationToken);
     }
 
-    /// <summary>EF Core cannot translate AnticipationTransitionRules.IsAnalysisPendingStatus to SQL; use inline status check (must match domain: Created, Pending).</summary>
+    /// <summary>Uses domain single source AnticipationTransitionRules.AnalysisPendingStatuses; EF translates Contains to SQL IN.</summary>
     public async Task<bool> HasPendingByCreatorAsync(Guid creatorId, CancellationToken cancellationToken = default)
     {
+        var analysisPending = AnticipationTransitionRules.AnalysisPendingStatuses;
         return await _context.AnticipationRequests
             .AsNoTracking()
-            .AnyAsync(x => x.CreatorId == creatorId && (x.Status == AnticipationRequestStatus.Created || x.Status == AnticipationRequestStatus.Pending), cancellationToken);
+            .AnyAsync(x => x.CreatorId == creatorId && analysisPending.Contains(x.Status), cancellationToken);
     }
 
     public async Task<(IReadOnlyList<AnticipationRequest> Items, int TotalCount)> ListAsync(
-        Guid? creatorId,
-        AnticipationRequestStatus? status,
-        DateTime? fromUtc,
-        DateTime? toUtc,
-        int page,
-        int pageSize,
+        ListAnticipationRequestsFilter filter,
         CancellationToken cancellationToken = default)
     {
-        var p = Math.Max(1, page);
-        var size = Math.Clamp(pageSize, 1, 100);
+        var p = Math.Max(1, filter.Page);
+        var size = Math.Clamp(filter.PageSize, 1, 100);
 
         var query = _context.AnticipationRequests.AsNoTracking();
 
-        if (creatorId.HasValue)
-            query = query.Where(x => x.CreatorId == creatorId.Value);
-        if (status.HasValue)
-            query = query.Where(x => x.Status == status.Value);
-        if (fromUtc.HasValue)
-            query = query.Where(x => x.RequestedAtUtc >= fromUtc.Value);
-        if (toUtc.HasValue)
-            query = query.Where(x => x.RequestedAtUtc <= toUtc.Value);
+        if (filter.CreatorId.HasValue)
+            query = query.Where(x => x.CreatorId == filter.CreatorId.Value);
+        if (filter.Status.HasValue)
+            query = query.Where(x => x.Status == filter.Status.Value);
+        if (filter.FromUtc.HasValue)
+            query = query.Where(x => x.RequestedAtUtc >= filter.FromUtc.Value);
+        if (filter.ToUtc.HasValue)
+            query = query.Where(x => x.RequestedAtUtc <= filter.ToUtc.Value);
 
         var totalCount = await query.CountAsync(cancellationToken);
         var items = await query

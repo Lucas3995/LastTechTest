@@ -2,7 +2,7 @@ using System.Security.Claims;
 
 using FluentAssertions;
 
-using LastTechTest.API;
+using LastTechTest.API.Services;
 using LastTechTest.Aplicacao.Common.Interfaces;
 
 using Microsoft.AspNetCore.Http;

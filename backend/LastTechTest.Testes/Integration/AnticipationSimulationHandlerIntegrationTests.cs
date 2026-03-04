@@ -10,6 +10,7 @@ using LastTechTest.Aplicacao.Common.Interfaces;
 using LastTechTest.Dominio.Entities;
 using LastTechTest.Dominio.Interfaces;
 using LastTechTest.Dominio.Services;
+using LastTechTest.Dominio.ValueObjects;
 using LastTechTest.Persistencia;
 using LastTechTest.Persistencia.Repositories;
 
@@ -39,6 +40,7 @@ public class AnticipationSimulationHandlerIntegrationTests
 
         services.AddScoped<IAnticipationRequestRepository, AnticipationRequestRepository>();
         services.AddScoped<IReceivableRepository, ReceivableRepository>();
+        services.AddSingleton<IAnticipationCalculationSettings, StubAnticipationCalculationSettings>();
         services.AddScoped<IAnticipationCalculationService, AnticipationCalculationService>();
         services.AddScoped<IEligibilityService, EligibilityService>();
         services.AddSingleton<IAnticipationSimulationCache>(_cache);
@@ -66,13 +68,13 @@ public class AnticipationSimulationHandlerIntegrationTests
         using var scope = _provider.CreateScope();
         var sender = scope.ServiceProvider.GetRequiredService<ISender>();
         var repo = scope.ServiceProvider.GetRequiredService<IAnticipationRequestRepository>();
-        var (_, countBefore) = await repo.ListAsync(creatorId, null, null, null, 1, 10);
+        var (_, countBefore) = await repo.ListAsync(new ListAnticipationRequestsFilter(creatorId, null, null, null, 1, 10));
 
         var result = await sender.Send(new SimulateAnticipationRequestCommand(1000m, null, null));
 
         result.Should().NotBeNull();
         result.SimulationCode.Should().NotBeNullOrWhiteSpace();
-        var (_, countAfter) = await repo.ListAsync(creatorId, null, null, null, 1, 10);
+        var (_, countAfter) = await repo.ListAsync(new ListAnticipationRequestsFilter(creatorId, null, null, null, 1, 10));
         countAfter.Should().Be(countBefore);
     }
 
@@ -105,12 +107,12 @@ public class AnticipationSimulationHandlerIntegrationTests
         using var scope = _provider.CreateScope();
         var sender = scope.ServiceProvider.GetRequiredService<ISender>();
         var repo = scope.ServiceProvider.GetRequiredService<IAnticipationRequestRepository>();
-        var (_, countBefore) = await repo.ListAsync(creatorId, null, null, null, 1, 10);
+        var (_, countBefore) = await repo.ListAsync(new ListAnticipationRequestsFilter(creatorId, null, null, null, 1, 10));
 
         var act = () => sender.Send(new SimulateAnticipationRequestCommand(50m, null, null));
 
         await act.Should().ThrowAsync<ValidationException>();
-        var (_, countAfter) = await repo.ListAsync(creatorId, null, null, null, 1, 10);
+        var (_, countAfter) = await repo.ListAsync(new ListAnticipationRequestsFilter(creatorId, null, null, null, 1, 10));
         countAfter.Should().Be(countBefore);
     }
 

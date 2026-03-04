@@ -24,7 +24,7 @@ public class AnticipationRequestEntityTests
     [Fact]
     public void U8_CalculationAndEligibility_WithoutPersistence_Should_BeTestable()
     {
-        IAnticipationCalculationService calculation = new AnticipationCalculationService();
+        IAnticipationCalculationService calculation = new AnticipationCalculationService(new StubAnticipationCalculationSettings());
         IEligibilityService eligibility = new EligibilityService();
         var receivables = new List<ReceivableInfo>
         {

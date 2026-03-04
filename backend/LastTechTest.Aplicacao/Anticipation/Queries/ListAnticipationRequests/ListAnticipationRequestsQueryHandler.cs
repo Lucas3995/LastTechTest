@@ -3,6 +3,7 @@ using LastTechTest.Aplicacao.Common.Interfaces;
 using LastTechTest.Dominio.Authorization;
 using LastTechTest.Dominio.Enums;
 using LastTechTest.Dominio.Interfaces;
+using LastTechTest.Dominio.ValueObjects;
 
 using MediatR;
 
@@ -32,14 +33,15 @@ public sealed class ListAnticipationRequestsQueryHandler : IRequestHandler<ListA
             ? (AnticipationRequestStatus?)request.Status.Value
             : null;
 
-        var (items, totalCount) = await _repository.ListAsync(
+        var filter = new ListAnticipationRequestsFilter(
             creatorFilter,
             statusFilter,
             request.FromUtc,
             request.ToUtc,
             request.Page,
-            request.PageSize,
-            cancellationToken);
+            request.PageSize);
+
+        var (items, totalCount) = await _repository.ListAsync(filter, cancellationToken);
 
         var list = items.Select(e => new AnticipationRequestListItem(
             e.Id,

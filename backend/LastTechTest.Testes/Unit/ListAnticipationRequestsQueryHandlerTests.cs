@@ -5,6 +5,7 @@ using LastTechTest.Aplicacao.Common.Interfaces;
 using LastTechTest.Dominio.Entities;
 using LastTechTest.Dominio.Enums;
 using LastTechTest.Dominio.Interfaces;
+using LastTechTest.Dominio.ValueObjects;
 
 using Moq;
 
@@ -33,7 +34,7 @@ public class ListAnticipationRequestsQueryHandlerTests
 
         var entity = AnticipationRequest.Create(creatorId, 100m, 100m, 2m, 98m);
         _repository
-            .Setup(x => x.ListAsync(creatorId, null, null, null, 1, 20, It.IsAny<CancellationToken>()))
+            .Setup(x => x.ListAsync(It.Is<ListAnticipationRequestsFilter>(f => f.CreatorId == creatorId && f.Status == null && f.Page == 1 && f.PageSize == 20), It.IsAny<CancellationToken>()))
             .ReturnsAsync((new List<AnticipationRequest> { entity }, 1));
 
         var query = new ListAnticipationRequestsQuery(CreatorId: otherCreatorId, Status: null, FromUtc: null, ToUtc: null, Page: 1, PageSize: 20);
@@ -44,7 +45,7 @@ public class ListAnticipationRequestsQueryHandlerTests
         result.Items.Should().HaveCount(1);
         result.Items[0].CreatorId.Should().Be(creatorId);
         _repository.Verify(
-            x => x.ListAsync(creatorId, null, null, null, 1, 20, It.IsAny<CancellationToken>()),
+            x => x.ListAsync(It.Is<ListAnticipationRequestsFilter>(f => f.CreatorId == creatorId && f.Status == null && f.Page == 1 && f.PageSize == 20), It.IsAny<CancellationToken>()),
             Times.Once,
             "Creator must force creator_id from token, ignoring request filter");
     }
@@ -62,7 +63,7 @@ public class ListAnticipationRequestsQueryHandlerTests
         var to = DateTime.UtcNow;
         var entity = AnticipationRequest.Create(filterCreatorId, 200m, 200m, 4m, 196m);
         _repository
-            .Setup(x => x.ListAsync(filterCreatorId, AnticipationRequestStatus.Pending, from, to, 1, 20, It.IsAny<CancellationToken>()))
+            .Setup(x => x.ListAsync(It.Is<ListAnticipationRequestsFilter>(f => f.CreatorId == filterCreatorId && f.Status == AnticipationRequestStatus.Pending && f.FromUtc == from && f.ToUtc == to && f.Page == 1 && f.PageSize == 20), It.IsAny<CancellationToken>()))
             .ReturnsAsync((new List<AnticipationRequest> { entity }, 1));
 
         var query = new ListAnticipationRequestsQuery(
@@ -79,7 +80,7 @@ public class ListAnticipationRequestsQueryHandlerTests
         result.Items[0].CreatorId.Should().Be(filterCreatorId);
         result.Items[0].Status.Should().Be(nameof(AnticipationRequestStatus.Pending));
         _repository.Verify(
-            x => x.ListAsync(filterCreatorId, AnticipationRequestStatus.Pending, from, to, 1, 20, It.IsAny<CancellationToken>()),
+            x => x.ListAsync(It.Is<ListAnticipationRequestsFilter>(f => f.CreatorId == filterCreatorId && f.Status == AnticipationRequestStatus.Pending && f.FromUtc == from && f.ToUtc == to && f.Page == 1 && f.PageSize == 20), It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -97,7 +98,7 @@ public class ListAnticipationRequestsQueryHandlerTests
             AnticipationRequest.Create(creatorId, 200m, 200m, 4m, 196m),
         };
         _repository
-            .Setup(x => x.ListAsync(creatorId, null, null, null, 2, 5, It.IsAny<CancellationToken>()))
+            .Setup(x => x.ListAsync(It.Is<ListAnticipationRequestsFilter>(f => f.CreatorId == creatorId && f.Page == 2 && f.PageSize == 5), It.IsAny<CancellationToken>()))
             .ReturnsAsync((items, 10));
 
         var query = new ListAnticipationRequestsQuery(null, null, null, null, Page: 2, PageSize: 5);
@@ -107,7 +108,7 @@ public class ListAnticipationRequestsQueryHandlerTests
         result.TotalCount.Should().Be(10);
         result.Items.Should().HaveCount(2);
         _repository.Verify(
-            x => x.ListAsync(creatorId, null, null, null, 2, 5, It.IsAny<CancellationToken>()),
+            x => x.ListAsync(It.Is<ListAnticipationRequestsFilter>(f => f.CreatorId == creatorId && f.Page == 2 && f.PageSize == 5), It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -131,7 +132,7 @@ public class ListAnticipationRequestsQueryHandlerTests
         _currentUser.Setup(x => x.GetRole()).Returns("Creator");
 
         _repository
-            .Setup(x => x.ListAsync(creatorId, null, null, null, 1, 20, It.IsAny<CancellationToken>()))
+            .Setup(x => x.ListAsync(It.Is<ListAnticipationRequestsFilter>(f => f.CreatorId == creatorId && f.Page == 1 && f.PageSize == 20), It.IsAny<CancellationToken>()))
             .ReturnsAsync((new List<AnticipationRequest>(), 0));
 
         var query = new ListAnticipationRequestsQuery(null, null, null, null, 1, 20);

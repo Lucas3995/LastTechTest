@@ -221,4 +221,28 @@ public class AnticipationTransitionRulesTests
     {
         AnticipationTransitionRules.IsSameStateTransition(AnticipationRequestStatus.Pending, AnticipationTransitionAction.Cancel).Should().BeFalse();
     }
+
+    // --- Violation #4: Single source "em análise" (AnalysisPendingStatuses) ---
+
+    [Fact]
+    public void AnalysisPendingStatuses_Should_Contain_Created_And_Pending_Only()
+    {
+        var statuses = AnticipationTransitionRules.AnalysisPendingStatuses;
+        statuses.Should().HaveCount(2);
+        statuses.Should().Contain(AnticipationRequestStatus.Created);
+        statuses.Should().Contain(AnticipationRequestStatus.Pending);
+        statuses.Should().NotContain(AnticipationRequestStatus.Approved);
+        statuses.Should().NotContain(AnticipationRequestStatus.Rejected);
+        statuses.Should().NotContain(AnticipationRequestStatus.CanceledByCreator);
+    }
+
+    [Fact]
+    public void IsAnalysisPendingStatus_True_For_Statuses_In_AnalysisPendingStatuses()
+    {
+        foreach (var status in AnticipationTransitionRules.AnalysisPendingStatuses)
+            AnticipationTransitionRules.IsAnalysisPendingStatus(status).Should().BeTrue();
+        AnticipationTransitionRules.IsAnalysisPendingStatus(AnticipationRequestStatus.Approved).Should().BeFalse();
+        AnticipationTransitionRules.IsAnalysisPendingStatus(AnticipationRequestStatus.Rejected).Should().BeFalse();
+        AnticipationTransitionRules.IsAnalysisPendingStatus(AnticipationRequestStatus.CanceledByCreator).Should().BeFalse();
+    }
 }
