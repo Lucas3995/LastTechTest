@@ -5,25 +5,10 @@ using FluentValidation;
 
 using LastTechTest.API;
 using LastTechTest.API.Configuration;
-using LastTechTest.API.Dtos;
-using LastTechTest.API.Endpoints;
-using LastTechTest.Aplicacao.Anticipation.Commands.ApproveAnticipationRequest;
-using LastTechTest.Aplicacao.Anticipation.Commands.CancelAnticipationRequest;
-using LastTechTest.Aplicacao.Anticipation.Commands.ConvertSimulationToRealRequest;
 using LastTechTest.Aplicacao.Anticipation.Commands.CreateAnticipationRequest;
-using LastTechTest.Aplicacao.Anticipation.Commands.RejectAnticipationRequest;
-using LastTechTest.Aplicacao.Anticipation.Commands.SimulateAnticipationRequest;
-using LastTechTest.Aplicacao.Anticipation.Queries.GetAnticipationRequestById;
-using LastTechTest.Aplicacao.Anticipation.Queries.ListAnticipationRequests;
 using LastTechTest.Aplicacao.Anticipation.Services;
 using LastTechTest.Aplicacao.Anticipation.Simulation;
-using LastTechTest.Aplicacao.Authentication.Commands.AdminCreateUser;
-using LastTechTest.Aplicacao.Authentication.Commands.ChangePassword;
-using LastTechTest.Aplicacao.Authentication.Commands.Login;
-using LastTechTest.Aplicacao.Authentication.Commands.Logout;
-using LastTechTest.Aplicacao.Authentication.Commands.RefreshToken;
 using LastTechTest.Aplicacao.Authentication.Commands.RegisterUser;
-using LastTechTest.Aplicacao.Authentication.Queries.GetLoggedUser;
 using LastTechTest.Aplicacao.Common.Behaviors;
 using LastTechTest.Aplicacao.Common.Exceptions;
 using LastTechTest.Aplicacao.Common.Interfaces;
@@ -144,6 +129,7 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -200,95 +186,6 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
-
-app.MapPost("/auth/register", async ([FromBody] RegisterUserCommand command, [FromServices] ISender sender, CancellationToken ct) =>
-{
-    try
-    {
-        var result = await sender.Send(command, ct);
-        return Results.Ok(result);
-    }
-    catch (InvalidOperationException ex)
-    {
-        return ExceptionMapping.MapException(ex);
-    }
-});
-
-app.MapPost("/auth/admin/users", async ([FromBody] AdminCreateUserCommand command, [FromServices] ISender sender, CancellationToken ct) =>
-{
-    try
-    {
-        var id = await sender.Send(command, ct);
-        return Results.Created($"/auth/admin/users/{id}", new { Id = id });
-    }
-    catch (InvalidOperationException ex)
-    {
-        return ExceptionMapping.MapException(ex);
-    }
-}).RequireAuthorization(policy => policy.RequireRole(LastTechTest.Dominio.Authorization.KnownRoles.Admin));
-
-app.MapPost("/auth/login", async ([FromBody] LoginCommand command, [FromServices] ISender sender, CancellationToken ct) =>
-{
-    try
-    {
-        var result = await sender.Send(command, ct);
-        return Results.Ok(result);
-    }
-    catch (InvalidOperationException ex)
-    {
-        return ExceptionMapping.MapException(ex);
-    }
-});
-
-app.MapPost("/auth/change-password", async ([FromBody] ChangePasswordCommand command, [FromServices] ISender sender, CancellationToken ct) =>
-{
-    try
-    {
-        await sender.Send(command, ct);
-        return Results.Ok();
-    }
-    catch (InvalidOperationException ex)
-    {
-        return ExceptionMapping.MapException(ex);
-    }
-    catch (UnauthorizedAccessException ex)
-    {
-        return ExceptionMapping.MapException(ex);
-    }
-}).RequireAuthorization();
-
-app.MapPost("/auth/refresh", async ([FromBody] RefreshTokenCommand command, [FromServices] ISender sender, CancellationToken ct) =>
-{
-    try
-    {
-        var result = await sender.Send(command, ct);
-        return Results.Ok(result);
-    }
-    catch (InvalidOperationException ex)
-    {
-        return ExceptionMapping.MapException(ex);
-    }
-});
-
-app.MapDelete("/auth/logout", async ([FromBody] LogoutCommand command, [FromServices] ISender sender, CancellationToken ct) =>
-{
-    await sender.Send(command, ct);
-    return Results.NoContent();
-});
-
-app.MapGet("/user/logged", async (ISender sender, CancellationToken ct) =>
-{
-    try
-    {
-        var result = await sender.Send(new GetLoggedUserQuery(), ct);
-        return Results.Ok(result);
-    }
-    catch (InvalidOperationException ex)
-    {
-        return ExceptionMapping.MapException(ex);
-    }
-}).RequireAuthorization();
-
-app.MapAnticipationEndpoints();
+app.MapControllers();
 
 app.Run();
