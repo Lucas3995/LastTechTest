@@ -1,6 +1,8 @@
 using System.Security.Claims;
 using System.Text;
 
+using FluentValidation;
+
 using LastTechTest.API;
 using LastTechTest.Aplicacao.Anticipation.Commands.ApproveAnticipationRequest;
 using LastTechTest.Aplicacao.Anticipation.Commands.CancelAnticipationRequest;
@@ -27,7 +29,6 @@ using LastTechTest.Persistencia;
 using LastTechTest.Persistencia.Repositories;
 using LastTechTest.Persistencia.Services;
 
-using FluentValidation;
 using MediatR;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
