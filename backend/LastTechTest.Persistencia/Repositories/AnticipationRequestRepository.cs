@@ -1,4 +1,5 @@
 using LastTechTest.Dominio.Entities;
+using LastTechTest.Dominio.Enums;
 using LastTechTest.Dominio.Interfaces;
 
 using Microsoft.EntityFrameworkCore;
@@ -25,5 +26,38 @@ public sealed class AnticipationRequestRepository : IAnticipationRequestReposito
     {
         await _context.AnticipationRequests.AddAsync(request, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<(IReadOnlyList<AnticipationRequest> Items, int TotalCount)> ListAsync(
+        Guid? creatorId,
+        AnticipationRequestStatus? status,
+        DateTime? fromUtc,
+        DateTime? toUtc,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        var p = Math.Max(1, page);
+        var size = Math.Clamp(pageSize, 1, 100);
+
+        var query = _context.AnticipationRequests.AsNoTracking();
+
+        if (creatorId.HasValue)
+            query = query.Where(x => x.CreatorId == creatorId.Value);
+        if (status.HasValue)
+            query = query.Where(x => x.Status == status.Value);
+        if (fromUtc.HasValue)
+            query = query.Where(x => x.RequestedAtUtc >= fromUtc.Value);
+        if (toUtc.HasValue)
+            query = query.Where(x => x.RequestedAtUtc <= toUtc.Value);
+
+        var totalCount = await query.CountAsync(cancellationToken);
+        var items = await query
+            .OrderByDescending(x => x.CreatedAtUtc)
+            .Skip((p - 1) * size)
+            .Take(size)
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
     }
 }

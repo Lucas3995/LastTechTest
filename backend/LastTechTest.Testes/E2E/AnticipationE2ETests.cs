@@ -139,6 +139,144 @@ public class AnticipationE2ETests : IClassFixture<CustomWebApplicationFactory>
         json.Should().Contain("error");
     }
 
+    // --- RA-2: GET list and GET by id ---
+
+    /// <summary>CA1 – GET list as Creator returns only own requests.</summary>
+    [Fact]
+    public async Task E6_GetAnticipationsList_AsCreator_Should_ReturnOnlyOwn()
+    {
+        var client = _factory.CreateClient();
+        var creatorId = Guid.NewGuid();
+        var token = CreateJwt(creatorId, "Creator");
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+        var postBody = new { RequestedAmount = 500m, CreatorId = (Guid?)null };
+        var createResponse = await client.PostAsJsonAsync("/api/v1/anticipations", postBody);
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var listResponse = await client.GetAsync("/api/v1/anticipations");
+        listResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var list = await listResponse.Content.ReadFromJsonAsync<ListAnticipationResponseDto>();
+        list.Should().NotBeNull();
+        list!.Items.Should().NotBeNull();
+        list.Items.Should().HaveCount(1);
+        list.Items![0].CreatorId.Should().Be(creatorId);
+        list.TotalCount.Should().Be(1);
+    }
+
+    /// <summary>CA3 – GET list as Admin returns all (with or without filters).</summary>
+    [Fact]
+    public async Task E7_GetAnticipationsList_AsAdmin_Should_ReturnAll()
+    {
+        var client = _factory.CreateClient();
+        var adminId = Guid.NewGuid();
+        var creatorId = Guid.NewGuid();
+        var tokenAdmin = CreateJwt(adminId, "Admin");
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenAdmin);
+        await client.PostAsJsonAsync("/api/v1/anticipations", new { RequestedAmount = 100m, CreatorId = creatorId });
+        await client.PostAsJsonAsync("/api/v1/anticipations", new { RequestedAmount = 200m, CreatorId = creatorId });
+
+        var listResponse = await client.GetAsync("/api/v1/anticipations");
+        listResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var list = await listResponse.Content.ReadFromJsonAsync<ListAnticipationResponseDto>();
+        list.Should().NotBeNull();
+        list!.TotalCount.Should().BeGreaterThanOrEqualTo(2);
+        list.Items.Should().NotBeNull();
+    }
+
+    /// <summary>CA2 – GET by id as Creator for other creator's request returns 403.</summary>
+    [Fact]
+    public async Task E8_GetAnticipationById_AsCreator_OtherCreatorRequest_Should_Return403()
+    {
+        var client = _factory.CreateClient();
+        var adminId = Guid.NewGuid();
+        var creatorA = Guid.NewGuid();
+        var creatorB = Guid.NewGuid();
+        var tokenAdmin = CreateJwt(adminId, "Admin");
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenAdmin);
+        var createResponse = await client.PostAsJsonAsync("/api/v1/anticipations",
+            new { RequestedAmount = 100m, CreatorId = creatorB });
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var created = await createResponse.Content.ReadFromJsonAsync<AnticipationResponseDto>();
+        created.Should().NotBeNull();
+
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", CreateJwt(creatorA, "Creator"));
+        var getResponse = await client.GetAsync($"/api/v1/anticipations/{created!.Id}");
+
+        getResponse.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    /// <summary>CA4 – GET by id as Admin returns 200 for any request.</summary>
+    [Fact]
+    public async Task E9_GetAnticipationById_AsAdmin_Should_Return200()
+    {
+        var client = _factory.CreateClient();
+        var creatorId = Guid.NewGuid();
+        var token = CreateJwt(creatorId, "Creator");
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        var createResponse = await client.PostAsJsonAsync("/api/v1/anticipations",
+            new { RequestedAmount = 300m, CreatorId = (Guid?)null });
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var created = await createResponse.Content.ReadFromJsonAsync<AnticipationResponseDto>();
+        created.Should().NotBeNull();
+
+        var adminToken = CreateJwt(Guid.NewGuid(), "Admin");
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", adminToken);
+        var getResponse = await client.GetAsync($"/api/v1/anticipations/{created!.Id}");
+
+        getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var detail = await getResponse.Content.ReadFromJsonAsync<AnticipationDetailDto>();
+        detail.Should().NotBeNull();
+        detail!.Id.Should().Be(created.Id);
+        detail.CreatorId.Should().Be(creatorId);
+    }
+
+    /// <summary>GET list without token returns 401.</summary>
+    [Fact]
+    public async Task E10_GetAnticipationsList_WithoutToken_Should_Return401()
+    {
+        var client = _factory.CreateClient();
+        var response = await client.GetAsync("/api/v1/anticipations");
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    /// <summary>CA5 – GET list with pagination returns Items and TotalCount.</summary>
+    [Fact]
+    public async Task E11_GetAnticipationsList_WithPagination_Should_ReturnPagedStructure()
+    {
+        var client = _factory.CreateClient();
+        var creatorId = Guid.NewGuid();
+        var token = CreateJwt(creatorId, "Creator");
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+        var response = await client.GetAsync("/api/v1/anticipations?page=1&pageSize=5");
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var list = await response.Content.ReadFromJsonAsync<ListAnticipationResponseDto>();
+        list.Should().NotBeNull();
+        list!.Items.Should().NotBeNull();
+        list.TotalCount.Should().BeGreaterThanOrEqualTo(0);
+    }
+
+    /// <summary>GET by id for nonexistent id returns 404.</summary>
+    [Fact]
+    public async Task E12_GetAnticipationById_NotFound_Should_Return404()
+    {
+        var client = _factory.CreateClient();
+        var token = CreateJwt(Guid.NewGuid(), "Creator");
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+        var response = await client.GetAsync($"/api/v1/anticipations/{Guid.NewGuid()}");
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
     private static string CreateJwt(Guid userId, string role)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(TestJwtSecret));
@@ -166,5 +304,37 @@ public class AnticipationE2ETests : IClassFixture<CustomWebApplicationFactory>
         public string Protocol { get; set; } = string.Empty;
         public decimal NetAmount { get; set; }
         public string Status { get; set; } = string.Empty;
+    }
+
+    private sealed class ListAnticipationItemDto
+    {
+        public Guid Id { get; set; }
+        public string Protocol { get; set; } = string.Empty;
+        public Guid CreatorId { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public decimal RequestedAmount { get; set; }
+        public decimal NetAmount { get; set; }
+        public DateTime RequestedAtUtc { get; set; }
+        public DateTime CreatedAtUtc { get; set; }
+    }
+
+    private sealed class ListAnticipationResponseDto
+    {
+        public ListAnticipationItemDto[]? Items { get; set; }
+        public int TotalCount { get; set; }
+    }
+
+    private sealed class AnticipationDetailDto
+    {
+        public Guid Id { get; set; }
+        public string Protocol { get; set; } = string.Empty;
+        public Guid CreatorId { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public decimal RequestedAmount { get; set; }
+        public decimal GrossAmount { get; set; }
+        public decimal FeesAmount { get; set; }
+        public decimal NetAmount { get; set; }
+        public DateTime RequestedAtUtc { get; set; }
+        public DateTime CreatedAtUtc { get; set; }
     }
 }
