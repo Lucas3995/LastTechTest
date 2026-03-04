@@ -24,11 +24,11 @@ public sealed class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<
     {
         var validator = _serviceProvider.GetService<IValidator<TRequest>>();
         if (validator is null)
-            return await next();
+            return await next(cancellationToken);
 
         var result = await validator.ValidateAsync(request, cancellationToken);
         if (result.IsValid)
-            return await next();
+            return await next(cancellationToken);
 
         throw new ValidationException(result.Errors);
     }
