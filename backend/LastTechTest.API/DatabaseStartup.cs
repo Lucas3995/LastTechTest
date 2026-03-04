@@ -44,29 +44,13 @@ public static class DatabaseStartup
     }
 
     /// <summary>
-    /// Ensures schema exists: EnsureCreated() when testing (in-memory), Migrate() otherwise.
-    /// If Migrate() fails because tables already exist (legacy EnsureCreated DB) or model has pending changes, runs legacy fallback.
+    /// Ensures schema exists: always uses EnsureCreated() so all tables
+    /// from the current model (including Identity) are created for a new database.
     /// </summary>
     public static void EnsureSchema(ApplicationDbContext db, bool isTesting)
     {
-        if (isTesting)
-        {
-            db.Database.EnsureCreated();
-            return;
-        }
-
-        try
-        {
-            db.Database.Migrate();
-        }
-        catch (SqliteException ex) when (ex.Message?.Contains("already exists", StringComparison.OrdinalIgnoreCase) == true)
-        {
-            RunLegacyFallback(db);
-        }
-        catch (InvalidOperationException ex) when (ex.Message?.Contains("pending", StringComparison.OrdinalIgnoreCase) == true)
-        {
-            // Model has newer migrations than the DB (e.g. legacy DB with no __EFMigrationsHistory). Apply fallback.
-            RunLegacyFallback(db);
-        }
+        // For this project, both testing and production paths can rely on EnsureCreated,
+        // since we don't need to support legacy schemas anymore.
+        db.Database.EnsureCreated();
     }
 }

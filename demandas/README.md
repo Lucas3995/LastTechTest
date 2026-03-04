@@ -12,51 +12,41 @@ Cada card deve seguir, na medida do possível, a estrutura abaixo:
 
 - **Título**
   - Formato sugerido: `[RX] Nome curto da demanda orientado a valor`  
-    Exemplo: `[RA-1] Criar solicitacao de antecipacao`.
-
+  Exemplo: `[RA-1] Criar solicitacao de antecipacao`.
 - **Contexto e objetivo de negócio**
   - Pequeno parágrafo explicando a dor / necessidade e o resultado desejado (métrica ou situação-alvo).
-
 - **User story principal**
   - Forma padrão: `Como [persona/papel], quero [acao/resultado] para [beneficio].`
   - Quando fizer sentido, incluir stories adicionais relacionadas.
-
 - **Personas / papéis afetados**
   - Lista de personas ou papéis (ex.: operador de risco, analista financeiro, suporte, TI interno) impactados pela demanda.
-
 - **Telas, módulos, relatórios e navegação**
   - Quais telas novas ou existentes são afetadas (quando houver frontend).
   - Em qual módulo/menu do sistema interno se encaixa.
   - Relatórios, grids, dashboards ou gráficos necessários.
   - Navegação: de onde o usuário chega e para onde pode ir a partir desta funcionalidade.
-
 - **Permissões e segurança**
   - Quem pode **ver**, **criar**, **editar**, **aprovar**, **recusar**, **cancelar** ou **exportar** dados ligados à demanda.
   - Requisitos de autenticação/autorização especiais (ex.: MFA obrigatório, escopo de API, isolamento por `creator_id`).
-
 - **Fluxos de uso e regras de negócio**
   - Passo a passo do fluxo principal (happy path) em linguagem de processo.
   - Regras de negócio relevantes (validações, cálculos, limites, estados permitidos).
   - Variações importantes (ex.: erros de validação, conflitos de estado, cenários-limite).
-
 - **Critérios de aceitação (testáveis)**
   - Lista de critérios verificáveis, de preferência em formato Given–When–Then.
   - Devem permitir que QA/devs criem testes automatizados sem reinterpretar a demanda.
-
 - **Requisitos técnicos/metodológicos aplicáveis**
   - Não são cards separados, e sim **constraints deste card**:
     - Respeitar a arquitetura base (Clean Architecture, CQRS/MediatR, DDD).
     - Seguir a rotina-completa com as skills: implementação (`mercenario`), criação de testes (`quadro-de-recompensas`), análise de código (`batedor-de-codigos`), refatoração (`mestre-freire`).
     - Manter a pirâmide de testes coerente com a criticidade (unitários, integração, E2E).
     - Obedecer às ADRs do projeto (observabilidade, segurança, persistência etc.).
-
 - **Rastreabilidade para código e testes**
   - Espaço para ser preenchido ao longo da execução:
     - Casos de uso / Commands / Queries.
     - Endpoints ou rotas HTTP.
     - Serviços de domínio / infraestrutura.
     - Testes unitários, de integração e E2E relacionados.
-
 - **Dependências e riscos**
   - Outros cards dos quais depende ou que dependem deste.
   - Riscos de negócio, técnicos ou de UX conhecidos.
@@ -78,27 +68,24 @@ Ao gerar ou alterar cards nesta pasta, seguir as orientações abaixo. Para proc
 
 ### Como usar estes cards no fluxo do projeto
 
-1. **Tradutor**  
-   - A partir do que o cliente descreve (como no arquivo `InstrucoesProjeto`), atuar como analista de requisitos/UX:
-     - Entender objetivos de negócio, personas, jornadas e necessidades de informação.
-     - Produzir ou atualizar cards em `demandas/` em linguagem de negócio (telas, módulos, fluxos, relatórios, permissões).
-
-2. **Maestro**  
-   - A partir de um card aprovado, mapear:
-     - Quais casos de uso (Commands/Queries/Handlers) serão necessários.
-     - Quais endpoints / rotas HTTP serão criados ou alterados.
-     - Quais entidades, serviços de domínio e integrações são impactados.
-
-3. **Quadro-de-recompensas**  
-   - Usar os **critérios de aceitação** do card para criar/atualizar testes:
-     - Unitários (domínio, serviços puros).
-     - Integração (repositórios, handlers).
-     - E2E (fluxos completos HTTP).
-
-4. **Batedor-de-codigos** e **Mestre-freire**  
-   - Após a implementação, analisar e refatorar o código mantendo a ligação entre:
-     - Card de demanda → requisitos.
-     - Casos de uso / endpoints → testes.
+1. **Tradutor**
+  - A partir do que o cliente descreve (como no arquivo `InstrucoesProjeto`), atuar como analista de requisitos/UX:
+    - Entender objetivos de negócio, personas, jornadas e necessidades de informação.
+    - Produzir ou atualizar cards em `demandas/` em linguagem de negócio (telas, módulos, fluxos, relatórios, permissões).
+2. **Maestro**
+  - A partir de um card aprovado, mapear:
+    - Quais casos de uso (Commands/Queries/Handlers) serão necessários.
+    - Quais endpoints / rotas HTTP serão criados ou alterados.
+    - Quais entidades, serviços de domínio e integrações são impactados.
+3. **Quadro-de-recompensas**
+  - Usar os **critérios de aceitação** do card para criar/atualizar testes:
+    - Unitários (domínio, serviços puros).
+    - Integração (repositórios, handlers).
+    - E2E (fluxos completos HTTP).
+4. **Batedor-de-codigos** e **Mestre-freire**
+  - Após a implementação, analisar e refatorar o código mantendo a ligação entre:
+    - Card de demanda → requisitos.
+    - Casos de uso / endpoints → testes.
 
 ---
 
@@ -130,4 +117,3 @@ Opcionalmente, os cards em `demandas/` podem ser usados como fonte de verdade pa
   - Aplicar labels e vincular a epics/boards conforme convenção do time.
 
 O uso desse script deve ser documentado no próprio script e aqui no README (como referência de alto nível), sem substituir o fluxo normal de planejamento do time.
-

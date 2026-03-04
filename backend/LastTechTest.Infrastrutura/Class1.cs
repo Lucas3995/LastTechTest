@@ -25,6 +25,11 @@ public sealed class TokenService : ITokenService
 
     public GeneratedTokens GenerateTokens(User user)
     {
+        return GenerateTokens(user, null);
+    }
+
+    public GeneratedTokens GenerateTokens(User user, IEnumerable<string>? roles = null)
+    {
         var jwtSection = _configuration.GetSection("Jwt");
         var secret = jwtSection["Secret"] ?? throw new InvalidOperationException("Jwt:Secret not configured.");
         var issuer = jwtSection["Issuer"] ?? "LastTechTest";
@@ -45,6 +50,14 @@ public sealed class TokenService : ITokenService
             new(JwtRegisteredClaimNames.Email, user.Email),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
+
+        if (roles is not null)
+        {
+            foreach (var role in roles.Where(r => !string.IsNullOrWhiteSpace(r)))
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+        }
 
         var tokenDescriptor = new JwtSecurityToken(
             issuer,
