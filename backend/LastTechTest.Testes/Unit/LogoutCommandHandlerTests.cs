@@ -31,7 +31,7 @@ public class LogoutCommandHandlerTests
 
         var result = await _sut.Handle(new LogoutCommand("refresh-value"), CancellationToken.None);
 
-        result.Should().Be(Unit.Value);
+        result.Should().Be(MediatR.Unit.Value);
         _tokenRepo.Verify(x => x.UpdateAsync(It.Is<UserToken>(t => t.Revoked), It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -42,7 +42,7 @@ public class LogoutCommandHandlerTests
 
         var result = await _sut.Handle(new LogoutCommand("missing"), CancellationToken.None);
 
-        result.Should().Be(Unit.Value);
+        result.Should().Be(MediatR.Unit.Value);
         _tokenRepo.Verify(x => x.UpdateAsync(It.IsAny<UserToken>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 }
