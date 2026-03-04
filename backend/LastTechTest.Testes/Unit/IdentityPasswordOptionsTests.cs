@@ -35,4 +35,3 @@ public class IdentityPasswordOptionsTests
         options.Password.RequireNonAlphanumeric.Should().BeTrue();
     }
 }
-

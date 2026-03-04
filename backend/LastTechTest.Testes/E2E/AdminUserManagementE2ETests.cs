@@ -94,4 +94,3 @@ public class AdminUserManagementE2ETests : IClassFixture<CustomWebApplicationFac
         public string RefreshToken { get; set; } = string.Empty;
     }
 }
-

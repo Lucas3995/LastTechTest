@@ -8,4 +8,3 @@ public static class KnownRoles
     public const string Creator = "Creator";
     public const string Analista = "Analista";
 }
-

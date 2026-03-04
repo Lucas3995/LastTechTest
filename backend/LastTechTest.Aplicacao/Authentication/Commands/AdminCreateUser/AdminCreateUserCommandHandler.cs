@@ -115,4 +115,3 @@ public sealed class AdminCreateUserCommandHandler : IRequestHandler<AdminCreateU
         return domainUser.Id;
     }
 }
-

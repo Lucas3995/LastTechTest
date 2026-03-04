@@ -95,4 +95,3 @@ public sealed class AdminCreateUserCommandHandler : IRequestHandler<AdminCreateU
         return identityUser.Id;
     }
 }
-

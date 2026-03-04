@@ -2,8 +2,8 @@ using System.Security.Claims;
 
 using FluentAssertions;
 
-using LastTechTest.Aplicacao.Common.Interfaces;
 using LastTechTest.API;
+using LastTechTest.Aplicacao.Common.Interfaces;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,4 +39,3 @@ public class CurrentUserServiceTests
         sut.GetRole().Should().Be("Admin");
     }
 }
-

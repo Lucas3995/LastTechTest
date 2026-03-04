@@ -49,8 +49,8 @@ public static class DatabaseStartup
     /// </summary>
     public static void EnsureSchema(ApplicationDbContext db, bool isTesting)
     {
-        // For this project, both testing and production paths can rely on EnsureCreated,
-        // since we don't need to support legacy schemas anymore.
         db.Database.EnsureCreated();
+
+        RunLegacyFallback(db);
     }
 }

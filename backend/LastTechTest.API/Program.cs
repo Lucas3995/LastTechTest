@@ -3,12 +3,12 @@ using System.Text;
 
 using LastTechTest.API;
 using LastTechTest.Aplicacao.Anticipation.Commands.CreateAnticipationRequest;
+using LastTechTest.Aplicacao.Authentication.Commands.AdminCreateUser;
+using LastTechTest.Aplicacao.Authentication.Commands.ChangePassword;
 using LastTechTest.Aplicacao.Authentication.Commands.Login;
 using LastTechTest.Aplicacao.Authentication.Commands.Logout;
 using LastTechTest.Aplicacao.Authentication.Commands.RefreshToken;
 using LastTechTest.Aplicacao.Authentication.Commands.RegisterUser;
-using LastTechTest.Aplicacao.Authentication.Commands.AdminCreateUser;
-using LastTechTest.Aplicacao.Authentication.Commands.ChangePassword;
 using LastTechTest.Aplicacao.Authentication.Queries.GetLoggedUser;
 using LastTechTest.Aplicacao.Common.Interfaces;
 using LastTechTest.Dominio.Interfaces;

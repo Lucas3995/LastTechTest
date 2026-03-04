@@ -15,4 +15,3 @@ public class KnownRolesTests
         KnownRoles.Analista.Should().Be("Analista");
     }
 }
-
