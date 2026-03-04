@@ -1,5 +1,6 @@
 using LastTechTest.Dominio.Authorization;
 using LastTechTest.Dominio.Enums;
+
 using Action = LastTechTest.Dominio.AnticipationTransitionAction;
 
 namespace LastTechTest.Dominio.Services;

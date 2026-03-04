@@ -10,9 +10,9 @@ using LastTechTest.Dominio.Entities;
 using LastTechTest.Dominio.Enums;
 using LastTechTest.Dominio.Interfaces;
 using LastTechTest.Dominio.ValueObjects;
+using LastTechTest.Aplicacao.Common.Services;
 using LastTechTest.Persistencia;
 using LastTechTest.Persistencia.Repositories;
-using LastTechTest.Aplicacao.Common.Services;
 
 using MediatR;
 
@@ -220,6 +220,11 @@ public class AnticipationTransitionHandlersIntegrationTests : IAsyncLifetime
 
     public Task InitializeAsync() => Task.CompletedTask;
 
+    public async Task DisposeAsync()
+    {
+        await _provider.DisposeAsync();
+    }
+
     private void SetFakeUser(Guid? userId, string? role)
     {
         _provider.GetRequiredService<FakeCurrentUserService>().Set(userId, role);
@@ -240,13 +245,6 @@ public class AnticipationTransitionHandlersIntegrationTests : IAsyncLifetime
         db.AnticipationRequests.Add(entity);
         await db.SaveChangesAsync();
         return (entity.Id, creatorId);
-    }
-
-    public Task InitializeAsync() => Task.CompletedTask;
-
-    public async Task DisposeAsync()
-    {
-        await _provider.DisposeAsync();
     }
 
     private sealed class FakeCurrentUserService : ICurrentUserService

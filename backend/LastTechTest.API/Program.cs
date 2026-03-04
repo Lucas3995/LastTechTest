@@ -19,12 +19,12 @@ using LastTechTest.Aplicacao.Authentication.Queries.GetLoggedUser;
 using LastTechTest.Aplicacao.Common.Behaviors;
 using LastTechTest.Aplicacao.Common.Exceptions;
 using LastTechTest.Aplicacao.Common.Interfaces;
+using LastTechTest.Aplicacao.Common.Services;
 using LastTechTest.Dominio.Interfaces;
 using LastTechTest.Dominio.Services;
 using LastTechTest.Infrastrutura;
 using LastTechTest.Persistencia;
 using LastTechTest.Persistencia.Repositories;
-using LastTechTest.Aplicacao.Common.Services;
 using LastTechTest.Persistencia.Services;
 
 using FluentValidation;
