@@ -24,9 +24,9 @@ public class ValidationBehaviorTests
 
         var request = new TestRequest("ok");
         var nextCalled = false;
-        Task<TestResponse> Next() { nextCalled = true; return Task.FromResult(new TestResponse()); }
+        RequestHandlerDelegate<TestResponse> next = () => { nextCalled = true; return Task.FromResult(new TestResponse()); };
 
-        var result = await behavior.Handle(request, Next, CancellationToken.None);
+        var result = await behavior.Handle(request, next, CancellationToken.None);
 
         result.Should().NotBeNull();
         nextCalled.Should().BeTrue();
@@ -44,9 +44,9 @@ public class ValidationBehaviorTests
 
         var request = new TestRequest("valid@example.com");
         var nextCalled = false;
-        Task<TestResponse> Next() { nextCalled = true; return Task.FromResult(new TestResponse()); }
+        RequestHandlerDelegate<TestResponse> next = () => { nextCalled = true; return Task.FromResult(new TestResponse()); };
 
-        var result = await behavior.Handle(request, Next, CancellationToken.None);
+        var result = await behavior.Handle(request, next, CancellationToken.None);
 
         result.Should().NotBeNull();
         nextCalled.Should().BeTrue();
@@ -63,9 +63,9 @@ public class ValidationBehaviorTests
         var behavior = provider.GetRequiredService<ValidationBehavior<TestRequest, TestResponse>>();
 
         var request = new TestRequest("invalid");
-        Task<TestResponse> Next() => Task.FromResult(new TestResponse());
+        RequestHandlerDelegate<TestResponse> next = () => Task.FromResult(new TestResponse());
 
-        var act = () => behavior.Handle(request, Next, CancellationToken.None);
+        var act = () => behavior.Handle(request, next, CancellationToken.None);
 
         await act.Should().ThrowAsync<ValidationException>()
             .WithMessage("*Email*");
