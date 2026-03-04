@@ -6,9 +6,9 @@ using LastTechTest.Dominio.Entities;
 using LastTechTest.Dominio.Interfaces;
 using LastTechTest.Infrastrutura;
 
-using Microsoft.Extensions.Configuration;
-
 using MediatR;
+
+using Microsoft.Extensions.Configuration;
 
 using Moq;
 

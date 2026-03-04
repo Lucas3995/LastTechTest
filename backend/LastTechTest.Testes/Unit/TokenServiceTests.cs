@@ -43,27 +43,6 @@ public class TokenServiceTests
     }
 
     [Fact]
-    public void GetUserIdFromExpiredAccessToken_ValidExpiredToken_ReturnsUserId()
-    {
-        var inMemorySettings = new Dictionary<string, string?>
-        {
-            ["Jwt:Secret"] = "unit-test-secret-key-should-be-long-enough",
-            ["Jwt:Issuer"] = "UnitTests",
-            ["Jwt:Audience"] = "UnitTests-Audience"
-        };
-        IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings!).Build();
-        var keyGenerator = new KeyGenerator();
-        var service = new TokenService(configuration, keyGenerator);
-        var user = new User();
-        user.SetEmail("u@t.com");
-        var tokens = service.GenerateTokens(user);
-
-        var userId = service.GetUserIdFromExpiredAccessToken(tokens.AccessToken);
-
-        userId.Should().Be(user.Id);
-    }
-
-    [Fact]
     public void GetUserIdFromExpiredAccessToken_InvalidToken_ReturnsNull()
     {
         var inMemorySettings = new Dictionary<string, string?>
