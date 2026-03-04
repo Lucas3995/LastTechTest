@@ -58,7 +58,7 @@ public class IdentitySeederIntegrationTests : IAsyncLifetime
         (await roleManager.RoleExistsAsync(KnownRoles.Creator)).Should().BeTrue();
         (await roleManager.RoleExistsAsync(KnownRoles.Analista)).Should().BeTrue();
 
-        var admin = await userManager.FindByEmailAsync("usu_acesso_total");
+        var admin = await userManager.FindByEmailAsync("usu_acesso_total@example.com");
         admin.Should().NotBeNull();
         (await userManager.IsInRoleAsync(admin!, KnownRoles.Admin)).Should().BeTrue();
     }

@@ -136,7 +136,7 @@ Sem .NET 10 no host (execução via Docker):
 ### 👤 Usuário admin e gerenciamento de usuários
 
 - **Usuário admin padrão** (seed via `IdentitySeeder`):
-  - Login/E-mail: `usu_acesso_total`
+  - Login/E-mail: `usu_acesso_total@example.com`
   - Senha inicial: `Acess0@t0ta1`
   - Roles: `Admin`
 

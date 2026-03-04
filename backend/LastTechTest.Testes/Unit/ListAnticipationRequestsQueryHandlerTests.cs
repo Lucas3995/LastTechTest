@@ -62,12 +62,12 @@ public class ListAnticipationRequestsQueryHandlerTests
         var to = DateTime.UtcNow;
         var entity = AnticipationRequest.Create(filterCreatorId, 200m, 200m, 4m, 196m);
         _repository
-            .Setup(x => x.ListAsync(filterCreatorId, AnticipationRequestStatus.Created, from, to, 1, 20, It.IsAny<CancellationToken>()))
+            .Setup(x => x.ListAsync(filterCreatorId, AnticipationRequestStatus.Pending, from, to, 1, 20, It.IsAny<CancellationToken>()))
             .ReturnsAsync((new List<AnticipationRequest> { entity }, 1));
 
         var query = new ListAnticipationRequestsQuery(
             CreatorId: filterCreatorId,
-            Status: (int)AnticipationRequestStatus.Created,
+            Status: (int)AnticipationRequestStatus.Pending,
             FromUtc: from,
             ToUtc: to,
             Page: 1,
@@ -77,9 +77,9 @@ public class ListAnticipationRequestsQueryHandlerTests
         result.Should().NotBeNull();
         result.Items.Should().HaveCount(1);
         result.Items[0].CreatorId.Should().Be(filterCreatorId);
-        result.Items[0].Status.Should().Be(nameof(AnticipationRequestStatus.Created));
+        result.Items[0].Status.Should().Be(nameof(AnticipationRequestStatus.Pending));
         _repository.Verify(
-            x => x.ListAsync(filterCreatorId, AnticipationRequestStatus.Created, from, to, 1, 20, It.IsAny<CancellationToken>()),
+            x => x.ListAsync(filterCreatorId, AnticipationRequestStatus.Pending, from, to, 1, 20, It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
