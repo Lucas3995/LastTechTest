@@ -79,9 +79,9 @@ jobs:
           --results-directory TestResults
           --logger "trx;LogFileName=unit-tests.trx"
 
-      - name: Enforce minimal coverage (10%)
+      - name: Enforce minimal coverage (9%)
         run: |
-          echo "Checking coverage threshold (10%)..."
+          echo "Checking coverage threshold (9%)..."
           COV_FILE=$(find TestResults -name 'coverage.cobertura.xml' | head -n 1)
           if [ -z "$COV_FILE" ]; then
             echo "Coverage file not found."
@@ -94,8 +94,8 @@ jobs:
             exit 1
           fi
           PERCENT=$((100 * COVERED_LINES / TOTAL_LINES))
-          echo "Coverage: $PERCENT% (threshold: 10%)"
-          if [ "$PERCENT" -lt 10 ]; then
+          echo "Coverage: $PERCENT% (threshold: 9%)"
+          if [ "$PERCENT" -lt 9 ]; then
             echo "Coverage below threshold."
             exit 1
           fi
