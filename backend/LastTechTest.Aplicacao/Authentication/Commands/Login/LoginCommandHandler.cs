@@ -10,6 +10,9 @@ namespace LastTechTest.Aplicacao.Authentication.Commands.Login;
 
 public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, AuthTokensDto>
 {
+    /// <summary>Default domain when user logs in with a login name only (e.g. usu_acesso_total). Must match IdentitySeeder admin email.</summary>
+    private const string DefaultLoginDomain = "example.com";
+
     private readonly IUserRepository _userRepository;
     private readonly IUserPasswordHasher _passwordHasher;
     private readonly ITokenService _tokenService;
@@ -32,7 +35,12 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, AuthToke
 
     public async Task<AuthTokensDto> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
-        var user = await _userRepository.GetByEmailAsync(request.Email, cancellationToken);
+        var loginInput = request.Email.Trim();
+        var lookupEmail = loginInput.Contains('@', StringComparison.Ordinal)
+            ? loginInput
+            : loginInput + "@" + DefaultLoginDomain;
+
+        var user = await _userRepository.GetByEmailAsync(lookupEmail, cancellationToken);
         if (user is null)
         {
             throw new InvalidOperationException("Invalid credentials.");

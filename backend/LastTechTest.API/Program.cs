@@ -6,8 +6,11 @@ using FluentValidation;
 using LastTechTest.API;
 using LastTechTest.Aplicacao.Anticipation.Commands.ApproveAnticipationRequest;
 using LastTechTest.Aplicacao.Anticipation.Commands.CancelAnticipationRequest;
+using LastTechTest.Aplicacao.Anticipation.Commands.ConvertSimulationToRealRequest;
 using LastTechTest.Aplicacao.Anticipation.Commands.CreateAnticipationRequest;
 using LastTechTest.Aplicacao.Anticipation.Commands.RejectAnticipationRequest;
+using LastTechTest.Aplicacao.Anticipation.Commands.SimulateAnticipationRequest;
+using LastTechTest.Aplicacao.Anticipation.Simulation;
 using LastTechTest.Aplicacao.Anticipation.Queries.GetAnticipationRequestById;
 using LastTechTest.Aplicacao.Anticipation.Queries.ListAnticipationRequests;
 using LastTechTest.Aplicacao.Anticipation.Services;
@@ -25,6 +28,7 @@ using LastTechTest.Aplicacao.Common.Services;
 using LastTechTest.Dominio.Interfaces;
 using LastTechTest.Dominio.Services;
 using LastTechTest.Infrastrutura;
+using LastTechTest.Infrastrutura.Anticipation;
 using LastTechTest.Persistencia;
 using LastTechTest.Persistencia.Repositories;
 using LastTechTest.Persistencia.Services;
@@ -94,6 +98,7 @@ builder.Services.AddScoped<IAnticipationCalculationService, AnticipationCalculat
 builder.Services.AddScoped<IEligibilityService, EligibilityService>();
 builder.Services.AddScoped<IAnticipationAuditService, NoOpAnticipationAuditService>();
 builder.Services.AddScoped<IAnticipationTransitionExecutor, AnticipationTransitionExecutor>();
+builder.Services.AddSingleton<IAnticipationSimulationCache, MemoryAnticipationSimulationCache>();
 
 var jwtSection = builder.Configuration.GetSection("Jwt");
 var secret = jwtSection["Secret"] ?? "change-me-in-production-super-secret-key";
@@ -329,6 +334,67 @@ app.MapGet("/api/v1/anticipations/{id:guid}", async (Guid id, [FromServices] ISe
     }
 }).RequireAuthorization(policy => policy.RequireRole(LastTechTest.Dominio.Authorization.KnownRoles.Creator, LastTechTest.Dominio.Authorization.KnownRoles.Admin));
 
+// RA-4: Simulation (fake, no persistence) and convert to real (scaffolding: 501 until implemented)
+app.MapPost("/api/v1/anticipations/simulations", async ([FromBody] SimulateAnticipationRequestDto? body, [FromServices] ISender sender, CancellationToken ct) =>
+{
+    if (body is null)
+        return Results.BadRequest(new { error = "Request body is required." });
+    try
+    {
+        var command = new SimulateAnticipationRequestCommand(body.RequestedAmount, body.CreatorId, body.RequestedAtUtc);
+        var result = await sender.Send(command, ct);
+        return Results.Ok(new { result.SimulationCode, ValidUntilUtc = result.ValidUntilUtc, result.RequestedAmount, result.GrossAmount, result.FeesAmount, result.NetAmount });
+    }
+    catch (NotImplementedException)
+    {
+        return Results.Json(new { error = "Not implemented." }, statusCode: 501);
+    }
+    catch (ValidationException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
+    catch (UnauthorizedAccessException ex)
+    {
+        return MapException(ex);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return MapException(ex);
+    }
+}).RequireAuthorization();
+
+app.MapPost("/api/v1/anticipations/simulations/{simulationCode}/confirm", async (string simulationCode, [FromServices] ISender sender, CancellationToken ct) =>
+{
+    if (string.IsNullOrWhiteSpace(simulationCode))
+        return Results.BadRequest(new { error = "Simulation code is required." });
+    try
+    {
+        var result = await sender.Send(new ConvertSimulationToRealRequestCommand(simulationCode), ct);
+        return Results.Created($"/api/v1/anticipations/{result.Id}", new { result.Id, result.Protocol, NetAmount = result.NetAmount, Status = result.Status.ToString() });
+    }
+    catch (NotImplementedException)
+    {
+        return Results.Json(new { error = "Not implemented." }, statusCode: 501);
+    }
+    catch (NotFoundException ex)
+    {
+        return MapException(ex);
+    }
+    catch (UnauthorizedAccessException ex)
+    {
+        return MapException(ex);
+    }
+    catch (InvalidOperationException ex)
+    {
+        var msg = ex.Message;
+        if (msg.Contains("already used", StringComparison.OrdinalIgnoreCase) ||
+            msg.Contains("open request", StringComparison.OrdinalIgnoreCase) ||
+            msg.Contains("open anticipation", StringComparison.OrdinalIgnoreCase))
+            return Results.Json(new { error = ex.Message }, statusCode: 422);
+        return MapException(ex);
+    }
+}).RequireAuthorization();
+
 app.MapPost("/api/v1/anticipations", async ([FromBody] CreateAnticipationRequestDto? body, [FromServices] ISender sender, CancellationToken ct) =>
 {
     if (body is null)
@@ -420,6 +486,9 @@ public sealed record RejectAnticipationRequestDto(string? Reason);
 
 /// <summary>RA-3: body para POST cancel. Reason opcional.</summary>
 public sealed record CancelAnticipationRequestDto(string? Reason);
+
+/// <summary>RA-4: body para POST simulations. Same shape as create (RequestedAmount, CreatorId optional, RequestedAtUtc optional).</summary>
+public sealed record SimulateAnticipationRequestDto(decimal RequestedAmount, Guid? CreatorId, DateTime? RequestedAtUtc);
 
 public sealed class CurrentUserService : ICurrentUserService
 {

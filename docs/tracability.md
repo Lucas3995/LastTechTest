@@ -120,17 +120,24 @@ Este arquivo funciona como ponto de apoio para o `maestro` e o `quadro-de-recomp
     - E2E:
       - `AnticipationE2ETests.cs` (E13–E20) — CA1 approve por Analista (E13), CA2 cancel válido (E14) e idempotente (E15), CA3 reject por Analista (E16), CA4 bloqueio transição inválida (E17), CA5 Creator approve → 403 (E18) e Admin approve (E19), POST approve sem token 401 (E20)
 
-- **RA-4 – Simulação de solicitação de antecipação (fake, sem persistência)**
-  - Casos de uso (previstos):
-    - `SimulateAnticipationRequestQuery`/`SimulateAnticipationRequestCommand` + handler correspondente
+- **RA-4 – Simulação de solicitação de antecipação (fake, sem persistência)** (implementado)
+  - Casos de uso:
+    - `SimulateAnticipationRequestCommand` + `SimulateAnticipationRequestCommandHandler` + `SimulateAnticipationRequestCommandValidator`
     - `ConvertSimulationToRealRequestCommand` + `ConvertSimulationToRealRequestCommandHandler`
-  - Endpoints (previstos):
-    - `POST /api/v1/anticipations/simulations` (simular, retornar código e validade exposta)
-    - `POST /api/v1/anticipations/simulations/{simulationCode}/confirm` (converter simulação em solicitação real)
-  - Testes (a serem criados):
-    - Unit: reuso de regras de cálculo/validação da criação real, comportamento do cache (TTL de 2h, apenas última simulação por creator, substituição, marcação como utilizada)
-    - Integração: casos de uso de simulação e conversão com cache in-memory + persistência, garantindo que simulação não grava solicitações e que conversão cria solicitação real com valores idênticos aos da simulação
-    - E2E: cenários CA1–CA8 do RA-4 via API (simulação, cache, conversão, rejeições e bloqueio por solicitação em aberto)
+  - Abstrações: `IAnticipationSimulationCache`, `SimulationData`, `CachedSimulationEntry` (LastTechTest.Aplicacao.Anticipation.Simulation); implementação `MemoryAnticipationSimulationCache` (Infrastrutura) registada em DI.
+  - Endpoints:
+    - `POST /api/v1/anticipations/simulations` (simular, retornar código e validade exposta 20 min antes do TTL real de 2h)
+    - `POST /api/v1/anticipations/simulations/{simulationCode}/confirm` (converter simulação em solicitação real; 422 para "already used" / "open request")
+  - Testes:
+    - Unit:
+      - `SimulateAnticipationRequestCommandHandlerTests.cs` — CA1 (Creator válido, SimulationCode + ValidUntilUtc + valores), CA2 (validação falha), CA3 (não chama repo), CA4 (Analista/Admin em nome de), CA6 (duas simulações substituem), limites 100, sem elegíveis
+      - `SimulateAnticipationRequestCommandValidatorTests.cs` — valor &lt; 100 inválido, ≥ 100 válido (limite)
+      - `ConvertSimulationToRealRequestCommandHandlerTests.cs` — CA7 (conversão com valores idênticos, MarkAsUsed), CA8 (código inexistente, já utilizado, pendente em aberto, revalidação falha), não autenticado
+    - Integração:
+      - `AnticipationSimulationHandlerIntegrationTests.cs` — I1 (simulação não persiste), I2 (segunda substitui primeira), I3 (valor inválido validação), I4–I6 (conversão válida / código usado / pendente em aberto); usa `InMemoryAnticipationSimulationCache`
+    - E2E:
+      - `AnticipationSimulationE2ETests.cs` — RA4_CA1 (POST simulations 200 + contrato), RA4_CA2 (amount &lt; 100 → 400), RA4_CA3 (múltiplas simulações sem criar antecipações), RA4_CA4 (Analista/Admin com creatorId), RA4_CA6/CA7/CA8 (confirm primeiro/segundo código, confirm inexistente/usado/pendente), POST sem token 401
+  - Mapeamento CA → testes: CA1 (unit Simulate handler, E2E RA4_CA1), CA2 (unit Simulate + Validator, E2E RA4_CA2), CA3 (unit + integration I1, E2E RA4_CA3), CA4 (unit Simulate Analista/Admin, E2E RA4_CA4), CA5 (opcional desempenho), CA6 (unit duas simulações, integration I2, E2E RA4_CA6), CA7 (unit Convert, integration I4, E2E RA4_CA7), CA8 (unit Convert cenários, integration I5–I6, E2E RA4_CA8).
 
 ### 4. Correções (cards RC-x)
 

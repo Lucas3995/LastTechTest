@@ -17,12 +17,18 @@ public class LoginCommandValidatorTests
         result.IsValid.Should().BeTrue();
     }
 
-    [Theory]
-    [InlineData("", "pwd")]
-    [InlineData("invalid", "pwd")]
-    public void Invalid_Email_Fails(string email, string pwd)
+    [Fact]
+    public void Valid_LoginNameAndPassword_Passes()
     {
-        var cmd = new LoginCommand(email, pwd);
+        var cmd = new LoginCommand("usu_acesso_total", "password");
+        var result = _sut.Validate(cmd);
+        result.IsValid.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Empty_Email_Fails()
+    {
+        var cmd = new LoginCommand("", "pwd");
         var result = _sut.Validate(cmd);
         result.IsValid.Should().BeFalse();
     }
