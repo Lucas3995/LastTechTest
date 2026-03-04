@@ -59,6 +59,25 @@ public class LoginCommandHandlerTests
     }
 
     [Fact]
+    public async Task Handle_LoginNameWithoutDomain_ResolvesToDefaultDomain_ReturnsTokens()
+    {
+        const string loginName = "usu_acesso_total";
+        const string resolvedEmail = "usu_acesso_total@example.com";
+        var user = new User();
+        user.SetEmail(resolvedEmail);
+        user.SetPasswordHash(_passwordHasher.HashPassword(user, "Acess0@t0ta1"));
+        _userRepo.Setup(x => x.GetByEmailAsync(resolvedEmail, It.IsAny<CancellationToken>())).ReturnsAsync(user);
+        _userRepo.Setup(x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        _tokenRepo.Setup(x => x.AddAsync(It.IsAny<UserToken>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        _userManager.Setup(x => x.FindByEmailAsync(resolvedEmail)).ReturnsAsync((IdentityUser<Guid>?)null);
+
+        var result = await _sut.Handle(new LoginCommand(loginName, "Acess0@t0ta1"), CancellationToken.None);
+
+        result.Should().NotBeNull();
+        result.AccessToken.Should().NotBeNullOrWhiteSpace();
+    }
+
+    [Fact]
     public async Task Handle_UserNotFound_Throws()
     {
         _userRepo.Setup(x => x.GetByEmailAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync((User?)null);

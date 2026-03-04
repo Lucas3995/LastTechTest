@@ -172,13 +172,16 @@ Este card tem como objetivo **expor via API uma funcionalidade de simulação de
 ### Rastreabilidade para código e testes (a preencher ao longo do ciclo)
 
 - **Casos de uso / commands / queries:**  
-  Ex.: `SimulateAnticipationRequestQuery`/`Command`, `ConvertSimulationToRealRequestCommand`, e respectivos handlers.
+  `SimulateAnticipationRequestCommand`, `SimulateAnticipationRequestCommandHandler`, `SimulateAnticipationRequestCommandValidator`; `ConvertSimulationToRealRequestCommand`, `ConvertSimulationToRealRequestCommandHandler`. (Handlers em scaffolding: lançam `NotImplementedException` até implementação.)
 - **Endpoints/rotas HTTP:**  
-  Ex.: `POST /api/v1/anticipations/simulations`, `POST /api/v1/anticipations/simulations/{simulationCode}/confirm` (ou rotas equivalentes).
+  `POST /api/v1/anticipations/simulations`, `POST /api/v1/anticipations/simulations/{simulationCode}/confirm` (implementados em Program.cs; devolvem 501 até handlers implementados).
 - **Serviços de domínio / abstrações:**  
-  Componente de cálculo/validação de antecipação reutilizado entre simulação e criação real; interface de cache de simulação (`ISimulationCache` ou equivalente).
+  Cálculo/validação reutilizado (RA-1): `IAnticipationCalculationService`, `IEligibilityService`. Interface de cache: `IAnticipationSimulationCache` (LastTechTest.Aplicacao.Anticipation.Simulation); tipos `SimulationData`, `CachedSimulationEntry`; stub `NotImplementedAnticipationSimulationCache` (Infrastrutura).
 - **Testes:**  
-  Unitários (regras, cache); integração (simulação e conversão com persistência e cache); E2E (API cobrindo CA1–CA8).
+  - Unit: `SimulateAnticipationRequestCommandHandlerTests.cs`, `SimulateAnticipationRequestCommandValidatorTests.cs`, `ConvertSimulationToRealRequestCommandHandlerTests.cs` (backend/LastTechTest.Testes/Unit/).
+  - Integração: `AnticipationSimulationHandlerIntegrationTests.cs` (backend/LastTechTest.Testes/Integration/); `InMemoryAnticipationSimulationCache` para testes.
+  - E2E: `AnticipationSimulationE2ETests.cs` (backend/LastTechTest.Testes/E2E/) — cenários RA4_CA1 a RA4_CA8 e POST sem token.
+  - Rastreabilidade detalhada: `docs/tracability.md` (secção RA-4).
 
 ### Dependências e riscos
 
