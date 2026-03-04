@@ -90,4 +90,3 @@ public sealed class SimulateAnticipationRequestCommandHandler : IRequestHandler<
         return userId;
     }
 }
-

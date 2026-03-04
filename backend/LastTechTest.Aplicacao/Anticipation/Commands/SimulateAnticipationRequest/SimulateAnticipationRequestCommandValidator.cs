@@ -12,4 +12,3 @@ public sealed class SimulateAnticipationRequestCommandValidator : AbstractValida
             .WithMessage("Requested amount must be 100 or more.");
     }
 }
-

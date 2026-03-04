@@ -36,4 +36,3 @@ public class SimulateAnticipationRequestCommandValidatorTests
         result.IsValid.Should().BeTrue();
     }
 }
-

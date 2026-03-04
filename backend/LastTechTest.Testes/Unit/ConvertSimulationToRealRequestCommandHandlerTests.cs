@@ -154,4 +154,3 @@ public class ConvertSimulationToRealRequestCommandHandlerTests
         await act.Should().ThrowAsync<UnauthorizedAccessException>();
     }
 }
-

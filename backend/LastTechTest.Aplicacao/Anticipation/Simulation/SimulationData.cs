@@ -8,4 +8,3 @@ public sealed record SimulationData(
     decimal FeesAmount,
     decimal NetAmount,
     DateTime RequestedAtUtc);
-

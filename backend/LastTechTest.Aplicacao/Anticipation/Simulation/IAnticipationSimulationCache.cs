@@ -12,4 +12,3 @@ public interface IAnticipationSimulationCache
     /// <summary>Marks the simulation as used so it cannot be converted again.</summary>
     Task MarkAsUsedAsync(string simulationCode, CancellationToken cancellationToken = default);
 }
-

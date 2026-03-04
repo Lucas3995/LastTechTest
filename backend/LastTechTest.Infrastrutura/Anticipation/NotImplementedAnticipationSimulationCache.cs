@@ -20,4 +20,3 @@ public sealed class NotImplementedAnticipationSimulationCache : IAnticipationSim
         throw new NotImplementedException("RA-4 IAnticipationSimulationCache.MarkAsUsedAsync not implemented.");
     }
 }
-
