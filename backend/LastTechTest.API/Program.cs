@@ -1,8 +1,14 @@
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 
 using FluentValidation;
-
 using LastTechTest.API;
 using LastTechTest.Aplicacao.Anticipation.Commands.ApproveAnticipationRequest;
 using LastTechTest.Aplicacao.Anticipation.Commands.CancelAnticipationRequest;
@@ -32,19 +38,8 @@ using LastTechTest.Infrastrutura.Anticipation;
 using LastTechTest.Persistencia;
 using LastTechTest.Persistencia.Repositories;
 using LastTechTest.Persistencia.Services;
-
 using MediatR;
-
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
-
 using Scalar.AspNetCore;
-
 using Serilog;
 using Serilog.Events;
 
