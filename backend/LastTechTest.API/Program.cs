@@ -1,6 +1,8 @@
 using System.Security.Claims;
 using System.Text;
 
+using LastTechTest.API;
+using LastTechTest.Aplicacao.Anticipation.Commands.CreateAnticipationRequest;
 using LastTechTest.Aplicacao.Authentication.Commands.Login;
 using LastTechTest.Aplicacao.Authentication.Commands.Logout;
 using LastTechTest.Aplicacao.Authentication.Commands.RefreshToken;
@@ -8,6 +10,7 @@ using LastTechTest.Aplicacao.Authentication.Commands.RegisterUser;
 using LastTechTest.Aplicacao.Authentication.Queries.GetLoggedUser;
 using LastTechTest.Aplicacao.Common.Interfaces;
 using LastTechTest.Dominio.Interfaces;
+using LastTechTest.Dominio.Services;
 using LastTechTest.Infrastrutura;
 using LastTechTest.Persistencia;
 using LastTechTest.Persistencia.Repositories;
@@ -25,6 +28,11 @@ using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
 
+using Microsoft.Data.Sqlite;
+
+// Keep in-memory connection alive for E2E tests (Testing environment).
+SqliteConnection? testDbConnection = null;
+
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
     .Enrich.FromLogContext()
@@ -34,12 +42,21 @@ Log.Logger = new LoggerConfiguration()
 var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog();
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
+if (builder.Environment.IsEnvironment("Testing"))
 {
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ??
-                           "Data Source=lasttechtest.db";
-    options.UseSqlite(connectionString);
-});
+    testDbConnection = new SqliteConnection("Data Source=:memory:");
+    testDbConnection.Open();
+    builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite(testDbConnection));
+}
+else
+{
+    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    {
+        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ??
+                               "Data Source=lasttechtest.db";
+        options.UseSqlite(connectionString);
+    });
+}
 
 builder.Services.AddMediatR(cfg =>
 {
@@ -55,6 +72,10 @@ builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserTokenRepository, UserTokenRepository>();
+builder.Services.AddScoped<IAnticipationRequestRepository, AnticipationRequestRepository>();
+builder.Services.AddScoped<IReceivableRepository, ReceivableRepository>();
+builder.Services.AddScoped<IAnticipationCalculationService, AnticipationCalculationService>();
+builder.Services.AddScoped<IEligibilityService, EligibilityService>();
 
 var jwtSection = builder.Configuration.GetSection("Jwt");
 var secret = jwtSection["Secret"] ?? "change-me-in-production-super-secret-key";
@@ -113,11 +134,12 @@ builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
-// Ensure database schema exists on startup (simplified for SQLite placeholder).
+// Ensure schema exists: Migrate() for file DB, EnsureCreated() for E2E in-memory.
+// Handles Docker volumes that were created with EnsureCreated() (no migration history).
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    db.Database.EnsureCreated();
+    DatabaseStartup.EnsureSchema(db, app.Environment.IsEnvironment("Testing"));
 }
 
 if (app.Environment.IsDevelopment())
@@ -134,9 +156,12 @@ app.UseAuthorization();
 
 static IResult MapException(Exception ex)
 {
-    return ex is InvalidOperationException
-        ? Results.BadRequest(new { error = ex.Message })
-        : Results.Json(new { error = "An error occurred." }, statusCode: 500);
+    return ex switch
+    {
+        UnauthorizedAccessException => Results.Json(new { error = ex.Message }, statusCode: 403),
+        InvalidOperationException => Results.BadRequest(new { error = ex.Message }),
+        _ => Results.Json(new { error = "An error occurred." }, statusCode: 500)
+    };
 }
 
 app.MapPost("/auth/register", async ([FromBody] RegisterUserCommand command, [FromServices] ISender sender, CancellationToken ct) =>
@@ -197,7 +222,33 @@ app.MapGet("/user/logged", async (ISender sender, CancellationToken ct) =>
     }
 }).RequireAuthorization();
 
+app.MapPost("/api/v1/anticipations", async ([FromBody] CreateAnticipationRequestDto? body, [FromServices] ISender sender, CancellationToken ct) =>
+{
+    if (body is null)
+        return Results.BadRequest(new { error = "Request body is required." });
+    try
+    {
+        var command = new CreateAnticipationRequestCommand(
+            body.RequestedAmount,
+            body.CreatorId,
+            body.RequestedAtUtc);
+        var result = await sender.Send(command, ct);
+        return Results.Created($"/api/v1/anticipations/{result.Id}", new { result.Id, result.Protocol, NetAmount = result.NetAmount, Status = result.Status.ToString() });
+    }
+    catch (UnauthorizedAccessException ex)
+    {
+        return MapException(ex);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return MapException(ex);
+    }
+}).RequireAuthorization();
+
 app.Run();
+
+/// <summary>Contrato de criação de solicitação de antecipação. Apenas 3 campos (padrão .NET PascalCase): RequestedAmount, CreatorId (opcional), RequestedAtUtc (opcional).</summary>
+public sealed record CreateAnticipationRequestDto(decimal RequestedAmount, Guid? CreatorId, DateTime? RequestedAtUtc);
 
 public sealed class CurrentUserService : ICurrentUserService
 {
@@ -215,5 +266,12 @@ public sealed class CurrentUserService : ICurrentUserService
         var sub = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value
                   ?? user.Claims.FirstOrDefault(c => c.Type == "sub")?.Value;
         return Guid.TryParse(sub, out var id) ? id : null;
+    }
+
+    public string? GetRole()
+    {
+        var user = _httpContextAccessor.HttpContext?.User;
+        if (user?.Claims is null) return null;
+        return user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role || c.Type == "role")?.Value;
     }
 }

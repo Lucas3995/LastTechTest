@@ -95,5 +95,6 @@ public class AuthHandlersIntegrationTests : IAsyncLifetime
     private sealed class FakeCurrentUserService : ICurrentUserService
     {
         public Guid? GetCurrentUserId() => null;
+        public string? GetRole() => null;
     }
 }

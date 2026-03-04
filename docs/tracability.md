@@ -61,15 +61,24 @@ Este arquivo funciona como ponto de apoio para o `maestro` e o `quadro-de-recomp
 
 ### 3. Requisitos de antecipação de recebíveis
 
-- **RA-1 – Criar solicitação de antecipação**
-  - Casos de uso (previstos):
+- **RA-1 – Criar solicitação de antecipação** (implementado)
+  - Casos de uso:
     - `CreateAnticipationRequestCommand` + `CreateAnticipationRequestCommandHandler`
-  - Endpoints (previstos):
+  - Endpoints:
     - `POST /api/v1/anticipations`
-  - Testes (a serem criados):
-    - Unit: regras de cálculo/validação da criação de solicitação
-    - Integração: handlers + persistência da solicitação de antecipação
-    - E2E: fluxo de criação de solicitação via API (roles `Creator` e `Admin`)
+  - Persistência: migração `InitialCreate` (LastTechTest.Persistencia/Migrations) inclui tabela `AnticipationRequests`.
+  - Testes (árvore RA-1):
+    - Unit (U1–U8):
+      - U1–U2: `AnticipationCalculationServiceTests.cs` — cálculo bruto/taxas/líquido, limite creator
+      - U3–U4: `EligibilityServiceTests.cs` — elegibilidade de recebíveis
+      - U5–U6: `CreateAnticipationRequestCommandValidatorTests.cs` — validação do command
+      - U7–U8: `AnticipationRequestEntityTests.cs` — estado inicial, regras sem persistência (CA5)
+    - Integração (I1–I5):
+      - `CreateAnticipationRequestHandlerIntegrationTests.cs` — Creator/Admin, persistência, rejeição por limite e recebível ineligível
+    - E2E (E1–E5):
+      - `AnticipationE2ETests.cs` — POST como Creator/Admin, 401 sem token, 403/400 Creator com outro creator_id, 400 validação negócio
+    - Integração (containerização):
+      - `DatabaseStartupLegacySchemaIntegrationTests.cs` — arranque da API com DB em esquema legado (sem migration history) não deve falhar; garante que o fallback cria a tabela `AnticipationRequests` e evita regressão em Docker/volumes antigos
 
 - **RA-2 – Consultar solicitações de antecipação**
   - Casos de uso (previstos):
