@@ -84,4 +84,3 @@ public class ChangePasswordE2ETests : IClassFixture<CustomWebApplicationFactory>
         public string RefreshToken { get; set; } = string.Empty;
     }
 }
-

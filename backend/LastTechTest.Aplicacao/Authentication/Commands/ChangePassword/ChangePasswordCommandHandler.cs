@@ -65,4 +65,3 @@ public sealed class ChangePasswordCommandHandler : IRequestHandler<ChangePasswor
         return Unit.Value;
     }
 }
-

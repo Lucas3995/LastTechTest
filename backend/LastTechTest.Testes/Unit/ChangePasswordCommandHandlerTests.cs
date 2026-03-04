@@ -6,6 +6,7 @@ using LastTechTest.Dominio.Entities;
 using LastTechTest.Dominio.Interfaces;
 
 using Microsoft.AspNetCore.Identity;
+
 using Moq;
 
 namespace LastTechTest.Testes.Unit;
@@ -130,4 +131,3 @@ public class ChangePasswordCommandHandlerTests
             null!);
     }
 }
-

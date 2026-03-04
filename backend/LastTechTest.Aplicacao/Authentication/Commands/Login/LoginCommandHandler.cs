@@ -64,4 +64,3 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, AuthToke
         return new AuthTokensDto(tokens.AccessToken, tokens.RefreshToken, tokens.AccessTokenExpiresAtUtc, tokens.RefreshTokenExpiresAtUtc);
     }
 }
-

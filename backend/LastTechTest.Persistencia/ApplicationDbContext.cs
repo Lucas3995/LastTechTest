@@ -14,9 +14,9 @@ public class ApplicationDbContext
     {
     }
 
-    public DbSet<User> Users => Set<User>();
+    public new DbSet<User> Users => Set<User>();
 
-    public DbSet<UserToken> UserTokens => Set<UserToken>();
+    public new DbSet<UserToken> UserTokens => Set<UserToken>();
 
     public DbSet<UserMfa> UserMfas => Set<UserMfa>();
 

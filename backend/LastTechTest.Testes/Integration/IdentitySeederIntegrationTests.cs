@@ -95,4 +95,3 @@ public class IdentitySeederIntegrationTests : IAsyncLifetime
         await _provider.DisposeAsync();
     }
 }
-
