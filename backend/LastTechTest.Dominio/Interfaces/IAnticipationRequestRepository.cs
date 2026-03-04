@@ -1,5 +1,6 @@
 using LastTechTest.Dominio.Entities;
 using LastTechTest.Dominio.Enums;
+using LastTechTest.Dominio.ValueObjects;
 
 namespace LastTechTest.Dominio.Interfaces;
 
@@ -19,11 +20,6 @@ public interface IAnticipationRequestRepository
 
     /// <summary>Listagem paginada com filtros (creator, status, período). Para uso por ListAnticipationRequestsQueryHandler.</summary>
     Task<(IReadOnlyList<AnticipationRequest> Items, int TotalCount)> ListAsync(
-        Guid? creatorId,
-        AnticipationRequestStatus? status,
-        DateTime? fromUtc,
-        DateTime? toUtc,
-        int page,
-        int pageSize,
+        ListAnticipationRequestsFilter filter,
         CancellationToken cancellationToken = default);
 }

@@ -1,14 +1,25 @@
 using FluentAssertions;
 
+using LastTechTest.Dominio.Interfaces;
 using LastTechTest.Dominio.Services;
 using LastTechTest.Dominio.ValueObjects;
+
+using Moq;
 
 namespace LastTechTest.Testes.Unit;
 
 [Trait("Category", "Unit")]
 public class AnticipationCalculationServiceTests
 {
-    private readonly AnticipationCalculationService _sut = new();
+    private static IAnticipationCalculationSettings CreateDefaultSettings()
+    {
+        var mock = new Mock<IAnticipationCalculationSettings>();
+        mock.Setup(s => s.FeeRate).Returns(0.05m);
+        mock.Setup(s => s.DefaultCreatorLimit).Returns(10_000m);
+        return mock.Object;
+    }
+
+    private readonly AnticipationCalculationService _sut = new(CreateDefaultSettings());
 
     [Fact]
     public void U1_AnticipationCalculationService_ValidInputs_Should_ReturnGrossFeesAndNet()
@@ -94,5 +105,38 @@ public class AnticipationCalculationServiceTests
         var result = _sut.Calculate(0m, receivables);
 
         result.Should().BeNull();
+    }
+
+    [Fact]
+    public void Calculate_Uses_Injected_FeeRate()
+    {
+        var mock = new Mock<IAnticipationCalculationSettings>();
+        mock.Setup(s => s.FeeRate).Returns(0.10m);
+        mock.Setup(s => s.DefaultCreatorLimit).Returns(10_000m);
+        var sut = new AnticipationCalculationService(mock.Object);
+        var receivables = new List<ReceivableInfo>
+        {
+            new(Guid.NewGuid(), 5000m, DateTime.UtcNow.AddDays(10), ReceivableStatus.Eligible)
+        };
+
+        var result = sut.Calculate(1000m, receivables);
+
+        result.Should().NotBeNull();
+        result!.FeesAmount.Should().Be(100m, "10% of 1000");
+        result.NetAmount.Should().Be(900m);
+    }
+
+    [Fact]
+    public void ValidateWithinCreatorLimit_Uses_Injected_Limit()
+    {
+        var mock = new Mock<IAnticipationCalculationSettings>();
+        mock.Setup(s => s.FeeRate).Returns(0.05m);
+        mock.Setup(s => s.DefaultCreatorLimit).Returns(5_000m);
+        var sut = new AnticipationCalculationService(mock.Object);
+
+        var (isValid, errorMessage) = sut.ValidateWithinCreatorLimit(Guid.NewGuid(), 6_000m);
+
+        isValid.Should().BeFalse();
+        errorMessage.Should().Contain("5000");
     }
 }

@@ -11,9 +11,16 @@ namespace LastTechTest.Dominio.Services;
 /// </summary>
 public static class AnticipationTransitionRules
 {
+    /// <summary>RC-1 / Violation #4: Single source of truth for "em análise". Use in repository HasPendingByCreatorAsync so EF can translate Contains to SQL IN.</summary>
+    public static readonly AnticipationRequestStatus[] AnalysisPendingStatuses =
+    {
+        AnticipationRequestStatus.Created,
+        AnticipationRequestStatus.Pending
+    };
+
     private static bool IsAnalysisPending(AnticipationRequestStatus status)
     {
-        return status is AnticipationRequestStatus.Created or AnticipationRequestStatus.Pending;
+        return Array.IndexOf(AnalysisPendingStatuses, status) >= 0;
     }
 
     /// <summary>RC-1: Public predicate for "em análise" (Created or Pending). Use in repository for HasPendingByCreatorAsync.</summary>

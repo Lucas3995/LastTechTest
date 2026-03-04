@@ -42,6 +42,7 @@ public class AnticipationTransitionHandlersIntegrationTests : IAsyncLifetime
         services.AddScoped<IAnticipationAuditService, NoOpAnticipationAuditService>();
         services.AddScoped<IAnticipationTransitionExecutor, AnticipationTransitionExecutor>();
         services.AddScoped<IReceivableRepository, ReceivableRepository>();
+        services.AddSingleton<IAnticipationCalculationSettings, StubAnticipationCalculationSettings>();
         services.AddScoped<IAnticipationCalculationService, AnticipationCalculationService>();
         services.AddScoped<IEligibilityService, EligibilityService>();
         var fake = new FakeCurrentUserService();

@@ -32,6 +32,7 @@ public class CreateAnticipationRequestHandlerIntegrationTests : IAsyncLifetime
 
         services.AddScoped<IAnticipationRequestRepository, AnticipationRequestRepository>();
         services.AddScoped<IReceivableRepository, ReceivableRepository>();
+        services.AddSingleton<IAnticipationCalculationSettings, StubAnticipationCalculationSettings>();
         services.AddScoped<IAnticipationCalculationService, AnticipationCalculationService>();
         services.AddScoped<IEligibilityService, EligibilityService>();
         var fake = new FakeCurrentUserService();
@@ -192,6 +193,7 @@ public class CreateAnticipationRequestHandlerIntegrationTests : IAsyncLifetime
         services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite(connection));
         services.AddScoped<IAnticipationRequestRepository, AnticipationRequestRepository>();
         services.AddScoped<IReceivableRepository>(_ => new IneligibleReceivablesStub(receivableId));
+        services.AddSingleton<IAnticipationCalculationSettings, StubAnticipationCalculationSettings>();
         services.AddScoped<IAnticipationCalculationService, AnticipationCalculationService>();
         services.AddScoped<IEligibilityService, EligibilityService>();
         var fake = new FakeCurrentUserService();
