@@ -1,4 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 using FluentAssertions;
 
@@ -40,6 +41,34 @@ public class TokenServiceTests
         var jwt = handler.ReadJwtToken(tokens.AccessToken);
 
         jwt.Claims.Should().Contain(c => c.Type == JwtRegisteredClaimNames.Sub && c.Value == user.Id.ToString());
+    }
+
+    [Fact]
+    public void GenerateTokens_WithRoles_Should_Include_RoleClaims()
+    {
+        var inMemorySettings = new Dictionary<string, string?>
+        {
+            ["Jwt:Secret"] = "unit-test-secret-key-should-be-long-enough",
+            ["Jwt:Issuer"] = "UnitTests",
+            ["Jwt:Audience"] = "UnitTests-Audience"
+        };
+
+        IConfiguration configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(inMemorySettings!)
+            .Build();
+
+        var keyGenerator = new KeyGenerator();
+        var service = new TokenService(configuration, keyGenerator);
+        var user = new User();
+
+        var tokens = service.GenerateTokens(user, new[] { "Admin", "Creator" });
+
+        var handler = new JwtSecurityTokenHandler();
+        var jwt = handler.ReadJwtToken(tokens.AccessToken);
+
+        jwt.Claims.Should().Contain(c => c.Type == JwtRegisteredClaimNames.Sub && c.Value == user.Id.ToString());
+        jwt.Claims.Should().Contain(c => c.Type == ClaimTypes.Role && c.Value == "Admin");
+        jwt.Claims.Should().Contain(c => c.Type == ClaimTypes.Role && c.Value == "Creator");
     }
 
     [Fact]

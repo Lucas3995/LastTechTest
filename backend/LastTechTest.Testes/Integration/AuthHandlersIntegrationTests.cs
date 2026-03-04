@@ -10,6 +10,7 @@ using LastTechTest.Persistencia.Repositories;
 
 using MediatR;
 
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -46,6 +47,18 @@ public class AuthHandlersIntegrationTests : IAsyncLifetime
 
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlite(connection));
+
+        services
+            .AddIdentityCore<IdentityUser<Guid>>(options =>
+            {
+                options.Password.RequiredLength = 8;
+                options.Password.RequireDigit = true;
+                options.Password.RequireLowercase = true;
+                options.Password.RequireUppercase = true;
+                options.Password.RequireNonAlphanumeric = true;
+            })
+            .AddRoles<IdentityRole<Guid>>()
+            .AddEntityFrameworkStores<ApplicationDbContext>();
 
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IUserTokenRepository, UserTokenRepository>();

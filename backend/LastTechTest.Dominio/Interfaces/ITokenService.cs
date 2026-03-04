@@ -8,5 +8,7 @@ public interface ITokenService
 {
     GeneratedTokens GenerateTokens(User user);
 
+    GeneratedTokens GenerateTokens(User user, IEnumerable<string>? roles);
+
     Guid? GetUserIdFromExpiredAccessToken(string token);
 }

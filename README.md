@@ -57,11 +57,13 @@ docs/
 
 ### 🔐 Endpoints principais de autenticação
 
-- `POST /auth/register` – registra usuário básico (email/senha)
-- `POST /auth/login` – autentica e retorna access/refresh token
+- `POST /auth/register` – registra usuário básico (email/senha) usando ASP.NET Core Identity
+- `POST /auth/login` – autentica e retorna access/refresh token (incluindo claims de role)
 - `POST /auth/refresh` – renova access token a partir do refresh
 - `DELETE /auth/logout` – invalida refresh token
 - `GET /user/logged` – retorna dados do usuário autenticado
+- `POST /auth/admin/users` – criação de usuários por admin, com senha inicial fixa
+- `POST /auth/change-password` – troca de senha do usuário autenticado
 
 Documentação OpenAPI (Scalar) disponível em `/scalar` quando a API estiver rodando.
 
@@ -128,6 +130,81 @@ Sem .NET 10 no host (execução via Docker):
 ```bash
 ./scripts/run-tests-docker.sh
 ```
+
+---
+
+### 👤 Usuário admin e gerenciamento de usuários
+
+- **Usuário admin padrão** (seed via `IdentitySeeder`):
+  - Login/E-mail: `usu_acesso_total`
+  - Senha inicial: `Acess0@t0ta1`
+  - Roles: `Admin`
+
+- **Criação de usuários por admin**
+  - Endpoint: `POST /auth/admin/users`
+  - Autorização: requer role `Admin`
+  - Payload:
+
+    ```json
+    {
+      "email": "novo-usuario@example.com",
+      "roles": ["Creator", "Analista"]
+    }
+    ```
+
+  - Comportamento:
+    - Cria usuário Identity com senha inicial fixa `Trocar@123`.
+    - Atribui as roles informadas, validadas contra `Admin`, `Creator`, `Analista`.
+    - Cria o usuário de domínio espelhado (entidade `User`) com o mesmo email e hash da senha padrão.
+
+- **Registro público de usuário**
+  - Endpoint: `POST /auth/register`
+  - Payload:
+
+    ```json
+    {
+      "email": "user@example.com",
+      "password": "SenhaF0rte!"
+    }
+    ```
+
+  - Comportamento:
+    - Cria usuário em ASP.NET Core Identity usando a política de senha configurada.
+    - Cria usuário de domínio `User` equivalente.
+    - Retorna tokens de autenticação.
+
+- **Troca de senha**
+  - Endpoint: `POST /auth/change-password`
+  - Autorização: qualquer usuário autenticado
+  - Payload:
+
+    ```json
+    {
+      "currentPassword": "SenhaAntiga1!",
+      "newPassword": "SenhaNova2!"
+    }
+    ```
+
+  - Comportamento:
+    - Usa `UserManager.ChangePasswordAsync` (Identity) para validar senha atual e aplicar a política de senha:
+      - Mínimo 8 caracteres
+      - Pelo menos 1 dígito, 1 minúscula, 1 maiúscula, 1 símbolo
+    - Atualiza a senha no usuário de domínio (`User`) para manter consistência.
+
+#### Roles de acesso (`Admin`, `Creator`, `Analista`)
+
+- **Admin**
+  - Pode criar novos usuários via `POST /auth/admin/users`.
+  - Define as roles atribuídas a cada usuário.
+  - Tem acesso administrativo completo aos fluxos do sistema.
+- **Creator**
+  - Responsável por criar e operar solicitações de antecipação, conforme demandas RA-1 a RA-4.
+  - É a role padrão atribuída aos usuários legados que não possuíam roles antes da migração para Identity.
+- **Analista**
+  - Focado em análise, aprovação e acompanhamento das solicitações de antecipação.
+  - Permissões alinhadas às regras de negócio descritas nos cards em `demandas/RA-*`.
+
+As roles são gerenciadas pelo ASP.NET Core Identity (`KnownRoles`) e propagadas como claims de role nos tokens JWT, sendo usadas pela API para proteger endpoints conforme as regras de autorização descritas nas demandas.
 
 **Cobertura por nível:**
 

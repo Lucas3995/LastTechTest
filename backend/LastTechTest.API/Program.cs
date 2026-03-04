@@ -7,6 +7,8 @@ using LastTechTest.Aplicacao.Authentication.Commands.Login;
 using LastTechTest.Aplicacao.Authentication.Commands.Logout;
 using LastTechTest.Aplicacao.Authentication.Commands.RefreshToken;
 using LastTechTest.Aplicacao.Authentication.Commands.RegisterUser;
+using LastTechTest.Aplicacao.Authentication.Commands.AdminCreateUser;
+using LastTechTest.Aplicacao.Authentication.Commands.ChangePassword;
 using LastTechTest.Aplicacao.Authentication.Queries.GetLoggedUser;
 using LastTechTest.Aplicacao.Common.Interfaces;
 using LastTechTest.Dominio.Interfaces;
@@ -18,6 +20,7 @@ using LastTechTest.Persistencia.Repositories;
 using MediatR;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -82,6 +85,18 @@ var issuer = jwtSection["Issuer"] ?? "LastTechTest";
 var audience = jwtSection["Audience"] ?? "LastTechTest-Users";
 
 builder.Services
+    .AddIdentityCore<IdentityUser<Guid>>(options =>
+    {
+        options.Password.RequiredLength = 8;
+        options.Password.RequireDigit = true;
+        options.Password.RequireLowercase = true;
+        options.Password.RequireUppercase = true;
+        options.Password.RequireNonAlphanumeric = true;
+    })
+    .AddRoles<IdentityRole<Guid>>()
+    .AddEntityFrameworkStores<ApplicationDbContext>();
+
+builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -139,6 +154,9 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     DatabaseStartup.EnsureSchema(db, app.Environment.IsEnvironment("Testing"));
+
+    // Seed Identity roles and admin user.
+    IdentitySeeder.InitializeAsync(scope.ServiceProvider).GetAwaiter().GetResult();
 }
 
 if (app.Environment.IsDevelopment())
@@ -176,6 +194,19 @@ app.MapPost("/auth/register", async ([FromBody] RegisterUserCommand command, [Fr
     }
 });
 
+app.MapPost("/auth/admin/users", async ([FromBody] AdminCreateUserCommand command, [FromServices] ISender sender, CancellationToken ct) =>
+{
+    try
+    {
+        var id = await sender.Send(command, ct);
+        return Results.Created($"/auth/admin/users/{id}", new { Id = id });
+    }
+    catch (InvalidOperationException ex)
+    {
+        return MapException(ex);
+    }
+}).RequireAuthorization(policy => policy.RequireRole(LastTechTest.Dominio.Authorization.KnownRoles.Admin));
+
 app.MapPost("/auth/login", async ([FromBody] LoginCommand command, [FromServices] ISender sender, CancellationToken ct) =>
 {
     try
@@ -188,6 +219,23 @@ app.MapPost("/auth/login", async ([FromBody] LoginCommand command, [FromServices
         return MapException(ex);
     }
 });
+
+app.MapPost("/auth/change-password", async ([FromBody] ChangePasswordCommand command, [FromServices] ISender sender, CancellationToken ct) =>
+{
+    try
+    {
+        await sender.Send(command, ct);
+        return Results.Ok();
+    }
+    catch (InvalidOperationException ex)
+    {
+        return MapException(ex);
+    }
+    catch (UnauthorizedAccessException ex)
+    {
+        return MapException(ex);
+    }
+}).RequireAuthorization();
 
 app.MapPost("/auth/refresh", async ([FromBody] RefreshTokenCommand command, [FromServices] ISender sender, CancellationToken ct) =>
 {
