@@ -61,4 +61,38 @@ public class AnticipationCalculationServiceTests
         isValid.Should().BeFalse();
         errorMessage.Should().Contain("positive");
     }
+
+    [Fact]
+    public void Calculate_EmptyReceivables_ReturnsNull()
+    {
+        var result = _sut.Calculate(100m, new List<ReceivableInfo>());
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void Calculate_RequestedAmountExceedsEligibleTotal_ReturnsNull()
+    {
+        var receivables = new List<ReceivableInfo>
+        {
+            new(Guid.NewGuid(), 100m, DateTime.UtcNow.AddDays(10), ReceivableStatus.Eligible)
+        };
+
+        var result = _sut.Calculate(500m, receivables);
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void Calculate_RequestedAmountZero_ReturnsNull()
+    {
+        var receivables = new List<ReceivableInfo>
+        {
+            new(Guid.NewGuid(), 1000m, DateTime.UtcNow.AddDays(10), ReceivableStatus.Eligible)
+        };
+
+        var result = _sut.Calculate(0m, receivables);
+
+        result.Should().BeNull();
+    }
 }

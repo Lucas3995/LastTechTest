@@ -31,4 +31,28 @@ public class EligibilityServiceTests
 
         filtered.Should().ContainSingle().Which.Id.Should().Be(eligible.Id);
     }
+
+    [Fact]
+    public void IsEligible_ValidReceivable_ReturnsTrue()
+    {
+        var r = new ReceivableInfo(Guid.NewGuid(), 100m, DateTime.UtcNow.AddDays(5), ReceivableStatus.Eligible);
+
+        _sut.IsEligible(r).Should().BeTrue();
+    }
+
+    [Fact]
+    public void IsEligible_ZeroAmount_ReturnsFalse()
+    {
+        var r = new ReceivableInfo(Guid.NewGuid(), 0m, DateTime.UtcNow.AddDays(5), ReceivableStatus.Eligible);
+
+        _sut.IsEligible(r).Should().BeFalse();
+    }
+
+    [Fact]
+    public void FilterEligible_EmptyList_ReturnsEmpty()
+    {
+        var filtered = _sut.FilterEligible(Array.Empty<ReceivableInfo>());
+
+        filtered.Should().BeEmpty();
+    }
 }
