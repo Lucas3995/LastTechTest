@@ -24,10 +24,10 @@ public class AdminUserManagementE2ETests : IClassFixture<CustomWebApplicationFac
     {
         var client = _factory.CreateClient();
 
-        // Arrange: garantir admin via seed (usu_acesso_total / Acess0@t0ta1)
+        // Arrange: garantir admin via seed (usu_acesso_total@example.com / Acess0@t0ta1)
         var adminLogin = await client.PostAsJsonAsync("/auth/login", new
         {
-            Email = "usu_acesso_total",
+            Email = "usu_acesso_total@example.com",
             Password = "Acess0@t0ta1"
         });
         adminLogin.StatusCode.Should().Be(HttpStatusCode.OK);

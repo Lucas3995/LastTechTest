@@ -22,10 +22,24 @@ public sealed class AnticipationRequestRepository : IAnticipationRequestReposito
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
+    public async Task<AnticipationRequest?> GetByIdForUpdateAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _context.AnticipationRequests
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+    }
+
     public async Task AddAsync(AnticipationRequest request, CancellationToken cancellationToken = default)
     {
         await _context.AnticipationRequests.AddAsync(request, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>EF Core cannot translate AnticipationTransitionRules.IsAnalysisPendingStatus to SQL; use inline status check (must match domain: Created, Pending).</summary>
+    public async Task<bool> HasPendingByCreatorAsync(Guid creatorId, CancellationToken cancellationToken = default)
+    {
+        return await _context.AnticipationRequests
+            .AsNoTracking()
+            .AnyAsync(x => x.CreatorId == creatorId && (x.Status == AnticipationRequestStatus.Created || x.Status == AnticipationRequestStatus.Pending), cancellationToken);
     }
 
     public async Task<(IReadOnlyList<AnticipationRequest> Items, int TotalCount)> ListAsync(
@@ -59,5 +73,10 @@ public sealed class AnticipationRequestRepository : IAnticipationRequestReposito
             .ToListAsync(cancellationToken);
 
         return (items, totalCount);
+    }
+
+    public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        await _context.SaveChangesAsync(cancellationToken);
     }
 }

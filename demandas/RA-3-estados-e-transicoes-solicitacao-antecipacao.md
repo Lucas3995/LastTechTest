@@ -52,11 +52,11 @@ Este card tem como objetivo **definir, modelar e expor via API o ciclo de vida d
 #### Estados da solicitação de antecipação
 
 - `ANALISE_PENDENTE` (estado inicial):  
-  - Representa uma solicitação recém-criada que **ainda não foi analisada** pelo `Analista`.  
+  - Representa uma solicitação recém-criada que **ainda não foi analisada** pelo `Analista`.
 - `APROVADA`:  
-  - Representa uma solicitação cuja antecipação foi aprovada pelo `Analista` (ou `Admin` agindo como analista em casos excepcionais).  
+  - Representa uma solicitação cuja antecipação foi aprovada pelo `Analista` (ou `Admin` agindo como analista em casos excepcionais).
 - `RECUSADA`:  
-  - Representa uma solicitação cuja antecipação foi recusada após análise.  
+  - Representa uma solicitação cuja antecipação foi recusada após análise.
 - `CANCELADA_POR_CREATOR`:  
   - Representa uma solicitação cancelada pelo próprio `Creator` antes da conclusão da análise.
 
@@ -72,7 +72,6 @@ Este card tem como objetivo **definir, modelar e expor via API o ciclo de vida d
   - Efeitos:
     - Status alterado para `APROVADA`.
     - Registro de auditoria com usuário, data/hora, motivo/observação.
-
 - De `ANALISE_PENDENTE` para `RECUSADA`:
   - Chamado por: `Analista` (ou `Admin`).  
   - Pré-condições:
@@ -81,7 +80,6 @@ Este card tem como objetivo **definir, modelar e expor via API o ciclo de vida d
   - Efeitos:
     - Status alterado para `RECUSADA`.
     - Registro de auditoria com usuário, data/hora, motivo de recusa.
-
 - De `ANALISE_PENDENTE` para `CANCELADA_POR_CREATOR`:
   - Chamado por: `Creator` (ou `Admin` atuando em nome do usuário em situações especiais).
   - Pré-condições:
@@ -110,13 +108,12 @@ Use Given–When–Then, considerando apenas API (sem UI).
 
 - **CA1 – Aprovação de solicitação em análise por Analista**  
   - Dado que existe uma solicitação de antecipação em estado `ANALISE_PENDENTE`,  
-    e que o usuário autenticado possui papel `Analista` (ou `Admin`),  
+  e que o usuário autenticado possui papel `Analista` (ou `Admin`),  
   - Quando ele chamar o endpoint de **aprovar solicitação** passando o identificador da solicitação e os dados obrigatórios de decisão,  
   - Então o sistema deve:
     - Atualizar o estado da solicitação para `APROVADA`;
     - Registrar auditoria com usuário, data/hora e informações relevantes da decisão;
     - Retornar a solicitação já atualizada em `APROVADA` (ou uma representação equivalente) com código de status HTTP adequado (ex.: 200/204).
-
 - **CA2 – Cancelamento de solicitação em análise pelo Creator e tratamento de cancelamentos repetidos**  
   - Cenário 1 – Cancelamento válido:
     - Dado que existe uma solicitação de antecipação pertencente ao `Creator` autenticado em estado `ANALISE_PENDENTE`,  
@@ -125,7 +122,6 @@ Use Given–When–Then, considerando apenas API (sem UI).
       - Atualizar o estado para `CANCELADA_POR_CREATOR`;
       - Registrar auditoria de cancelamento;
       - Retornar a solicitação já atualizada em `CANCELADA_POR_CREATOR` (ou confirmação equivalente).
-
   - Cenário 2 – Tentativa de cancelamento após já ter sido cancelada:  
     - Dado que existe uma solicitação de antecipação pertencente ao `Creator` autenticado em estado `CANCELADA_POR_CREATOR`,  
     - Quando o `Creator` tentar chamar novamente o endpoint de **cancelar solicitação**,  
@@ -133,16 +129,14 @@ Use Given–When–Then, considerando apenas API (sem UI).
       - **Não alterar o estado** (permanece `CANCELADA_POR_CREATOR`);
       - Informar de forma clara na resposta que **a solicitação já foi cancelada anteriormente** (com mensagem específica indicando que a ação já foi realizada);
       - Retornar um código HTTP compatível com essa situação (por exemplo, 200 com mensagem de idempotência ou 409/422, conforme padrão do projeto).
-
 - **CA3 – Recusa de solicitação em análise por Analista**  
   - Dado que existe uma solicitação de antecipação em estado `ANALISE_PENDENTE`,  
-    e que o usuário autenticado possui papel `Analista` (ou `Admin`),  
+  e que o usuário autenticado possui papel `Analista` (ou `Admin`),  
   - Quando ele chamar o endpoint de **recusar solicitação** passando o identificador e o motivo da recusa,  
   - Então o sistema deve:
     - Atualizar o estado para `RECUSADA`;
     - Registrar auditoria com motivo de recusa;
     - Retornar confirmação da recusa e o novo estado.
-
 - **CA4 – Bloqueio de transições inválidas (incluindo A → A)**  
   - Dado que existe uma solicitação de antecipação em qualquer estado final (`APROVADA`, `RECUSADA`, `CANCELADA_POR_CREATOR`) ou em um estado que não comporte a transição solicitada,  
   - Quando qualquer usuário (`Creator`, `Analista` ou `Admin`) tentar chamar endpoints de transição que não sejam permitidos a partir daquele estado, ou que **resultariam no mesmo estado atual** (ex.: aprovar uma solicitação já `APROVADA`, cancelar uma já `CANCELADA_POR_CREATOR`),  
@@ -151,20 +145,17 @@ Use Given–When–Then, considerando apenas API (sem UI).
     - Não alterar o estado atual;
     - Retornar uma mensagem clara informando que a transição é inválida para o estado atual ou que a ação já foi realizada;
     - Respeitar os códigos de status HTTP definidos pelo padrão do projeto (por exemplo, 400/422 ou 200 com mensagem de idempotência, conforme decisão de padrão).
-
 - **CA5 – Aplicação de permissões por papel**  
   - Dado que:
-    - O usuário tem papel `Creator`,  
+    - O usuário tem papel `Creator`,
   - Quando tentar aprovar ou recusar uma solicitação por endpoints administrativos,  
   - Então o sistema deve recusar a operação por falta de permissão.  
-
   - Dado que:
-    - O usuário tem papel `Analista`,  
+    - O usuário tem papel `Analista`,
   - Quando tentar aprovar ou recusar a partir de estados diferentes de `ANALISE_PENDENTE`,  
   - Então o sistema deve recusar a operação por estado inválido.
-
   - Dado que:
-    - O usuário tem papel `Admin`,  
+    - O usuário tem papel `Admin`,
   - Quando ele chamar qualquer endpoint de transição respeitando as regras de negócio (estado atual e pré-condições),  
   - Então o sistema deve permitir a transição, mesmo que a solicitação pertença a outro usuário.
 
@@ -195,17 +186,17 @@ Use Given–When–Then, considerando apenas API (sem UI).
 - Implementar **toda a pirâmide de testes** para este card:
   - **Testes unitários**: validar regras de transição do domínio (ex.: “de ANALISE_PENDENTE para APROVADA por Analista é permitido”, “de CANCELADA_POR_CREATOR para APROVADA não é permitido”).  
   - **Testes de integração**: garantir que handlers/commands, repositórios e contexto de persistência (EF Core/SQLite) se comportam corretamente durante as transições, incluindo auditoria.  
-  - **Testes E2E**: validar os fluxos principais via API (requisições HTTP simulando usuários `Creator`, `Analista`, `Admin`), cobrindo os critérios de aceitação CA1–CA5.  
+  - **Testes E2E**: validar os fluxos principais via API (requisições HTTP simulando usuários `Creator`, `Analista`, `Admin`), cobrindo os critérios de aceitação CA1–CA5.
 - Usar as ferramentas padrão do projeto (xUnit, FluentAssertions, Coverlet, etc.) e manter cobertura alinhada à criticidade da funcionalidade.
 
 ### Rastreabilidade para código e testes (a preencher ao longo do ciclo)
 
 - Casos de uso / commands:
-  - Ex.: `ApproveAnticipationRequestCommand`, `RejectAnticipationRequestCommand`, `CancelAnticipationRequestCommand`.  
+  - Ex.: `ApproveAnticipationRequestCommand`, `RejectAnticipationRequestCommand`, `CancelAnticipationRequestCommand`.
 - Endpoints/rotas HTTP:
-  - Ex.: `POST /api/v1/anticipations/{id}/approve`, `POST /api/v1/anticipations/{id}/reject`, `POST /api/v1/anticipations/{id}/cancel`.  
+  - Ex.: `POST /api/v1/anticipations/{id}/approve`, `POST /api/v1/anticipations/{id}/reject`, `POST /api/v1/anticipations/{id}/cancel`.
 - Serviços de domínio:
-  - Componente responsável pela lógica de estados e transições da solicitação de antecipação.  
+  - Componente responsável pela lógica de estados e transições da solicitação de antecipação.
 - Testes:
   - Testes unitários de domínio de estados/transições.  
   - Testes de integração com banco de dados.  

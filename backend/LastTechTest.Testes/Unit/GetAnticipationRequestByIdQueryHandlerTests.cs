@@ -38,7 +38,7 @@ public class GetAnticipationRequestByIdQueryHandlerTests
         result.Should().NotBeNull();
         result!.Id.Should().Be(entity.Id);
         result.CreatorId.Should().Be(creatorId);
-        result.Status.Should().Be(nameof(Dominio.Enums.AnticipationRequestStatus.Created));
+        result.Status.Should().Be(nameof(Dominio.Enums.AnticipationRequestStatus.Pending));
         result.NetAmount.Should().Be(98m);
     }
 

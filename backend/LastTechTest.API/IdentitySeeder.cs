@@ -49,7 +49,7 @@ public static class IdentitySeeder
         UserManager<IdentityUser<Guid>> userManager,
         ApplicationDbContext context)
     {
-        const string adminEmail = "usu_acesso_total";
+        const string adminEmail = "usu_acesso_total@example.com";
         const string adminPassword = "Acess0@t0ta1";
 
         var admin = await userManager.FindByEmailAsync(adminEmail);

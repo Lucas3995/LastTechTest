@@ -98,19 +98,27 @@ Este arquivo funciona como ponto de apoio para o `maestro` e o `quadro-de-recomp
     - E2E:
       - `AnticipationE2ETests.cs` (E6–E12) — GET list Creator só próprias (CA1), GET list Admin (CA3), GET by id Creator outro → 403 (CA2), GET by id Admin (CA4), GET list sem token 401, GET list paginação (CA5), GET by id 404
 
-- **RA-3 – Estados e transições da solicitação de antecipação**
-  - Casos de uso (previstos):
-    - `ApproveAnticipationRequestCommand` + `ApproveAnticipationRequestCommandHandler`
-    - `RejectAnticipationRequestCommand` + `RejectAnticipationRequestCommandHandler`
-    - `CancelAnticipationRequestCommand` + `CancelAnticipationRequestCommandHandler`
-  - Endpoints (previstos):
-    - `POST /api/v1/anticipations/{id}/approve`
-    - `POST /api/v1/anticipations/{id}/reject`
-    - `POST /api/v1/anticipations/{id}/cancel`
-  - Testes (a serem criados):
-    - Unit: máquina de estados, transições válidas/ inválidas (incluindo bloqueio A → A), regras por role (`Creator`, `Analista`, `Admin`)
-    - Integração: handlers + persistência + auditoria de transições
-    - E2E: cenários CA1–CA5 do RA-3 via API
+- **RA-3 – Estados e transições da solicitação de antecipação** (testes criados; handlers/endpoints stub até implementação)
+  - Casos de uso:
+    - `ApproveAnticipationRequestCommand` + `ApproveAnticipationRequestCommandHandler` (LastTechTest.Aplicacao/Anticipation/Commands/ApproveAnticipationRequest/)
+    - `RejectAnticipationRequestCommand` + `RejectAnticipationRequestCommandHandler` (LastTechTest.Aplicacao/Anticipation/Commands/RejectAnticipationRequest/)
+    - `CancelAnticipationRequestCommand` + `CancelAnticipationRequestCommandHandler` (LastTechTest.Aplicacao/Anticipation/Commands/CancelAnticipationRequest/)
+  - Domínio:
+    - `AnticipationRequestStatus`: valores `Approved`, `Rejected`, `CanceledByCreator` (enum em LastTechTest.Dominio/Enums/AnticipationRequestStatus.cs)
+    - Especificação executável de regras de transição no projeto de testes: `AnticipationTransitionSpec` + `AnticipationTransitionRulesTests.cs`
+  - Endpoints:
+    - `POST /api/v1/anticipations/{id}/approve` (body: Observation opcional; roles Analista, Admin; retorna 501 até implementação)
+    - `POST /api/v1/anticipations/{id}/reject` (body: Reason obrigatório; roles Analista, Admin; retorna 501 até implementação)
+    - `POST /api/v1/anticipations/{id}/cancel` (body: Reason opcional; roles Creator, Admin; retorna 501 até implementação)
+  - Relatório de alterações: `docs/relatorio-alteracoes-RA-3.md`
+  - Testes (árvore RA-3):
+    - Unit:
+      - `AnticipationTransitionSpec.cs` — especificação de estados e regras (AnalysisPending, Approved, Rejected, CanceledByCreator; CanApprove/CanReject/CanCancel por role; IsSameStateTransition)
+      - `AnticipationTransitionRulesTests.cs` — transições válidas (Analista/Admin approve/reject, Creator dono e Admin cancel), inválidas (Creator approve/reject, Creator não dono cancel, a partir de estados finais), A→A (idempotência)
+    - Integração:
+      - `AnticipationTransitionHandlersIntegrationTests.cs` — Approve/Reject/Cancel handlers (invocação; cenários Analista/Admin approve, Creator/Admin cancel, Creator não pode approve/reject, cancel idempotente, transições a partir de Approved/Rejected/CanceledByCreator; atualmente esperam NotImplementedException até implementação)
+    - E2E:
+      - `AnticipationE2ETests.cs` (E13–E20) — CA1 approve por Analista (E13), CA2 cancel válido (E14) e idempotente (E15), CA3 reject por Analista (E16), CA4 bloqueio transição inválida (E17), CA5 Creator approve → 403 (E18) e Admin approve (E19), POST approve sem token 401 (E20)
 
 - **RA-4 – Simulação de solicitação de antecipação (fake, sem persistência)**
   - Casos de uso (previstos):
@@ -123,3 +131,49 @@ Este arquivo funciona como ponto de apoio para o `maestro` e o `quadro-de-recomp
     - Unit: reuso de regras de cálculo/validação da criação real, comportamento do cache (TTL de 2h, apenas última simulação por creator, substituição, marcação como utilizada)
     - Integração: casos de uso de simulação e conversão com cache in-memory + persistência, garantindo que simulação não grava solicitações e que conversão cria solicitação real com valores idênticos aos da simulação
     - E2E: cenários CA1–CA8 do RA-4 via API (simulação, cache, conversão, rejeições e bloqueio por solicitação em aberto)
+
+### 4. Correções (cards RC-x)
+
+- **RC-1 – Corrigir validações no endpoint de criar solicitação de antecipação** (implementado)
+  - Demanda: `demandas/RC-1-bugs-criar-solicitacao-antecipacao.md`
+  - Regras aplicadas: valor solicitado **>= 100** (antecipação de 100 ou mais; rejeitar &lt; 100); no máximo uma solicitação em análise (Created/Pending) por creator.
+  - Casos de uso impactados:
+    - `CreateAnticipationRequestCommand` + `CreateAnticipationRequestCommandHandler`
+    - `CreateAnticipationRequestCommandValidator`
+  - Pipeline de validação: `LastTechTest.Aplicacao.Common.Behaviors.ValidationBehavior<TRequest, TResponse>`; validadores registados via `AddValidatorsFromAssemblyContaining`; `ValidationException` mapeada para 400 no `POST /api/v1/anticipations`.
+  - Endpoints:
+    - `POST /api/v1/anticipations` (validação FluentValidation + regra "uma pendente por creator" no handler)
+  - Domínio: `AnticipationTransitionRules.IsAnalysisPendingStatus(AnticipationRequestStatus)` exposto para uso em memória; no repositório usa-se expressão traduzível para SQL (EF Core não traduz chamada a método estático).
+  - Infraestrutura/domínio:
+    - `IAnticipationRequestRepository.HasPendingByCreatorAsync(creatorId)`; implementação em `AnticipationRequestRepository` com condição inline `Status == Created || Status == Pending` (traduzível para SQL).
+  - Testes criados/alterados:
+    - Unit: `CreateAnticipationRequestCommandValidatorTests` — valor 0, negativo, 99, 99.99 (rejeitado); 100, 100.00, 100.01, 101 (aceite). `CreateAnticipationRequestCommandHandlerTests` — `Handle_WhenCreatorHasPendingRequest_ThrowsInvalidOperation`, `Handle_WhenCreatorHasNoPendingRequest_ContinuesToCreate`; mocks de `HasPendingByCreatorAsync` nos testes existentes.
+    - Integração: `CreateAnticipationRequestHandlerIntegrationTests` — I5b (HasPendingByCreatorAsync contra SQLite, cobre LINQ-to-SQL), I6 (creator com pendente → segunda criação falha), I7 (admin criando para creator com pendente → falha).
+    - E2E: `AnticipationE2ETests` — E5b_RC1 (POST 50, 99, 99.99 → 400), E5c_RC1 (POST 100, 100.00, 100.01, 101 sem pendente → 201), E5d_RC1 (POST 100 com pendente → 400); E7 e E8 com valores >= 100 (101/201 e 150).
+
+- **RC-2 – Registrar auditoria na criação de solicitação de antecipação (RA-1)** (card criado; implementação pendente)
+  - Demanda: `demandas/RC-2-auditoria-criacao-solicitacao.md`
+  - Regra: auditoria mínima na criação (RA-1): quem chamou, role, timestamp, valores envolvidos.
+  - Casos de uso impactados:
+    - `CreateAnticipationRequestCommandHandler` (invocar serviço de auditoria após criar entidade)
+  - Endpoints:
+    - `POST /api/v1/anticipations` (sem mudança de contrato; apenas efeito lateral de auditoria)
+  - Infraestrutura/domínio:
+    - Extensão de `IAnticipationAuditService` (ex.: `RecordCreationAsync`) ou novo contrato; entidade/tabela de auditoria de criação ou extensão de `AnticipationRequestAudit` com ação "Create".
+  - Testes (a preencher na implementação):
+    - Unit: componente que monta evento de auditoria de criação.
+    - Integração: após criar solicitação, verificar registo de auditoria com userId, role, timestamp e valores.
+    - E2E: opcional.
+
+- **RC-3 – Ativar auditoria persistente nas transições de solicitação (RA-3)** (card criado; implementação pendente)
+  - Demanda: `demandas/RC-3-auditoria-persistente-transicoes.md`
+  - Regra: transições (approve/reject/cancel) devem persistir registo em `AnticipationRequestAudits`; hoje a API usa `NoOpAnticipationAuditService`.
+  - Casos de uso impactados:
+    - Mesmos handlers e `AnticipationTransitionExecutor` de RA-3; alteração no registro de `IAnticipationAuditService`.
+  - Endpoints:
+    - `POST /api/v1/anticipations/{id}/approve`, `.../reject`, `.../cancel` (sem mudança de contrato; apenas ativação de persistência).
+  - Infraestrutura:
+    - `LastTechTest.Persistencia.Services.AnticipationAuditService`; registro em `Program.cs` por ambiente/config (usar implementação persistente em vez de NoOp).
+  - Testes (a preencher na implementação):
+    - Integração: approve/reject/cancel com `AnticipationAuditService` real; verificar registos em `AnticipationRequestAudits`.
+    - E2E: opcional — verificar registo de auditoria após chamada HTTP de transição.

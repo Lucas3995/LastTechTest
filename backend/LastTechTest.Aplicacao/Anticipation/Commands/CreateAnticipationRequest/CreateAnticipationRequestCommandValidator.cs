@@ -7,7 +7,7 @@ public sealed class CreateAnticipationRequestCommandValidator : AbstractValidato
     public CreateAnticipationRequestCommandValidator()
     {
         RuleFor(x => x.RequestedAmount)
-            .GreaterThan(0)
-            .WithMessage("Requested amount must be greater than zero.");
+            .GreaterThanOrEqualTo(100m)
+            .WithMessage("Requested amount must be 100 or more.");
     }
 }
