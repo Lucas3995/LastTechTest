@@ -1,6 +1,7 @@
+using FluentValidation;
+
 using LastTechTest.API.Dtos;
 using LastTechTest.Aplicacao.Anticipation.Commands.ApproveAnticipationRequest;
-using LastTechTest.Aplicacao.Common.Exceptions;
 using LastTechTest.Aplicacao.Anticipation.Commands.CancelAnticipationRequest;
 using LastTechTest.Aplicacao.Anticipation.Commands.ConvertSimulationToRealRequest;
 using LastTechTest.Aplicacao.Anticipation.Commands.CreateAnticipationRequest;
@@ -8,6 +9,7 @@ using LastTechTest.Aplicacao.Anticipation.Commands.RejectAnticipationRequest;
 using LastTechTest.Aplicacao.Anticipation.Commands.SimulateAnticipationRequest;
 using LastTechTest.Aplicacao.Anticipation.Queries.GetAnticipationRequestById;
 using LastTechTest.Aplicacao.Anticipation.Queries.ListAnticipationRequests;
+using LastTechTest.Aplicacao.Common.Exceptions;
 
 using MediatR;
 
@@ -15,8 +17,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
-
-using FluentValidation;
 
 namespace LastTechTest.API.Endpoints;
 

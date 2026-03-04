@@ -1,9 +1,9 @@
 using FluentAssertions;
 
+using FluentValidation;
+
 using LastTechTest.API;
 using LastTechTest.Aplicacao.Common.Exceptions;
-
-using FluentValidation;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;

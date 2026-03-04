@@ -1,6 +1,6 @@
-using LastTechTest.Aplicacao.Common.Exceptions;
-
 using FluentValidation;
+
+using LastTechTest.Aplicacao.Common.Exceptions;
 
 namespace LastTechTest.API;
 

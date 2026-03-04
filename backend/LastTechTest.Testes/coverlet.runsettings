@@ -6,6 +6,8 @@
         <Configuration>
           <Format>cobertura</Format>
           <ExcludeByFile>**/Migrations/*.cs,**/Program.cs,**/DatabaseStartup.cs,**/ProgramEntry.cs</ExcludeByFile>
+          <!-- Exclude API from unit-test coverage; API is exercised by integration/E2E. -->
+          <Exclude>[LastTechTest.API]*</Exclude>
         </Configuration>
       </DataCollector>
     </DataCollectors>
