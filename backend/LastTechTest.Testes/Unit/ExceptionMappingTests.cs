@@ -6,6 +6,7 @@ using LastTechTest.API;
 using LastTechTest.Aplicacao.Common.Exceptions;
 
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -60,5 +61,42 @@ public sealed class ExceptionMappingTests
         var ex = new Exception("Internal error.");
         var result = ExceptionMapping.MapException(ex);
         (await GetStatusCodeAsync(result)).Should().Be(StatusCodes.Status500InternalServerError);
+    }
+
+    private static int? GetStatusCode(IActionResult actionResult)
+    {
+        return actionResult is ObjectResult o ? o.StatusCode : null;
+    }
+
+    [Fact]
+    public void ToActionResult_NotFoundException_Returns_404()
+    {
+        var ex = new NotFoundException("Not found.");
+        var result = ExceptionMapping.ToActionResult(ex);
+        GetStatusCode(result).Should().Be(404);
+    }
+
+    [Fact]
+    public void ToActionResult_UnauthorizedAccessException_Returns_403()
+    {
+        var ex = new UnauthorizedAccessException("Forbidden.");
+        var result = ExceptionMapping.ToActionResult(ex);
+        GetStatusCode(result).Should().Be(403);
+    }
+
+    [Fact]
+    public void ToActionResult_InvalidOperationException_Returns_400()
+    {
+        var ex = new InvalidOperationException("Bad request.");
+        var result = ExceptionMapping.ToActionResult(ex);
+        GetStatusCode(result).Should().Be(400);
+    }
+
+    [Fact]
+    public void ToActionResult_GenericException_Returns_500()
+    {
+        var ex = new Exception("Internal error.");
+        var result = ExceptionMapping.ToActionResult(ex);
+        GetStatusCode(result).Should().Be(500);
     }
 }
