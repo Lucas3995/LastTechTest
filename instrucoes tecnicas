@@ -16,6 +16,7 @@ Separação explicita em camadas seguindo uma direção de dependencias clara
             --
             Frameworks e Drivers (Web, UI, DB, Dispositivos, Interfaces EXTERNAS) ---> Adaptadores de Interface (Apresentadores, Controladores, Gateway) ---> Regras de negocio da APLICACAO (Casos de Uso) ---> Regras de negocio da EMPRESA (Entidades)
 
+
 Estrutura de confirações de projeto
 ```
 LastTechTest/
