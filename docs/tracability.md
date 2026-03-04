@@ -80,17 +80,23 @@ Este arquivo funciona como ponto de apoio para o `maestro` e o `quadro-de-recomp
     - Integração (containerização):
       - `DatabaseStartupLegacySchemaIntegrationTests.cs` — arranque da API com DB em esquema legado (sem migration history) não deve falhar; garante que o fallback cria a tabela `AnticipationRequests` e evita regressão em Docker/volumes antigos
 
-- **RA-2 – Consultar solicitações de antecipação**
-  - Casos de uso (previstos):
-    - `GetAnticipationRequestsQuery` + `GetAnticipationRequestsQueryHandler` (lista/paginação)
-    - `GetAnticipationRequestByIdQuery` + `GetAnticipationRequestByIdQueryHandler` (detalhe)
-  - Endpoints (previstos):
-    - `GET /api/v1/anticipations` (lista com filtros/paginação, respeitando permissões por role)
-    - `GET /api/v1/anticipations/{id}` (detalhe de uma solicitação)
-  - Testes (a serem criados):
-    - Unit: filtros, paginação, projeções e regras de visibilidade por role
-    - Integração: queries + repositórios/EF Core (otimizando consultas, evitando N+1, usando projeções)
-    - E2E: listagem e consulta de solicitações via API para roles `Creator` e `Admin`
+- **RA-2 – Consultar solicitações de antecipação** (implementado)
+  - Casos de uso:
+    - `ListAnticipationRequestsQuery` + `ListAnticipationRequestsQueryHandler` (lista paginada com filtros; Creator: forçar creator_id do token; Admin: aceitar filtros)
+    - `GetAnticipationRequestByIdQuery` + `GetAnticipationRequestByIdQueryHandler` (detalhe por id; Creator: 403 se não for do creator; Admin: qualquer id)
+  - Persistência: `IAnticipationRequestRepository.ListAsync` (filtros creator, status, período; paginação em banco).
+  - Endpoints:
+    - `GET /api/v1/anticipations` (query params: creatorId, status, fromUtc, toUtc, page, pageSize; autorização Creator ou Admin)
+    - `GET /api/v1/anticipations/{id}` (detalhe; autorização Creator ou Admin)
+  - Testes (árvore RA-2):
+    - Unit:
+      - `ListAnticipationRequestsQueryHandlerTests.cs` — CA1 (Creator ignora filtro e usa token), CA3 (Admin aplica filtros), CA5 (paginação), não autenticado
+      - `GetAnticipationRequestByIdQueryHandlerTests.cs` — CA2 (Creator outro → Unauthorized), CA4 (Admin qualquer id), id inexistente → null, não autenticado
+    - Integração:
+      - `ListAnticipationRequestsHandlerIntegrationTests.cs` — CA1 (Creator só próprias), CA3 (Admin todas / filtro por creator), CA5 (paginação), não autenticado
+      - `GetAnticipationRequestByIdHandlerIntegrationTests.cs` — CA2 (Creator próprio/outro), CA4 (Admin qualquer), 404, não autenticado
+    - E2E:
+      - `AnticipationE2ETests.cs` (E6–E12) — GET list Creator só próprias (CA1), GET list Admin (CA3), GET by id Creator outro → 403 (CA2), GET by id Admin (CA4), GET list sem token 401, GET list paginação (CA5), GET by id 404
 
 - **RA-3 – Estados e transições da solicitação de antecipação**
   - Casos de uso (previstos):

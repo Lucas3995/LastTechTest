@@ -3,6 +3,8 @@ using System.Text;
 
 using LastTechTest.API;
 using LastTechTest.Aplicacao.Anticipation.Commands.CreateAnticipationRequest;
+using LastTechTest.Aplicacao.Anticipation.Queries.GetAnticipationRequestById;
+using LastTechTest.Aplicacao.Anticipation.Queries.ListAnticipationRequests;
 using LastTechTest.Aplicacao.Authentication.Commands.AdminCreateUser;
 using LastTechTest.Aplicacao.Authentication.Commands.ChangePassword;
 using LastTechTest.Aplicacao.Authentication.Commands.Login;
@@ -268,6 +270,49 @@ app.MapGet("/user/logged", async (ISender sender, CancellationToken ct) =>
         return MapException(ex);
     }
 }).RequireAuthorization();
+
+app.MapGet("/api/v1/anticipations", async (
+    [FromQuery] Guid? creatorId,
+    [FromQuery] int? status,
+    [FromQuery] DateTime? fromUtc,
+    [FromQuery] DateTime? toUtc,
+    [FromQuery] int? page,
+    [FromQuery] int? pageSize,
+    [FromServices] ISender sender,
+    CancellationToken ct) =>
+{
+    try
+    {
+        var query = new ListAnticipationRequestsQuery(
+            creatorId,
+            status,
+            fromUtc,
+            toUtc,
+            page ?? 1,
+            pageSize ?? 20);
+        var result = await sender.Send(query, ct);
+        return Results.Ok(new { result.Items, result.TotalCount });
+    }
+    catch (UnauthorizedAccessException ex)
+    {
+        return MapException(ex);
+    }
+}).RequireAuthorization(policy => policy.RequireRole(LastTechTest.Dominio.Authorization.KnownRoles.Creator, LastTechTest.Dominio.Authorization.KnownRoles.Admin));
+
+app.MapGet("/api/v1/anticipations/{id:guid}", async (Guid id, [FromServices] ISender sender, CancellationToken ct) =>
+{
+    try
+    {
+        var result = await sender.Send(new GetAnticipationRequestByIdQuery(id), ct);
+        if (result is null)
+            return Results.NotFound();
+        return Results.Ok(result);
+    }
+    catch (UnauthorizedAccessException ex)
+    {
+        return MapException(ex);
+    }
+}).RequireAuthorization(policy => policy.RequireRole(LastTechTest.Dominio.Authorization.KnownRoles.Creator, LastTechTest.Dominio.Authorization.KnownRoles.Admin));
 
 app.MapPost("/api/v1/anticipations", async ([FromBody] CreateAnticipationRequestDto? body, [FromServices] ISender sender, CancellationToken ct) =>
 {
