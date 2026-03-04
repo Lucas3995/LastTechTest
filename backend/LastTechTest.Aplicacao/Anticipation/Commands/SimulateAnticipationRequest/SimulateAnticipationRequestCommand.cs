@@ -7,3 +7,4 @@ public sealed record SimulateAnticipationRequestCommand(
     decimal RequestedAmount,
     Guid? CreatorId = null,
     DateTime? RequestedAtUtc = null) : IRequest<SimulateAnticipationRequestResponse>;
+

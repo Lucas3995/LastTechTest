@@ -46,3 +46,4 @@ public sealed class InMemoryAnticipationSimulationCache : IAnticipationSimulatio
         return Task.CompletedTask;
     }
 }
+

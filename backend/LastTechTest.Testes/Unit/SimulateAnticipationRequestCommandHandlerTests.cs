@@ -227,3 +227,4 @@ public class SimulateAnticipationRequestCommandHandlerTests
         await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*eligible*");
     }
 }
+

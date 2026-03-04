@@ -1,4 +1,5 @@
 using FluentAssertions;
+
 using FluentValidation;
 
 using LastTechTest.Aplicacao.Anticipation.Commands.ConvertSimulationToRealRequest;
@@ -200,3 +201,4 @@ public class AnticipationSimulationHandlerIntegrationTests
         }
     }
 }
+

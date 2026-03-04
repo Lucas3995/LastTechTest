@@ -8,3 +8,4 @@ public sealed record SimulateAnticipationRequestResponse(
     decimal GrossAmount,
     decimal FeesAmount,
     decimal NetAmount);
+
