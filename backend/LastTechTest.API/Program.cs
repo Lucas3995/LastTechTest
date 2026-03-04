@@ -1,14 +1,8 @@
 using System.Security.Claims;
 using System.Text;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
 
 using FluentValidation;
+
 using LastTechTest.API;
 using LastTechTest.Aplicacao.Anticipation.Commands.ApproveAnticipationRequest;
 using LastTechTest.Aplicacao.Anticipation.Commands.CancelAnticipationRequest;
@@ -16,10 +10,10 @@ using LastTechTest.Aplicacao.Anticipation.Commands.ConvertSimulationToRealReques
 using LastTechTest.Aplicacao.Anticipation.Commands.CreateAnticipationRequest;
 using LastTechTest.Aplicacao.Anticipation.Commands.RejectAnticipationRequest;
 using LastTechTest.Aplicacao.Anticipation.Commands.SimulateAnticipationRequest;
-using LastTechTest.Aplicacao.Anticipation.Simulation;
 using LastTechTest.Aplicacao.Anticipation.Queries.GetAnticipationRequestById;
 using LastTechTest.Aplicacao.Anticipation.Queries.ListAnticipationRequests;
 using LastTechTest.Aplicacao.Anticipation.Services;
+using LastTechTest.Aplicacao.Anticipation.Simulation;
 using LastTechTest.Aplicacao.Authentication.Commands.AdminCreateUser;
 using LastTechTest.Aplicacao.Authentication.Commands.ChangePassword;
 using LastTechTest.Aplicacao.Authentication.Commands.Login;
@@ -38,8 +32,19 @@ using LastTechTest.Infrastrutura.Anticipation;
 using LastTechTest.Persistencia;
 using LastTechTest.Persistencia.Repositories;
 using LastTechTest.Persistencia.Services;
+
 using MediatR;
+
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+
 using Scalar.AspNetCore;
+
 using Serilog;
 using Serilog.Events;
 
