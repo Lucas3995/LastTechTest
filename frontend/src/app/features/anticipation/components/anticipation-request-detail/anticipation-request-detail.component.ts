@@ -11,7 +11,7 @@ import { AnticipationRequest } from '../../../../domain';
 })
 export class AnticipationRequestDetailComponent {
   @Input() request: AnticipationRequest | null = null;
-  @Output() cancel = new EventEmitter<string>();
+  @Output() requestCancel = new EventEmitter<string>();
 
   showConfirmDialog = false;
 
@@ -27,7 +27,7 @@ export class AnticipationRequestDetailComponent {
       return;
     }
     this.showConfirmDialog = false;
-    this.cancel.emit(this.request.id);
+    this.requestCancel.emit(this.request.id);
   }
 
   onCloseDialog(): void {

@@ -17,22 +17,30 @@
     </div>
   </header>
 
-  <section class="my-requests__feedback" *ngIf="errorMessage() || infoMessage()">
-    <div *ngIf="errorMessage()" role="alert" class="my-requests__alert my-requests__alert--error">
-      <p class="my-requests__alert-main">
-        {{ errorMessage() }}
-      </p>
-      <p *ngIf="errorSupportId()" class="my-requests__alert-support">
-        Codigo para suporte: {{ errorSupportId() }}
-      </p>
-    </div>
-    <div *ngIf="infoMessage()" role="status" class="my-requests__alert my-requests__alert--info">
-      {{ infoMessage() }}
-    </div>
-  </section>
+  @if (errorMessage() || infoMessage()) {
+    <section class="my-requests__feedback">
+      @if (errorMessage()) {
+        <div role="alert" class="my-requests__alert my-requests__alert--error">
+          <p class="my-requests__alert-main">
+            {{ errorMessage() }}
+          </p>
+          @if (errorSupportId()) {
+            <p class="my-requests__alert-support">
+              Codigo para suporte: {{ errorSupportId() }}
+            </p>
+          }
+        </div>
+      }
+      @if (infoMessage()) {
+        <div role="status" class="my-requests__alert my-requests__alert--info">
+          {{ infoMessage() }}
+        </div>
+      }
+    </section>
+  }
 
-  <ng-container *ngIf="!loading(); else loadingTpl">
-    <ng-container *ngIf="hasRequests(); else emptyTpl">
+  @if (!loading()) {
+    @if (hasRequests()) {
       <app-anticipation-requests-filters
         [filters]="filters()"
         (apply)="onApplyFilters()"
@@ -42,20 +50,15 @@
         [requests]="requests()"
         (requestSelected)="onRequestSelected($event)"
       />
-    </ng-container>
-  </ng-container>
+    } @else {
+      <app-anticipation-request-empty-state />
+    }
+  } @else {
+    <p class="my-requests__loading">Carregando suas solicitações de antecipacao…</p>
+  }
 
   <app-anticipation-request-detail
     [request]="selectedRequest()"
-    (cancel)="onCancelRequest($event)"
+    (requestCancel)="onCancelRequest($event)"
   />
-
-  <ng-template #loadingTpl>
-    <p class="my-requests__loading">Carregando suas solicitações de antecipacao…</p>
-  </ng-template>
-
-  <ng-template #emptyTpl>
-    <app-anticipation-request-empty-state />
-  </ng-template>
 </section>
-

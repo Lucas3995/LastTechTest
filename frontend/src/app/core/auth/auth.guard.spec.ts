@@ -1,10 +1,13 @@
 import { TestBed } from '@angular/core/testing';
-import { Router, UrlTree } from '@angular/router';
+import { ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
 
 import { AuthGuard, AuthService, AuthUser } from '../../core';
 
 describe('AuthGuard', () => {
-  const createUrlTree = vi.fn((commands: any[], extras?: any) => ({} as unknown as UrlTree));
+  const createUrlTree = vi.fn(
+    (_commands: string[], _extras?: { queryParams?: Record<string, string> }) =>
+      {} as unknown as UrlTree,
+  );
   const routerMock = { createUrlTree };
 
   const isAuthenticatedFn = vi.fn(() => false);
@@ -29,8 +32,8 @@ describe('AuthGuard', () => {
   it('deve redirecionar para rota raiz (login) quando não autenticado', () => {
     TestBed.runInInjectionContext(() =>
       AuthGuard(
-        { data: {} } as any,
-        { url: '/anticipation/my-requests' } as any,
+        { data: {} } as ActivatedRouteSnapshot,
+        { url: '/anticipation/my-requests' } as RouterStateSnapshot,
       ),
     );
 
@@ -46,8 +49,8 @@ describe('AuthGuard', () => {
 
     const result = TestBed.runInInjectionContext(() =>
       AuthGuard(
-        { data: {} } as any,
-        { url: '/anticipation/my-requests' } as any,
+        { data: {} } as ActivatedRouteSnapshot,
+        { url: '/anticipation/my-requests' } as RouterStateSnapshot,
       ),
     );
 
@@ -60,8 +63,8 @@ describe('AuthGuard', () => {
 
     TestBed.runInInjectionContext(() =>
       AuthGuard(
-        { data: { requiredRoles: ['Creator', 'Admin'] } } as any,
-        { url: '/anticipation/my-requests' } as any,
+        { data: { requiredRoles: ['Creator', 'Admin'] } } as ActivatedRouteSnapshot,
+        { url: '/anticipation/my-requests' } as RouterStateSnapshot,
       ),
     );
 
@@ -74,8 +77,8 @@ describe('AuthGuard', () => {
 
     const result = TestBed.runInInjectionContext(() =>
       AuthGuard(
-        { data: { requiredRoles: ['Creator', 'Admin'] } } as any,
-        { url: '/anticipation/my-requests' } as any,
+        { data: { requiredRoles: ['Creator', 'Admin'] } } as ActivatedRouteSnapshot,
+        { url: '/anticipation/my-requests' } as RouterStateSnapshot,
       ),
     );
 

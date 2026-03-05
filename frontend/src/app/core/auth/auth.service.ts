@@ -71,8 +71,9 @@ export class AuthService {
   });
 
   private readonly apiBaseUrl = inject(API_BASE_URL);
+  private readonly http = inject(HttpClient);
 
-  constructor(private readonly http: HttpClient) {
+  constructor() {
     this.loadSessionFromStorage();
   }
 

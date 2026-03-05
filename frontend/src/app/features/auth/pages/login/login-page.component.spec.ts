@@ -1,9 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, ActivatedRoute } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 
 import { LoginPageComponent } from './login-page.component';
 import { AuthService, AuthSession } from '../../../../core';
+
+type LoginMethodMock = { mockReturnValue: (v: Observable<AuthSession | unknown>) => void };
 
 describe('LoginPageComponent', () => {
   let component: LoginPageComponent;
@@ -63,7 +65,7 @@ describe('LoginPageComponent', () => {
       },
     };
 
-    (authServiceMock.login as any).mockReturnValue(of(session));
+    (authServiceMock.login as LoginMethodMock).mockReturnValue(of(session));
 
     component.form.setValue({
       email: 'creator@example.com',
@@ -85,14 +87,14 @@ describe('LoginPageComponent', () => {
       refreshToken: null,
       user: { id: 'u', role: 'Creator', creatorId: 'c' },
     };
-    (authServiceMock.login as any).mockReturnValue(of(session));
+    (authServiceMock.login as LoginMethodMock).mockReturnValue(of(session));
     component.form.setValue({ email: 'a@b.com', password: 'pwd' });
     component.onSubmit();
     expect(routerMock.navigateByUrl).toHaveBeenCalledWith('/home');
   });
 
   it('deve exibir mensagem de erro quando login falhar', () => {
-    (authServiceMock.login as any).mockReturnValue(
+    (authServiceMock.login as LoginMethodMock).mockReturnValue(
       throwError(() => new Error('Falha de login')),
     );
 

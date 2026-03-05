@@ -1,11 +1,11 @@
 import { TestBed } from '@angular/core/testing';
-import { Router, UrlTree } from '@angular/router';
+import { ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
 
 import { AuthService } from './auth.service';
 import { redirectIfAuthenticatedGuard } from './auth-redirect.guard';
 
 describe('redirectIfAuthenticatedGuard', () => {
-  const createUrlTree = vi.fn((commands: string[]) => ({} as UrlTree));
+  const createUrlTree = vi.fn((_commands: string[]) => ({} as UrlTree));
   const routerMock = { createUrlTree };
 
   const isAuthenticatedFn = vi.fn(() => false);
@@ -26,7 +26,10 @@ describe('redirectIfAuthenticatedGuard', () => {
 
   it('deve permitir acesso (retornar true) quando não autenticado', () => {
     const result = TestBed.runInInjectionContext(() =>
-      redirectIfAuthenticatedGuard({} as any, {} as any),
+      redirectIfAuthenticatedGuard(
+        {} as ActivatedRouteSnapshot,
+        {} as RouterStateSnapshot,
+      ),
     );
 
     expect(result).toBe(true);
@@ -36,7 +39,10 @@ describe('redirectIfAuthenticatedGuard', () => {
     isAuthenticatedFn.mockReturnValue(true);
 
     TestBed.runInInjectionContext(() =>
-      redirectIfAuthenticatedGuard({} as any, {} as any),
+      redirectIfAuthenticatedGuard(
+        {} as ActivatedRouteSnapshot,
+        {} as RouterStateSnapshot,
+      ),
     );
 
     expect(createUrlTree).toHaveBeenCalledWith(['/home']);

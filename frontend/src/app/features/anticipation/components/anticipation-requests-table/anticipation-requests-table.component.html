@@ -16,11 +16,11 @@
     </tr>
   </thead>
   <tbody>
-    <tr
-      *ngFor="let request of requests"
-      (click)="onRowClick(request)"
-      data-testid="requests-table-row"
-    >
+    @for (request of requests; track request.id) {
+      <tr
+        (click)="onRowClick(request)"
+        data-testid="requests-table-row"
+      >
       <td>{{ request.id }}</td>
       <td>{{ request.createdAt | date: 'shortDate' }}</td>
       <td>{{ request.grossAmountCents / 100 | number: '1.2-2' }}</td>
@@ -30,7 +30,8 @@
           {{ request.status }}
         </span>
       </td>
-    </tr>
+      </tr>
+    }
   </tbody>
 </table>
 

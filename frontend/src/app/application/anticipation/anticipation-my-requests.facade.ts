@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { AnticipationRequest, AnticipationRequestsFilter } from '../../domain';
 import { AnticipationRequestsHttpService } from '../../infrastructure/anticipation/anticipation-requests.http.service';
 import { firstValueFrom } from 'rxjs';
@@ -24,9 +24,7 @@ export class AnticipationMyRequestsFacade {
   readonly errorSupportId = this._errorSupportId.asReadonly();
   readonly selectedRequest = this._selectedRequest.asReadonly();
 
-  constructor(
-    private readonly httpService: AnticipationRequestsHttpService,
-  ) {}
+  private readonly httpService = inject(AnticipationRequestsHttpService);
 
   async loadInitialRequests(): Promise<void> {
     const now = new Date();

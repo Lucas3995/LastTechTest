@@ -13,9 +13,11 @@
         formControlName="email"
         autocomplete="username"
       />
-      <p class="login__error" *ngIf="form.controls.email.touched && form.controls.email.invalid">
-        Informe um email valido.
-      </p>
+      @if (form.controls.email.touched && form.controls.email.invalid) {
+        <p class="login__error">
+          Informe um email valido.
+        </p>
+      }
     </div>
 
     <div class="login__field">
@@ -26,9 +28,11 @@
         formControlName="password"
         autocomplete="current-password"
       />
-      <p class="login__error" *ngIf="form.controls.password.touched && form.controls.password.invalid">
-        Informe sua senha.
-      </p>
+      @if (form.controls.password.touched && form.controls.password.invalid) {
+        <p class="login__error">
+          Informe sua senha.
+        </p>
+      }
     </div>
 
     <button type="submit" [disabled]="submitting" class="login__submit">
@@ -36,15 +40,18 @@
     </button>
   </form>
 
-  <section class="login__feedback" *ngIf="errorMessage">
-    <div role="alert" class="login__alert login__alert--error">
-      <p class="login__alert-main">
-        {{ errorMessage }}
-      </p>
-      <p *ngIf="errorSupportId" class="login__alert-support">
-        Codigo para suporte: {{ errorSupportId }}
-      </p>
-    </div>
-  </section>
+  @if (errorMessage) {
+    <section class="login__feedback">
+      <div role="alert" class="login__alert login__alert--error">
+        <p class="login__alert-main">
+          {{ errorMessage }}
+        </p>
+        @if (errorSupportId) {
+          <p class="login__alert-support">
+            Codigo para suporte: {{ errorSupportId }}
+          </p>
+        }
+      </div>
+    </section>
+  }
 </section>
-
