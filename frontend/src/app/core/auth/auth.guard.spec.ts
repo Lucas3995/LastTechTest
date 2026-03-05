@@ -4,10 +4,7 @@ import { ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree } from '@a
 import { AuthGuard, AuthService, AuthUser } from '../../core';
 
 describe('AuthGuard', () => {
-  const createUrlTree = vi.fn(
-    (_commands: string[], _extras?: { queryParams?: Record<string, string> }) =>
-      ({} as unknown as UrlTree),
-  );
+  const createUrlTree = vi.fn(() => ({} as unknown as UrlTree));
   const routerMock = { createUrlTree };
 
   const isAuthenticatedFn = vi.fn(() => false);
