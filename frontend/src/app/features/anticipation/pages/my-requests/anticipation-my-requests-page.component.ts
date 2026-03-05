@@ -1,6 +1,7 @@
-import { Component, OnInit, computed, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AnticipationMyRequestsFacade } from '../../../../application';
+import { AnticipationRequestsFilter } from '../../../../domain';
 import { AnticipationRequestsFiltersComponent } from '../../components/anticipation-requests-filters/anticipation-requests-filters.component';
 import { AnticipationRequestsTableComponent } from '../../components/anticipation-requests-table/anticipation-requests-table.component';
 import { AnticipationRequestEmptyStateComponent } from '../../components/anticipation-request-empty-state/anticipation-request-empty-state.component';
@@ -30,17 +31,12 @@ export class AnticipationMyRequestsPageComponent implements OnInit {
   readonly requests = this.facade.requests;
   readonly selectedRequest = this.facade.selectedRequest;
 
-  readonly hasRequests = computed(() => this.requests().length > 0);
-
   ngOnInit(): void {
     this.facade.loadInitialRequests();
   }
 
-  onApplyFilters(): void {
-    // Filtro real será preenchido pelos controles internos;
-    // por ora apenas recarrega com o filtro atual da fachada.
-    const current = this.filters();
-    this.facade.applyFilters(current ?? {});
+  onApplyFilters(emittedFilter: AnticipationRequestsFilter): void {
+    this.facade.applyFilters(emittedFilter);
   }
 
   onRequestSelected(id: string): void {

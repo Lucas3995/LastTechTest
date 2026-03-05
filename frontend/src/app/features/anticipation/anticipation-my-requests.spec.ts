@@ -3,8 +3,9 @@
 // Plano 401: Estes testes mockam AnticipationRequestsHttpService e não dependem do auth-token interceptor (árvore §5.3).
 
 import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { HttpErrorResponse } from '@angular/common/http';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { vi } from 'vitest';
 
 import {
@@ -339,6 +340,184 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
       expect(facade.filters()).toEqual(filter);
       await facade.refresh();
       expect(facade.filters()).toEqual(filter);
+    });
+  });
+
+  //
+  // Bug filtro listagem creator (plano 4.2) — integração página ↔ filtros ↔ fachada/serviço
+  //
+  describe('Bug filtro — apply emitido chega à fachada e ao serviço (bug_filter)', () => {
+    it('should call facade applyFilters with emitted filter when filters component emits apply (bug_filter)', async () => {
+      const listSpy = vi.fn().mockReturnValue(of( [createRequest()] ));
+      await TestBed.configureTestingModule({
+        imports: [AnticipationMyRequestsPageComponent],
+        providers: [
+          AnticipationMyRequestsFacade,
+          { provide: AnticipationRequestsHttpService, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
+          { provide: API_BASE_URL, useValue: '' },
+        ],
+      }).compileComponents();
+      const fixture = TestBed.createComponent(AnticipationMyRequestsPageComponent);
+      const facade = TestBed.inject(AnticipationMyRequestsFacade);
+      const applyFiltersSpy = vi.spyOn(facade, 'applyFilters');
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      const filtersComp = fixture.debugElement.query(
+        By.directive(AnticipationRequestsFiltersComponent)
+      )?.componentInstance as AnticipationRequestsFiltersComponent;
+      expect(filtersComp).toBeTruthy();
+      const emittedFilter: AnticipationRequestsFilter = { statuses: [AnticipationRequestStatus.Approved] };
+      filtersComp.apply.emit(emittedFilter);
+      fixture.detectChanges();
+      expect(applyFiltersSpy).toHaveBeenCalledWith(expect.objectContaining({ statuses: [AnticipationRequestStatus.Approved] }));
+    });
+
+    it('should call list service with status param when filter emitted has statuses (bug_filter)', async () => {
+      const listSpy = vi.fn().mockReturnValue(of( [createRequest()] ));
+      await TestBed.configureTestingModule({
+        imports: [AnticipationMyRequestsPageComponent],
+        providers: [
+          AnticipationMyRequestsFacade,
+          { provide: AnticipationRequestsHttpService, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
+          { provide: API_BASE_URL, useValue: '' },
+        ],
+      }).compileComponents();
+      const fixture = TestBed.createComponent(AnticipationMyRequestsPageComponent);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      const filtersComp = fixture.debugElement.query(
+        By.directive(AnticipationRequestsFiltersComponent)
+      )?.componentInstance as AnticipationRequestsFiltersComponent;
+      expect(filtersComp).toBeTruthy();
+      const emittedFilter: AnticipationRequestsFilter = { statuses: [AnticipationRequestStatus.Rejected] };
+      filtersComp.apply.emit(emittedFilter);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(listSpy).toHaveBeenLastCalledWith(expect.objectContaining({
+        statuses: [AnticipationRequestStatus.Rejected],
+      }));
+    });
+  });
+
+  //
+  // Bug filtro listagem creator (plano 4.3) — loading sem ocultar filtros/tabela (R3)
+  //
+  describe('Bug filtro — loading visível sem ocultar estrutura (bug_filter)', () => {
+    it('should keep filters and table structure visible while loading (bug_filter)', async () => {
+      const pendingLoad = new Subject<AnticipationRequest[]>();
+      const listSpy = vi
+        .fn()
+        .mockReturnValueOnce(of([createRequest()]))
+        .mockReturnValue(pendingLoad.asObservable());
+      await TestBed.configureTestingModule({
+        imports: [AnticipationMyRequestsPageComponent],
+        providers: [
+          AnticipationMyRequestsFacade,
+          { provide: AnticipationRequestsHttpService, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
+          { provide: API_BASE_URL, useValue: '' },
+        ],
+      }).compileComponents();
+      const fixture = TestBed.createComponent(AnticipationMyRequestsPageComponent);
+      const facade = TestBed.inject(AnticipationMyRequestsFacade);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      facade.applyFilters({});
+      fixture.detectChanges();
+      const filtersEl = fixture.nativeElement.querySelector('[data-testid="filter-status"]');
+      const loadingIndicator = fixture.nativeElement.querySelector('.my-requests__loading') ?? fixture.nativeElement.textContent?.includes('Carregando');
+      expect(filtersEl).toBeTruthy();
+      expect(loadingIndicator).toBeTruthy();
+      pendingLoad.next([]);
+      pendingLoad.complete();
+    });
+
+    it('should hide loading and show list or error when loading finishes (bug_filter)', async () => {
+      const listSpy = vi.fn().mockReturnValue(of([createRequest()]));
+      await TestBed.configureTestingModule({
+        imports: [AnticipationMyRequestsPageComponent],
+        providers: [
+          AnticipationMyRequestsFacade,
+          { provide: AnticipationRequestsHttpService, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
+          { provide: API_BASE_URL, useValue: '' },
+        ],
+      }).compileComponents();
+      const fixture = TestBed.createComponent(AnticipationMyRequestsPageComponent);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      const loadingText = fixture.nativeElement.querySelector('.my-requests__loading');
+      const tableOrEmpty = fixture.nativeElement.querySelector('app-anticipation-requests-table') ?? fixture.nativeElement.querySelector('app-anticipation-request-empty-state');
+      expect(loadingText).toBeFalsy();
+      expect(tableOrEmpty).toBeTruthy();
+    });
+  });
+
+  //
+  // Filtro sempre visível (Plano refresh_token_e_filtro_pendências §5) — filtro_sempre_visivel
+  //
+  describe('Filtro sempre visível (filtro_sempre_visivel)', () => {
+    it('should show filters and empty state when filters are set and list is empty (filtro_sempre_visivel)', async () => {
+      const listSpy = vi.fn().mockReturnValue(of([]));
+      await TestBed.configureTestingModule({
+        imports: [AnticipationMyRequestsPageComponent],
+        providers: [
+          AnticipationMyRequestsFacade,
+          { provide: AnticipationRequestsHttpService, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
+          { provide: API_BASE_URL, useValue: '' },
+        ],
+      }).compileComponents();
+      const fixture = TestBed.createComponent(AnticipationMyRequestsPageComponent);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      const filtersEl = fixture.nativeElement.querySelector('app-anticipation-requests-filters');
+      const emptyState = fixture.nativeElement.querySelector('app-anticipation-request-empty-state');
+      expect(filtersEl).toBeTruthy();
+      expect(emptyState).toBeTruthy();
+    });
+
+    it('should show filters and table when filters are set and list has items (filtro_sempre_visivel)', async () => {
+      const listSpy = vi.fn().mockReturnValue(of([createRequest()]));
+      await TestBed.configureTestingModule({
+        imports: [AnticipationMyRequestsPageComponent],
+        providers: [
+          AnticipationMyRequestsFacade,
+          { provide: AnticipationRequestsHttpService, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
+          { provide: API_BASE_URL, useValue: '' },
+        ],
+      }).compileComponents();
+      const fixture = TestBed.createComponent(AnticipationMyRequestsPageComponent);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      const filtersEl = fixture.nativeElement.querySelector('app-anticipation-requests-filters');
+      const tableEl = fixture.nativeElement.querySelector('app-anticipation-requests-table');
+      expect(filtersEl).toBeTruthy();
+      expect(tableEl).toBeTruthy();
+    });
+
+    it('should show filters and loading state when filters set and loading (filtro_sempre_visivel)', async () => {
+      const pendingLoad = new Subject<AnticipationRequest[]>();
+      const listSpy = vi.fn().mockReturnValue(pendingLoad.asObservable());
+      await TestBed.configureTestingModule({
+        imports: [AnticipationMyRequestsPageComponent],
+        providers: [
+          AnticipationMyRequestsFacade,
+          { provide: AnticipationRequestsHttpService, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
+          { provide: API_BASE_URL, useValue: '' },
+        ],
+      }).compileComponents();
+      const fixture = TestBed.createComponent(AnticipationMyRequestsPageComponent);
+      fixture.detectChanges();
+      const filtersEl = fixture.nativeElement.querySelector('app-anticipation-requests-filters');
+      const loadingEl = fixture.nativeElement.querySelector('.my-requests__loading');
+      expect(filtersEl).toBeTruthy();
+      expect(loadingEl).toBeTruthy();
+      pendingLoad.next([]);
+      pendingLoad.complete();
     });
   });
 

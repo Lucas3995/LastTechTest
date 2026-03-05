@@ -39,22 +39,32 @@
     </section>
   }
 
-  @if (!loading()) {
-    @if (hasRequests()) {
-      <app-anticipation-requests-filters
-        [filters]="filters()"
-        (apply)="onApplyFilters()"
-      />
+  @if (filters()) {
+    <app-anticipation-requests-filters
+      [filters]="filters()"
+      (apply)="onApplyFilters($event)"
+    />
 
-      <app-anticipation-requests-table
-        [requests]="requests()"
-        (requestSelected)="onRequestSelected($event)"
-      />
+    @if (loading()) {
+      <div class="my-requests__loading-area" aria-busy="true">
+        <p class="my-requests__loading">Carregando suas solicitações de antecipacao…</p>
+      </div>
+    } @else {
+      @if (requests().length > 0) {
+        <app-anticipation-requests-table
+          [requests]="requests()"
+          (requestSelected)="onRequestSelected($event)"
+        />
+      } @else {
+        <app-anticipation-request-empty-state />
+      }
+    }
+  } @else {
+    @if (loading()) {
+      <p class="my-requests__loading">Carregando suas solicitações de antecipacao…</p>
     } @else {
       <app-anticipation-request-empty-state />
     }
-  } @else {
-    <p class="my-requests__loading">Carregando suas solicitações de antecipacao…</p>
   }
 
   <app-anticipation-request-detail
