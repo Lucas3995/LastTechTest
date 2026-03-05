@@ -5,7 +5,9 @@ import { Observable, of, throwError } from 'rxjs';
 import { LoginPageComponent } from './login-page.component';
 import { AuthService, AuthSession } from '../../../../core';
 
-type LoginMethodMock = { mockReturnValue: (v: Observable<AuthSession | unknown>) => void };
+interface LoginMethodMock {
+  mockReturnValue: (v: Observable<AuthSession | unknown>) => void;
+}
 
 describe('LoginPageComponent', () => {
   let component: LoginPageComponent;

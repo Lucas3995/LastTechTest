@@ -5,7 +5,7 @@ import { AuthService } from './auth.service';
 import { redirectIfAuthenticatedGuard } from './auth-redirect.guard';
 
 describe('redirectIfAuthenticatedGuard', () => {
-  const createUrlTree = vi.fn((_commands: string[]) => ({} as UrlTree));
+  const createUrlTree = vi.fn(() => ({} as UrlTree));
   const routerMock = { createUrlTree };
 
   const isAuthenticatedFn = vi.fn(() => false);

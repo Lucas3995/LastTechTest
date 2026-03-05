@@ -6,7 +6,7 @@ import { AuthGuard, AuthService, AuthUser } from '../../core';
 describe('AuthGuard', () => {
   const createUrlTree = vi.fn(
     (_commands: string[], _extras?: { queryParams?: Record<string, string> }) =>
-      {} as unknown as UrlTree,
+      ({} as unknown as UrlTree),
   );
   const routerMock = { createUrlTree };
 
