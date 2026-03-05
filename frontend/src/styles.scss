@@ -1,0 +1,35 @@
+/* Design tokens (custom vars for spacing, etc.) */
+@use 'styles/tokens' as *;
+
+/* Angular Material theming */
+@use '@angular/material' as mat;
+
+html {
+  @include mat.theme((
+    color: (
+      primary: mat.$azure-palette,
+      tertiary: mat.$blue-palette,
+    ),
+    typography: Roboto,
+    density: 0,
+  ));
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  color-scheme: light;
+  background-color: var(--mat-sys-surface, var(--color-background));
+  color: var(--mat-sys-on-surface, var(--color-text));
+  font-family: var(--mat-sys-body-font, var(--font-family));
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+}
+
+/* Focus visible for a11y */
+:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}

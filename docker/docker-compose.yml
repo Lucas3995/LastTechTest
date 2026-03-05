@@ -14,5 +14,14 @@ services:
     volumes:
       - lasttechtest-data:/data
 
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    ports:
+      - "4200:4200"
+    environment:
+      - API_URL=http://api:8080
+
 volumes:
   lasttechtest-data:

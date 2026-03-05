@@ -34,6 +34,11 @@ docker compose -f docker/docker-compose.yml up --build
 
 O banco SQLite fica em volume Docker `lasttechtest-data` (ver `docker/docker-compose.yml`). Se aparecer aviso de _orphan containers_, use `--remove-orphans` no comando acima.
 
+Com o mesmo comando sobem **API e frontend**:
+
+- **API:** `http://localhost:5114` (HTTP), `http://localhost:5114/scalar` (Scalar API Reference)
+- **Frontend:** `http://localhost:4200`
+
 **Para acessar a API com usuário admin e entender perfis, credenciais e o que cada role faz, veja a secção [Usuários, roles e credenciais](#usuários-roles-e-credenciais) na Parte 2.**
 
 ### Rodar localmente
