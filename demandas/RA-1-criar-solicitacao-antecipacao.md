@@ -92,6 +92,11 @@ Creators recebem valores de forma parcelada/ao longo do tempo e querem antecipar
   - Quando o endpoint de criação é chamado com esses dados,
   - Então o backend deve responder com erro de validação contendo motivo claro (por exemplo, valor acima do limite, recebível não elegível).
 
+- **CA6 – Estrutura de erro rastreável para frontend e suporte**
+  - Dado que ocorre qualquer erro na criação de solicitação (validação, autorização ou erro interno),
+  - Quando o backend responde com falha,
+  - Então a resposta deve conter, além do status HTTP adequado, um payload estruturado com campos como `code`, `message` (mensagem de domínio segura para exibição) e `traceId` (ou identificador equivalente), permitindo que o frontend exiba mensagens ricas ao usuário e que o suporte consiga correlacionar o caso com logs.
+
 - **CA5 – Preparação para simulação**
   - Dado o código de domínio/aplicação responsável por cálculo/validação da antecipação,
   - Quando analisamos os testes unitários e de integração,
@@ -107,6 +112,9 @@ Creators recebem valores de forma parcelada/ao longo do tempo e querem antecipar
 - Escolher **estruturas de dados adequadas** e cuidar de **complexidade assintótica** de operações relevantes, visando eficiência de processamento e memória.
 - Aplicar rigorosamente os princípios **SOLID**.
 - Considerar os **3 princípios de coesão de componentes** (agrupamento de classes por fechamento comum, reuso comum etc.), de forma que os componentes de antecipação sejam coesos e bem encapsulados.
+
+- Padrão de tratamento de erros:
+  - Handlers e endpoints devem **nunca descartar informações relevantes de exceções**; em vez disso, mapear erros de domínio para códigos e mensagens claras em um payload de erro consistente (incluindo `code` e `traceId`), mantendo detalhes sensíveis apenas em logs internos.
 
 #### Metodologia
 

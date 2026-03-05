@@ -3,4 +3,6 @@
  * Prefer depending only on domain here.
  */
 
-export const CORE_PLACEHOLDER = true;
+export * from './auth/auth.service';
+export * from './auth/auth.guard';
+export * from './auth/auth-redirect.guard';

@@ -3,4 +3,4 @@
  * Depends only on domain.
  */
 
-export const APPLICATION_PLACEHOLDER = true;
+export * from './anticipation/anticipation-my-requests.facade';

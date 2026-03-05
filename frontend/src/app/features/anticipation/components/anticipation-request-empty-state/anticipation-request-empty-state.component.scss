@@ -1,0 +1,14 @@
+.empty-state {
+  border: 1px dashed #cbd5f5;
+  padding: 1.5rem;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.empty-state__actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+

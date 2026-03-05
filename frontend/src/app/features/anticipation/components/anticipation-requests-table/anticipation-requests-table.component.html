@@ -1,0 +1,37 @@
+<table class="requests-table">
+  <thead>
+    <tr>
+      <th scope="col">ID</th>
+      <th scope="col">Data da solicitacao</th>
+      <th
+        scope="col"
+        role="columnheader"
+        aria-sort="{{ sortDirection === 'none' ? 'none' : sortDirection }}"
+        (click)="onToggleAmountSort()"
+      >
+        Valor
+      </th>
+      <th scope="col">Valor liquido estimado</th>
+      <th scope="col">Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    @for (request of requests; track request.id) {
+      <tr
+        (click)="onRowClick(request)"
+        data-testid="requests-table-row"
+      >
+      <td>{{ request.id }}</td>
+      <td>{{ request.createdAt | date: 'shortDate' }}</td>
+      <td>{{ request.grossAmountCents / 100 | number: '1.2-2' }}</td>
+      <td>{{ request.netAmountCents / 100 | number: '1.2-2' }}</td>
+      <td>
+        <span data-testid="request-status-tag">
+          {{ request.status }}
+        </span>
+      </td>
+      </tr>
+    }
+  </tbody>
+</table>
+

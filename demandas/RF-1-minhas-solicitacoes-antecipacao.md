@@ -187,7 +187,8 @@ O objetivo desta demanda é criar a **tela “Minhas solicitações de antecipa�
 
 - **Mensagens**
   - Evitar jargões técnicos; explicar regras de negócio (valor mínimo, uma pendente) com textos simples em tooltips ou mensagens contextuais, quando necessário.  
-  - Mensagens de erro devem mencionar o que o usuário pode fazer em seguida (ex.: “Tente novamente mais tarde”, “Recarregue a página”).
+  - Mensagens de erro devem mencionar o que o usuário pode fazer em seguida (ex.: “Tente novamente mais tarde”, “Recarregue a página”).  
+  - Quando houver erro de backend, a mensagem apresentada ao usuário deve combinar **contexto** (o que estava sendo feito), **motivo de negócio** (mensagem segura retornada pela API, quando existir) e um **código/ID de suporte** (por exemplo, `traceId` ou `code` retornado pelo backend), para facilitar atendimento.
 
 - **Acessibilidade**
   - Navegação completa via teclado:  
@@ -214,6 +215,7 @@ O objetivo desta demanda é criar a **tela “Minhas solicitações de antecipa�
   - Praticar **spec-driven development**, tratando este card como fonte de verdade de UI/UX/testes; implementações e testes devem ser rastreáveis aos IDs de critérios de aceitação (CA-RF1-x) e às seções de componentes descritas acima.
   - Praticar **TDD**, definindo testes de frontend (unitários, de integração e E2E) com base nos critérios de aceitação e na seção "Diretrizes de testes", implementando o código somente após os testes estarem especificados.
   - Integrar as skills `maestro` (planejamento técnico a partir do card), `mestre-freire-angular` (implementação/refino Angular) e `quadro-de-recompensas` (árvore de testes) no fluxo de trabalho.
+  - Tratar erros de forma a **não suprimir exceções em blocos `try/catch`**: o frontend deve sempre registrar o erro bruto (para debug) e expor ao usuário mensagens derivadas do payload de erro do backend (contexto + motivo seguro + código/ID para suporte), evitando mensagens genéricas isoladas.
 
 #### Artefatos Angular esperados
 

@@ -184,7 +184,7 @@ Do ponto de vista de experiência do usuário, falta uma **tela de frontend dedi
 
 - **Formulário amigável**
   - Campos com rótulos descritivos, placeholders úteis e textos de ajuda curtos.  
-  - Mensagens de erro específicas (ex.: “O valor deve ser maior que R$ 100,00” em vez de códigos técnicos).
+  - Mensagens de erro específicas (ex.: “O valor deve ser maior que R$ 100,00” em vez de códigos técnicos), reaproveitando quando possível as mensagens de domínio retornadas pelo backend (RA-4) e sempre oferecendo um **código/ID de suporte** associado ao erro para facilitar atendimento.
 
 - **Acessibilidade**
   - Foco adequado ao abrir o painel de resultado e ao exibir mensagens de erro.  
@@ -207,6 +207,7 @@ Do ponto de vista de experiência do usuário, falta uma **tela de frontend dedi
   - Praticar **spec-driven development**, tratando este card como fonte de verdade de UI/UX/testes; implementações e testes devem ser rastreáveis aos IDs de critérios de aceitação (CA-RF3-x) e às seções de componentes descritas acima.
   - Praticar **TDD**, definindo testes de frontend (unitários, de integração e E2E) com base nos critérios de aceitação e na seção "Diretrizes de testes", implementando o código somente após os testes estarem especificados.
   - Integrar as skills `maestro` (planejamento técnico a partir do card), `mestre-freire-angular` (implementação/refino Angular) e `quadro-de-recompensas` (árvore de testes) no fluxo de trabalho.
+  - Garantir que **nenhum bloco `try/catch` suprima silenciosamente erros** de simulação ou conversão: o frontend deve extrair do payload de erro dados como `message`, `code` e `traceId` (quando disponíveis) e usá-los para montar mensagens ricas ao usuário e ao suporte.
 
 #### Artefatos Angular esperados
 

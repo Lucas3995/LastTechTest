@@ -1,0 +1,64 @@
+<section class="my-requests">
+  <header class="my-requests__header">
+    <div class="my-requests__titles">
+      <h1>Minhas solicitações de antecipação</h1>
+      <p>
+        Acompanhe o estado das suas solicitações, valores e próximos passos em um só lugar.
+      </p>
+    </div>
+
+    <div class="my-requests__actions">
+      <button type="button" class="primary">
+        Nova solicitacao
+      </button>
+      <button type="button" class="secondary">
+        Simular antecipacao
+      </button>
+    </div>
+  </header>
+
+  @if (errorMessage() || infoMessage()) {
+    <section class="my-requests__feedback">
+      @if (errorMessage()) {
+        <div role="alert" class="my-requests__alert my-requests__alert--error">
+          <p class="my-requests__alert-main">
+            {{ errorMessage() }}
+          </p>
+          @if (errorSupportId()) {
+            <p class="my-requests__alert-support">
+              Codigo para suporte: {{ errorSupportId() }}
+            </p>
+          }
+        </div>
+      }
+      @if (infoMessage()) {
+        <div role="status" class="my-requests__alert my-requests__alert--info">
+          {{ infoMessage() }}
+        </div>
+      }
+    </section>
+  }
+
+  @if (!loading()) {
+    @if (hasRequests()) {
+      <app-anticipation-requests-filters
+        [filters]="filters()"
+        (apply)="onApplyFilters()"
+      />
+
+      <app-anticipation-requests-table
+        [requests]="requests()"
+        (requestSelected)="onRequestSelected($event)"
+      />
+    } @else {
+      <app-anticipation-request-empty-state />
+    }
+  } @else {
+    <p class="my-requests__loading">Carregando suas solicitações de antecipacao…</p>
+  }
+
+  <app-anticipation-request-detail
+    [request]="selectedRequest()"
+    (requestCancel)="onCancelRequest($event)"
+  />
+</section>
