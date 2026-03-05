@@ -7,7 +7,6 @@ using LastTechTest.API;
 using LastTechTest.Aplicacao.Authentication.Commands.Login;
 using LastTechTest.Aplicacao.Authentication.Commands.Logout;
 using LastTechTest.Aplicacao.Authentication.Commands.RefreshToken;
-using LastTechTest.Aplicacao.Authentication.Commands.RegisterUser;
 
 using Microsoft.AspNetCore.Mvc.Testing;
 
@@ -16,6 +15,10 @@ namespace LastTechTest.Testes.E2E;
 [Trait("Category", "E2E")]
 public class AuthE2ETests : IClassFixture<CustomWebApplicationFactory>
 {
+    private const string AdminEmail = "usu_acesso_total@example.com";
+    private const string AdminPassword = "Acess0@t0ta1";
+    private const string DefaultNewUserPassword = "Trocar@123";
+
     private readonly CustomWebApplicationFactory _factory;
 
     public AuthE2ETests(CustomWebApplicationFactory factory)
@@ -28,13 +31,20 @@ public class AuthE2ETests : IClassFixture<CustomWebApplicationFactory>
     {
         var client = _factory.CreateClient();
 
-        var email = $"e2e-{Guid.NewGuid():N}@example.com";
-        var password = "StrongPassword123!";
+        var adminLogin = await client.PostAsJsonAsync("/auth/login", new { Email = AdminEmail, Password = AdminPassword });
+        adminLogin.StatusCode.Should().Be(HttpStatusCode.OK);
+        var adminTokens = await adminLogin.Content.ReadFromJsonAsync<AuthTokensDtoLike>();
+        adminTokens!.AccessToken.Should().NotBeNullOrWhiteSpace();
 
-        var registerResponse = await client.PostAsJsonAsync("/auth/register", new RegisterUserCommand(email, password));
-        registerResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", adminTokens.AccessToken);
 
-        var loginResponse = await client.PostAsJsonAsync("/auth/login", new LoginCommand(email, password));
+        var newUserEmail = $"e2e-{Guid.NewGuid():N}@example.com";
+        var createResponse = await client.PostAsJsonAsync("/auth/admin/users", new { Email = newUserEmail, Roles = new[] { "Creator" } });
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        client.DefaultRequestHeaders.Authorization = null;
+        var loginResponse = await client.PostAsJsonAsync("/auth/login", new LoginCommand(newUserEmail, DefaultNewUserPassword));
         loginResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var loginContent = await loginResponse.Content.ReadFromJsonAsync<AuthTokensDtoLike>();
@@ -53,11 +63,19 @@ public class AuthE2ETests : IClassFixture<CustomWebApplicationFactory>
     public async Task Refresh_Flow_Should_Return_New_Tokens()
     {
         var client = _factory.CreateClient();
-        var email = $"e2e-refresh-{Guid.NewGuid():N}@example.com";
-        var password = "StrongPassword123!";
 
-        await client.PostAsJsonAsync("/auth/register", new RegisterUserCommand(email, password));
-        var loginResponse = await client.PostAsJsonAsync("/auth/login", new LoginCommand(email, password));
+        var adminLogin = await client.PostAsJsonAsync("/auth/login", new { Email = AdminEmail, Password = AdminPassword });
+        adminLogin.StatusCode.Should().Be(HttpStatusCode.OK);
+        var adminTokens = await adminLogin.Content.ReadFromJsonAsync<AuthTokensDtoLike>();
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", adminTokens!.AccessToken);
+
+        var newUserEmail = $"e2e-refresh-{Guid.NewGuid():N}@example.com";
+        var createResponse = await client.PostAsJsonAsync("/auth/admin/users", new { Email = newUserEmail, Roles = new[] { "Creator" } });
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        client.DefaultRequestHeaders.Authorization = null;
+        var loginResponse = await client.PostAsJsonAsync("/auth/login", new LoginCommand(newUserEmail, DefaultNewUserPassword));
         loginResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var loginContent = await loginResponse.Content.ReadFromJsonAsync<AuthTokensDtoLike>();
         loginContent.Should().NotBeNull();
@@ -75,11 +93,19 @@ public class AuthE2ETests : IClassFixture<CustomWebApplicationFactory>
     public async Task Logout_Should_Accept_RefreshToken()
     {
         var client = _factory.CreateClient();
-        var email = $"e2e-logout-{Guid.NewGuid():N}@example.com";
-        var password = "StrongPassword123!";
 
-        await client.PostAsJsonAsync("/auth/register", new RegisterUserCommand(email, password));
-        var loginResponse = await client.PostAsJsonAsync("/auth/login", new LoginCommand(email, password));
+        var adminLogin = await client.PostAsJsonAsync("/auth/login", new { Email = AdminEmail, Password = AdminPassword });
+        adminLogin.StatusCode.Should().Be(HttpStatusCode.OK);
+        var adminTokens = await adminLogin.Content.ReadFromJsonAsync<AuthTokensDtoLike>();
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", adminTokens!.AccessToken);
+
+        var newUserEmail = $"e2e-logout-{Guid.NewGuid():N}@example.com";
+        var createResponse = await client.PostAsJsonAsync("/auth/admin/users", new { Email = newUserEmail, Roles = new[] { "Creator" } });
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        client.DefaultRequestHeaders.Authorization = null;
+        var loginResponse = await client.PostAsJsonAsync("/auth/login", new LoginCommand(newUserEmail, DefaultNewUserPassword));
         var loginContent = await loginResponse.Content.ReadFromJsonAsync<AuthTokensDtoLike>();
 
         var logoutRequest = new HttpRequestMessage(HttpMethod.Delete, "/auth/logout")
@@ -99,15 +125,22 @@ public class AuthE2ETests : IClassFixture<CustomWebApplicationFactory>
     }
 
     [Fact]
-    public async Task Register_Duplicate_Email_Should_Return_400()
+    public async Task Admin_CreateUser_Duplicate_Email_Should_Return_400()
     {
         var client = _factory.CreateClient();
-        var email = $"e2e-dup-{Guid.NewGuid():N}@example.com";
-        var password = "StrongPassword123!";
 
-        await client.PostAsJsonAsync("/auth/register", new RegisterUserCommand(email, password));
-        var secondRegister = await client.PostAsJsonAsync("/auth/register", new RegisterUserCommand(email, password));
-        secondRegister.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var adminLogin = await client.PostAsJsonAsync("/auth/login", new { Email = AdminEmail, Password = AdminPassword });
+        adminLogin.StatusCode.Should().Be(HttpStatusCode.OK);
+        var adminTokens = await adminLogin.Content.ReadFromJsonAsync<AuthTokensDtoLike>();
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", adminTokens!.AccessToken);
+
+        var email = $"e2e-dup-{Guid.NewGuid():N}@example.com";
+        var firstCreate = await client.PostAsJsonAsync("/auth/admin/users", new { Email = email, Roles = new[] { "Creator" } });
+        firstCreate.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var secondCreate = await client.PostAsJsonAsync("/auth/admin/users", new { Email = email, Roles = new[] { "Creator" } });
+        secondCreate.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]

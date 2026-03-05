@@ -3,7 +3,6 @@ using LastTechTest.Aplicacao.Authentication.Commands.ChangePassword;
 using LastTechTest.Aplicacao.Authentication.Commands.Login;
 using LastTechTest.Aplicacao.Authentication.Commands.Logout;
 using LastTechTest.Aplicacao.Authentication.Commands.RefreshToken;
-using LastTechTest.Aplicacao.Authentication.Commands.RegisterUser;
 
 using MediatR;
 
@@ -19,20 +18,6 @@ public class AuthController : ControllerBase
     private readonly ISender _sender;
 
     public AuthController(ISender sender) => _sender = sender;
-
-    [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] RegisterUserCommand command, CancellationToken ct)
-    {
-        try
-        {
-            var result = await _sender.Send(command, ct);
-            return Ok(result);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return ExceptionMapping.ToActionResult(ex);
-        }
-    }
 
     [HttpPost("admin/users")]
     [Authorize(Roles = LastTechTest.Dominio.Authorization.KnownRoles.Admin)]
