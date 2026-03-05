@@ -1,4 +1,5 @@
 using LastTechTest.Aplicacao.Authentication.Commands.AdminCreateUser;
+using LastTechTest.Aplicacao.Authentication.Commands.AdminResetUserPassword;
 using LastTechTest.Aplicacao.Authentication.Commands.ChangePassword;
 using LastTechTest.Aplicacao.Authentication.Commands.Login;
 using LastTechTest.Aplicacao.Authentication.Commands.Logout;
@@ -29,6 +30,25 @@ public class AuthController : ControllerBase
             return Created($"/auth/admin/users/{id}", new { Id = id });
         }
         catch (InvalidOperationException ex)
+        {
+            return ExceptionMapping.ToActionResult(ex);
+        }
+    }
+
+    [HttpPost("admin/users/reset-password")]
+    [Authorize(Roles = LastTechTest.Dominio.Authorization.KnownRoles.Admin)]
+    public async Task<IActionResult> AdminResetUserPassword([FromBody] AdminResetUserPasswordCommand command, CancellationToken ct)
+    {
+        try
+        {
+            await _sender.Send(command, ct);
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return ExceptionMapping.ToActionResult(ex);
+        }
+        catch (UnauthorizedAccessException ex)
         {
             return ExceptionMapping.ToActionResult(ex);
         }

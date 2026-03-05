@@ -1,12 +1,17 @@
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { AppComponent } from './app.component';
+import { API_BASE_URL } from './core/api-base-url';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AppComponent],
-      providers: [provideRouter([])],
+      imports: [AppComponent, HttpClientTestingModule],
+      providers: [
+        provideRouter([]),
+        { provide: API_BASE_URL, useValue: '' },
+      ],
     }).compileComponents();
   });
 

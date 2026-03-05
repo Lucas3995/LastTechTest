@@ -14,7 +14,8 @@ npm ci
 npm run start
 ```
 
-Open `http://localhost:4200/`.
+Open `http://localhost:4200/`.  
+**API proxy:** The dev server proxies `/auth`, `/api` and `/user` to `http://localhost:5114`. Start the backend (e.g. `docker compose -f docker/docker-compose.yml up api` or `dotnet run` from `backend`) so login and anticipation requests reach the API.
 
 ## Commands
 
@@ -51,6 +52,8 @@ docker compose -f docker/docker-compose.yml up --build
 
 - **API:** http://localhost:5114  
 - **Frontend:** http://localhost:4200  
+
+The app calls the backend directly (e.g. `http://localhost:5114/auth/login`). In the browser’s Network tab you will see requests to the backend port and route (e.g. login to port 5114). Ensure the API allows CORS from the frontend origin (e.g. `http://localhost:4200`).  
 
 ## Frontend tests in Docker (no local Node 20+)
 

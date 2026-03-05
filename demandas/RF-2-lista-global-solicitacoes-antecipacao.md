@@ -163,7 +163,8 @@ O objetivo desta demanda é criar a **tela “Lista global de solicitações de 
 
 - **Mensagens e feedback**
   - Mensagens de “nenhum resultado encontrado” após aplicar filtros devem sugerir revisar os filtros.  
-  - Erros de carregamento devem indicar possibilidade de recarregar ou ajustar parâmetros.
+  - Erros de carregamento devem indicar possibilidade de recarregar ou ajustar parâmetros.  
+  - Mensagens de erro devem, sempre que possível, incluir **motivo de negócio retornado pelo backend** (quando seguro de exibir) e um **código/ID para suporte** (ex.: `traceId` ou `code` da resposta), facilitando investigação por parte do time interno.
 
 - **Acessibilidade**
   - Navegação via teclado incluindo filtros e grid.  
@@ -186,6 +187,7 @@ O objetivo desta demanda é criar a **tela “Lista global de solicitações de 
   - Praticar **spec-driven development**, tratando este card como fonte de verdade de UI/UX/testes; implementações e testes devem ser rastreáveis aos IDs de critérios de aceitação (CA-RF2-x) e às seções de componentes descritas acima.
   - Praticar **TDD**, definindo testes de frontend (unitários, de integração e E2E) com base nos critérios de aceitação e na seção "Diretrizes de testes", implementando o código somente após os testes estarem especificados.
   - Integrar as skills `maestro` (planejamento técnico a partir do card), `mestre-freire-angular` (implementação/refino Angular) e `quadro-de-recompensas` (árvore de testes) no fluxo de trabalho.
+  - Em blocos `try/catch` no frontend, **não suprimir informações de erro**: sempre registrar o erro original e construir mensagens de UI que combinem contexto da operação, motivo retornado pela API (quando disponível) e um código/ID de suporte a ser exibido para o Admin.
 
 #### Artefatos Angular esperados
 

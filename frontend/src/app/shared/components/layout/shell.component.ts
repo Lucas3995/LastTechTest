@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject } from '@angular/core';
+import { Component, computed, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   NavigationEnd,
@@ -8,6 +8,21 @@ import {
   RouterOutlet,
 } from '@angular/router';
 import { filter } from 'rxjs';
+
+import { AuthService } from '../../../core';
+
+/** Menu item visible only to given roles (área logada por role). */
+export interface ShellNavItem {
+  path: string;
+  label: string;
+  roles: string[];
+}
+
+const SHELL_NAV_ITEMS: ShellNavItem[] = [
+  { path: '/home', label: 'Home', roles: ['Creator', 'Analista', 'Admin'] },
+  { path: '/anticipation/my-requests', label: 'Minhas antecipações', roles: ['Creator', 'Admin'] },
+  // When RF-2 exists: { path: '/anticipation/list', label: 'Lista global', roles: ['Analista', 'Admin'] },
+];
 
 @Component({
   selector: 'app-shell',
@@ -19,6 +34,13 @@ import { filter } from 'rxjs';
 export class ShellComponent {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  readonly authService = inject(AuthService);
+
+  readonly navItems = computed(() => {
+    const user = this.authService.currentUser();
+    if (!user) return [];
+    return SHELL_NAV_ITEMS.filter((item) => item.roles.includes(user.role));
+  });
 
   constructor() {
     this.router.events

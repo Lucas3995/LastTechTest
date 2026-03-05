@@ -1,0 +1,19 @@
+.requests-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.requests-table th,
+.requests-table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.requests-table tbody tr {
+  cursor: pointer;
+}
+
+.requests-table tbody tr:hover {
+  background-color: #f9fafb;
+}
+

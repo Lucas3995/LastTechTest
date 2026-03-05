@@ -1,0 +1,61 @@
+<section class="my-requests">
+  <header class="my-requests__header">
+    <div class="my-requests__titles">
+      <h1>Minhas solicitações de antecipação</h1>
+      <p>
+        Acompanhe o estado das suas solicitações, valores e próximos passos em um só lugar.
+      </p>
+    </div>
+
+    <div class="my-requests__actions">
+      <button type="button" class="primary">
+        Nova solicitacao
+      </button>
+      <button type="button" class="secondary">
+        Simular antecipacao
+      </button>
+    </div>
+  </header>
+
+  <section class="my-requests__feedback" *ngIf="errorMessage() || infoMessage()">
+    <div *ngIf="errorMessage()" role="alert" class="my-requests__alert my-requests__alert--error">
+      <p class="my-requests__alert-main">
+        {{ errorMessage() }}
+      </p>
+      <p *ngIf="errorSupportId()" class="my-requests__alert-support">
+        Codigo para suporte: {{ errorSupportId() }}
+      </p>
+    </div>
+    <div *ngIf="infoMessage()" role="status" class="my-requests__alert my-requests__alert--info">
+      {{ infoMessage() }}
+    </div>
+  </section>
+
+  <ng-container *ngIf="!loading(); else loadingTpl">
+    <ng-container *ngIf="hasRequests(); else emptyTpl">
+      <app-anticipation-requests-filters
+        [filters]="filters()"
+        (apply)="onApplyFilters()"
+      />
+
+      <app-anticipation-requests-table
+        [requests]="requests()"
+        (requestSelected)="onRequestSelected($event)"
+      />
+    </ng-container>
+  </ng-container>
+
+  <app-anticipation-request-detail
+    [request]="selectedRequest()"
+    (cancel)="onCancelRequest($event)"
+  />
+
+  <ng-template #loadingTpl>
+    <p class="my-requests__loading">Carregando suas solicitações de antecipacao…</p>
+  </ng-template>
+
+  <ng-template #emptyTpl>
+    <app-anticipation-request-empty-state />
+  </ng-template>
+</section>
+

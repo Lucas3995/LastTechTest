@@ -1,0 +1,17 @@
+<form class="filters" (ngSubmit)="onApply()" novalidate>
+  <label class="filters__field">
+    <span>Status</span>
+    <select data-testid="filter-status">
+      <option value="">Todos</option>
+      <option value="PENDING">Em analise</option>
+      <option value="APPROVED">Aprovada</option>
+      <option value="REJECTED">Recusada</option>
+      <option value="CANCELED_BY_CREATOR">Cancelada pelo creator</option>
+    </select>
+  </label>
+
+  <button type="submit">
+    Aplicar filtros
+  </button>
+</form>
+

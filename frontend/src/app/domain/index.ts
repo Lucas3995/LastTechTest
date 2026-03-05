@@ -4,4 +4,4 @@
  * See .cursor/rules/angular-frontend.mdc and guia-angular.txt.
  */
 
-export const DOMAIN_PLACEHOLDER = true;
+export * from './anticipation';

@@ -1,0 +1,50 @@
+<section class="login">
+  <header class="login__header">
+    <h1>Entrar no painel interno</h1>
+    <p>Acesse o painel para acompanhar suas antecipacoes e outras operacoes internas.</p>
+  </header>
+
+  <form class="login__form" [formGroup]="form" (ngSubmit)="onSubmit()">
+    <div class="login__field">
+      <label for="email">Email corporativo</label>
+      <input
+        id="email"
+        type="email"
+        formControlName="email"
+        autocomplete="username"
+      />
+      <p class="login__error" *ngIf="form.controls.email.touched && form.controls.email.invalid">
+        Informe um email valido.
+      </p>
+    </div>
+
+    <div class="login__field">
+      <label for="password">Senha</label>
+      <input
+        id="password"
+        type="password"
+        formControlName="password"
+        autocomplete="current-password"
+      />
+      <p class="login__error" *ngIf="form.controls.password.touched && form.controls.password.invalid">
+        Informe sua senha.
+      </p>
+    </div>
+
+    <button type="submit" [disabled]="submitting" class="login__submit">
+      {{ submitting ? 'Entrando…' : 'Entrar' }}
+    </button>
+  </form>
+
+  <section class="login__feedback" *ngIf="errorMessage">
+    <div role="alert" class="login__alert login__alert--error">
+      <p class="login__alert-main">
+        {{ errorMessage }}
+      </p>
+      <p *ngIf="errorSupportId" class="login__alert-support">
+        Codigo para suporte: {{ errorSupportId }}
+      </p>
+    </div>
+  </section>
+</section>
+

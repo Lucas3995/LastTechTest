@@ -1,0 +1,57 @@
+<section
+  *ngIf="request"
+  class="request-detail"
+  data-testid="request-detail"
+>
+  <h2>Detalhes da solicitacao</h2>
+
+  <dl class="request-detail__grid">
+    <div>
+      <dt>Valor bruto solicitado</dt>
+      <dd data-testid="request-amount">
+        {{ request.grossAmountCents / 100 | number: '1.2-2' }}
+      </dd>
+    </div>
+    <div>
+      <dt>Valor liquido estimado</dt>
+      <dd>
+        {{ request.netAmountCents / 100 | number: '1.2-2' }}
+      </dd>
+    </div>
+    <div>
+      <dt>Status</dt>
+      <dd data-testid="request-status">
+        {{ request.status }}
+      </dd>
+    </div>
+  </dl>
+
+  <button
+    type="button"
+    (click)="onRequestCancel()"
+  >
+    Cancelar solicitacao
+  </button>
+
+  <div
+    *ngIf="showConfirmDialog"
+    class="request-detail__dialog-backdrop"
+  >
+    <div
+      class="request-detail__dialog"
+      role="dialog"
+      aria-modal="true"
+    >
+      <p>Esta acao nao podera ser desfeita.</p>
+      <div class="request-detail__dialog-actions">
+        <button type="button" (click)="onConfirmCancel()">
+          Confirmar
+        </button>
+        <button type="button" (click)="onCloseDialog()">
+          Fechar
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+

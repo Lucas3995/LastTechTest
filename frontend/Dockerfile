@@ -6,9 +6,8 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-FROM node:22-alpine
-WORKDIR /app
-RUN npm install -g serve
+FROM nginx:alpine
 COPY --from=build /app/dist/frontend/browser /app/dist
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 4200
-CMD ["serve", "-s", "/app/dist", "-l", "4200"]
+CMD ["nginx", "-g", "daemon off;"]
