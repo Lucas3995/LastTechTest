@@ -33,6 +33,11 @@ Thumbs.db
 ## Instruções internas do projeto (não versionar)
 InstrucoesProjeto
 
+## SQLite databases (runtime artifacts)
+*.db
+*.db-shm
+*.db-wal
+
 ## Docker / containers
 docker-compose.override.yml
 
