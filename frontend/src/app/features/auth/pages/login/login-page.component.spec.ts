@@ -67,7 +67,7 @@ describe('LoginPageComponent', () => {
       },
     };
 
-    (authServiceMock.login as LoginMethodMock).mockReturnValue(of(session));
+    (authServiceMock.login as unknown as LoginMethodMock).mockReturnValue(of(session));
 
     component.form.setValue({
       email: 'creator@example.com',
@@ -89,14 +89,14 @@ describe('LoginPageComponent', () => {
       refreshToken: null,
       user: { id: 'u', role: 'Creator', creatorId: 'c' },
     };
-    (authServiceMock.login as LoginMethodMock).mockReturnValue(of(session));
+    (authServiceMock.login as unknown as LoginMethodMock).mockReturnValue(of(session));
     component.form.setValue({ email: 'a@b.com', password: 'pwd' });
     component.onSubmit();
     expect(routerMock.navigateByUrl).toHaveBeenCalledWith('/home');
   });
 
   it('deve exibir mensagem de erro quando login falhar', () => {
-    (authServiceMock.login as LoginMethodMock).mockReturnValue(
+    (authServiceMock.login as unknown as LoginMethodMock).mockReturnValue(
       throwError(() => new Error('Falha de login')),
     );
 

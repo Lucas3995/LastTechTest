@@ -29,8 +29,8 @@ describe('AuthGuard', () => {
   it('deve redirecionar para rota raiz (login) quando não autenticado', () => {
     TestBed.runInInjectionContext(() =>
       AuthGuard(
-        { data: {} } as ActivatedRouteSnapshot,
-        { url: '/anticipation/my-requests' } as RouterStateSnapshot,
+        { data: {} } as unknown as ActivatedRouteSnapshot,
+        { url: '/anticipation/my-requests' } as unknown as RouterStateSnapshot,
       ),
     );
 
@@ -46,8 +46,8 @@ describe('AuthGuard', () => {
 
     const result = TestBed.runInInjectionContext(() =>
       AuthGuard(
-        { data: {} } as ActivatedRouteSnapshot,
-        { url: '/anticipation/my-requests' } as RouterStateSnapshot,
+        { data: {} } as unknown as ActivatedRouteSnapshot,
+        { url: '/anticipation/my-requests' } as unknown as RouterStateSnapshot,
       ),
     );
 
@@ -60,8 +60,8 @@ describe('AuthGuard', () => {
 
     TestBed.runInInjectionContext(() =>
       AuthGuard(
-        { data: { requiredRoles: ['Creator', 'Admin'] } } as ActivatedRouteSnapshot,
-        { url: '/anticipation/my-requests' } as RouterStateSnapshot,
+        { data: { requiredRoles: ['Creator', 'Admin'] } } as unknown as ActivatedRouteSnapshot,
+        { url: '/anticipation/my-requests' } as unknown as RouterStateSnapshot,
       ),
     );
 
@@ -74,8 +74,8 @@ describe('AuthGuard', () => {
 
     const result = TestBed.runInInjectionContext(() =>
       AuthGuard(
-        { data: { requiredRoles: ['Creator', 'Admin'] } } as ActivatedRouteSnapshot,
-        { url: '/anticipation/my-requests' } as RouterStateSnapshot,
+        { data: { requiredRoles: ['Creator', 'Admin'] } } as unknown as ActivatedRouteSnapshot,
+        { url: '/anticipation/my-requests' } as unknown as RouterStateSnapshot,
       ),
     );
 

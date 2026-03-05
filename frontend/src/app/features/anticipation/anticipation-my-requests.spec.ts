@@ -220,11 +220,18 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
   //
   describe('CA-RF1-3 Filtros e ordenação visíveis', () => {
     it('should filter requests by status (CA_RF1_3)', async () => {
-      const facade = new AnticipationMyRequestsFacade({
-        listMyRequests: vi.fn().mockReturnValue(of( [] )),
+      const httpMock = {
+        listMyRequests: vi.fn().mockReturnValue(of([])),
         getRequestDetail: vi.fn(),
         cancelRequest: vi.fn(),
-      } as unknown as AnticipationRequestsHttpService);
+      };
+      TestBed.configureTestingModule({
+        providers: [
+          AnticipationMyRequestsFacade,
+          { provide: AnticipationRequestsHttpService, useValue: httpMock },
+        ],
+      });
+      const facade = TestBed.inject(AnticipationMyRequestsFacade);
       const filter: AnticipationRequestsFilter = { statuses: [AnticipationRequestStatus.Pending] };
       await facade.applyFilters(filter);
       expect(facade.filters()).toEqual(filter);
