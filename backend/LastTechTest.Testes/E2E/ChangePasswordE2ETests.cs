@@ -24,10 +24,18 @@ public class ChangePasswordE2ETests : IClassFixture<CustomWebApplicationFactory>
     {
         var client = _factory.CreateClient();
 
-        var email = $"change-pass-{Guid.NewGuid():N}@example.com";
-        var originalPassword = "StrongPassword123!";
+        var adminLogin = await client.PostAsJsonAsync("/auth/login", new { Email = "usu_acesso_total@example.com", Password = "Acess0@t0ta1" });
+        adminLogin.StatusCode.Should().Be(HttpStatusCode.OK);
+        var adminTokens = await adminLogin.Content.ReadFromJsonAsync<AuthTokensDtoLike>();
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", adminTokens!.AccessToken);
 
-        await client.PostAsJsonAsync("/auth/register", new { Email = email, Password = originalPassword });
+        var email = $"change-pass-{Guid.NewGuid():N}@example.com";
+        var createResponse = await client.PostAsJsonAsync("/auth/admin/users", new { Email = email, Roles = new[] { "Creator" } });
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        const string originalPassword = "Trocar@123";
+        client.DefaultRequestHeaders.Authorization = null;
         var loginResponse = await client.PostAsJsonAsync("/auth/login", new { Email = email, Password = originalPassword });
         var tokens = await loginResponse.Content.ReadFromJsonAsync<AuthTokensDtoLike>();
 
@@ -58,11 +66,18 @@ public class ChangePasswordE2ETests : IClassFixture<CustomWebApplicationFactory>
     {
         var client = _factory.CreateClient();
 
-        var email = $"change-pass-wrong-{Guid.NewGuid():N}@example.com";
-        var originalPassword = "StrongPassword123!";
+        var adminLogin = await client.PostAsJsonAsync("/auth/login", new { Email = "usu_acesso_total@example.com", Password = "Acess0@t0ta1" });
+        adminLogin.StatusCode.Should().Be(HttpStatusCode.OK);
+        var adminTokens = await adminLogin.Content.ReadFromJsonAsync<AuthTokensDtoLike>();
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", adminTokens!.AccessToken);
 
-        await client.PostAsJsonAsync("/auth/register", new { Email = email, Password = originalPassword });
-        var loginResponse = await client.PostAsJsonAsync("/auth/login", new { Email = email, Password = originalPassword });
+        var email = $"change-pass-wrong-{Guid.NewGuid():N}@example.com";
+        var createResponse = await client.PostAsJsonAsync("/auth/admin/users", new { Email = email, Roles = new[] { "Creator" } });
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        client.DefaultRequestHeaders.Authorization = null;
+        var loginResponse = await client.PostAsJsonAsync("/auth/login", new { Email = email, Password = "Trocar@123" });
         var tokens = await loginResponse.Content.ReadFromJsonAsync<AuthTokensDtoLike>();
 
         client.DefaultRequestHeaders.Authorization =

@@ -66,12 +66,23 @@ public class AdminUserManagementE2ETests : IClassFixture<CustomWebApplicationFac
     {
         var client = _factory.CreateClient();
 
-        // Usuário comum registrado via fluxo atual
-        var email = $"non-admin-{Guid.NewGuid():N}@example.com";
-        var password = "StrongPassword123!";
-        await client.PostAsJsonAsync("/auth/register", new { Email = email, Password = password });
+        // Admin creates a non-admin user (Creator only), then we use that user's token to try creating another user
+        var adminLogin = await client.PostAsJsonAsync("/auth/login", new
+        {
+            Email = "usu_acesso_total@example.com",
+            Password = "Acess0@t0ta1"
+        });
+        adminLogin.StatusCode.Should().Be(HttpStatusCode.OK);
+        var adminTokens = await adminLogin.Content.ReadFromJsonAsync<AuthTokensDtoLike>();
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", adminTokens!.AccessToken);
 
-        var loginResponse = await client.PostAsJsonAsync("/auth/login", new { Email = email, Password = password });
+        var nonAdminEmail = $"non-admin-{Guid.NewGuid():N}@example.com";
+        var createResponse = await client.PostAsJsonAsync("/auth/admin/users", new { Email = nonAdminEmail, Roles = new[] { "Creator" } });
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        client.DefaultRequestHeaders.Authorization = null;
+        var loginResponse = await client.PostAsJsonAsync("/auth/login", new { Email = nonAdminEmail, Password = "Trocar@123" });
         var tokens = await loginResponse.Content.ReadFromJsonAsync<AuthTokensDtoLike>();
 
         client.DefaultRequestHeaders.Authorization =
