@@ -140,5 +140,104 @@ describe('AuthService', () => {
     expect(received!.user.role).toBe('Creator');
     expect(received!.user.creatorId).toBe('user-1');
   });
+
+  // Plano refresh_token_e_filtro_pendências — refresh e atualização de sessão (T2)
+  describe('refresh (Plano refresh)', () => {
+    const API_BASE = 'https://api.example.com';
+
+    beforeEach(() => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        imports: [HttpClientTestingModule],
+        providers: [AuthService, { provide: API_BASE_URL, useValue: API_BASE }],
+      });
+      service = TestBed.inject(AuthService);
+      httpMock = TestBed.inject(HttpTestingController);
+      window.localStorage.clear();
+    });
+
+    it('should call POST .../auth/refresh with body RefreshToken when refresh is invoked', () => {
+      const refreshTokenValue = 'my-refresh-token-123';
+      service.setSession({
+        accessToken: 'old-access',
+        refreshToken: refreshTokenValue,
+        user: { id: 'u1', role: 'Creator', creatorId: 'c1' },
+      });
+
+      service.refresh().subscribe();
+
+      const req = httpMock.expectOne(`${API_BASE}/auth/refresh`);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual({ RefreshToken: refreshTokenValue });
+      req.flush({
+        accessToken: 'new-access',
+        refreshToken: 'new-refresh',
+        accessTokenExpiresAtUtc: new Date().toISOString(),
+        refreshTokenExpiresAtUtc: new Date().toISOString(),
+      });
+    });
+
+    it('should update session and persist to localStorage when refresh response is successful', () => {
+      const roleClaim = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
+      const payload = btoa(
+        JSON.stringify({ sub: 'user-refreshed', [roleClaim]: 'Creator' }),
+      );
+      const newAccessToken = `eyJhbGciOiJIUzI1NiJ9.${payload}.sig`;
+
+      service.setSession({
+        accessToken: 'old-access',
+        refreshToken: 'old-refresh',
+        user: { id: 'u1', role: 'Creator', creatorId: 'c1' },
+      });
+
+      let session: AuthSession | undefined;
+      service.refresh().subscribe((s) => {
+        session = s;
+      });
+
+      const req = httpMock.expectOne(`${API_BASE}/auth/refresh`);
+      req.flush({
+        accessToken: newAccessToken,
+        refreshToken: 'new-refresh-token',
+        accessTokenExpiresAtUtc: new Date().toISOString(),
+        refreshTokenExpiresAtUtc: new Date().toISOString(),
+      });
+
+      expect(session).toBeDefined();
+      expect(session!.accessToken).toBe(newAccessToken);
+      expect(session!.user.id).toBe('user-refreshed');
+      expect(service.session()).not.toBeNull();
+      expect(service.session()!.accessToken).toBe(newAccessToken);
+      const stored = window.localStorage.getItem('ll_auth_session');
+      expect(stored).toBeTruthy();
+      const parsed = JSON.parse(stored!);
+      expect(parsed.accessToken).toBe(newAccessToken);
+    });
+
+    it('should return error observable when refresh fails', () => {
+      service.setSession({
+        accessToken: 'old-access',
+        refreshToken: 'old-refresh',
+        user: { id: 'u1', role: 'Creator', creatorId: 'c1' },
+      });
+
+      let errored = false;
+      service.refresh().subscribe({
+        next: () => {
+          throw new Error('should not succeed');
+        },
+        error: () => {
+          errored = true;
+        },
+      });
+
+      const req = httpMock.expectOne(`${API_BASE}/auth/refresh`);
+      req.flush(null, { status: 401, statusText: 'Unauthorized' });
+
+      expect(errored).toBe(true);
+      expect(service.session()).not.toBeNull();
+      expect(service.session()!.accessToken).toBe('old-access');
+    });
+  });
 });
 

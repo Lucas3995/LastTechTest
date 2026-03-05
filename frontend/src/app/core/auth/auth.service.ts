@@ -1,6 +1,6 @@
 import { inject, Injectable, computed, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { Observable, map, throwError } from 'rxjs';
 import { API_BASE_URL } from '../api-base-url';
 
 export interface LoginCredentials {
@@ -20,8 +20,8 @@ export interface AuthSession {
   user: AuthUser;
 }
 
-/** Resposta real do backend: POST /auth/login retorna apenas tokens. */
-interface AuthLoginResponse {
+/** Resposta real do backend: POST /auth/login e POST /auth/refresh retornam tokens. */
+interface AuthTokensResponse {
   accessToken: string;
   refreshToken: string;
   accessTokenExpiresAtUtc: string;
@@ -80,22 +80,45 @@ export class AuthService {
   login(credentials: LoginCredentials): Observable<AuthSession> {
     const url = `${this.apiBaseUrl}/auth/login`;
     return this.http
-      .post<AuthLoginResponse>(url, {
+      .post<AuthTokensResponse>(url, {
         Email: credentials.email,
         Password: credentials.password,
       })
       .pipe(
-        map((response) => {
-          const { sub, role } = decodeJwtPayload(response.accessToken);
-          const id = sub ?? '';
-          const creatorId = role === 'Creator' ? (sub ?? null) : null;
-          return {
-            accessToken: response.accessToken,
-            refreshToken: response.refreshToken ?? null,
-            user: { id, role: role ?? '', creatorId },
-          };
-        }),
+        map((response) => this.buildSessionFromTokensResponse(response)),
       );
+  }
+
+  /**
+   * Chama POST /auth/refresh com o refreshToken da sessão atual.
+   * Em sucesso, atualiza a sessão e persiste em localStorage; retorna a nova sessão.
+   * Em falha, o observable emite erro e a sessão não é alterada.
+   */
+  refresh(): Observable<AuthSession> {
+    const session = this._session();
+    const refreshToken = session?.refreshToken?.trim();
+    if (!refreshToken) {
+      return throwError(() => new Error('No refresh token'));
+    }
+    const url = `${this.apiBaseUrl}/auth/refresh`;
+    return this.http.post<AuthTokensResponse>(url, { RefreshToken: refreshToken }).pipe(
+      map((response) => {
+        const newSession = this.buildSessionFromTokensResponse(response);
+        this.setSession(newSession);
+        return newSession;
+      }),
+    );
+  }
+
+  private buildSessionFromTokensResponse(response: AuthTokensResponse): AuthSession {
+    const { sub, role } = decodeJwtPayload(response.accessToken);
+    const id = sub ?? '';
+    const creatorId = role === 'Creator' ? (sub ?? null) : null;
+    return {
+      accessToken: response.accessToken,
+      refreshToken: response.refreshToken ?? null,
+      user: { id, role: role ?? '', creatorId },
+    };
   }
 
   setSession(session: AuthSession | null): void {

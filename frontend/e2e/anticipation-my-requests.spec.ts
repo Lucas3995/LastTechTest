@@ -70,6 +70,46 @@ test.describe('RF-1 Minhas solicitacoes de antecipacao (Creator) — E2E', () =>
     ).toHaveAttribute('aria-sort', /ascending|descending/);
   });
 
+  test('Bug filtro: creator applies status filter, sees loading then filtered list or error (CA_RF1_3_bug_filter)', async ({
+    page,
+  }) => {
+    await page.goto(myRequestsUrl + '?fixture=many');
+
+    await page.getByTestId('filter-status').click();
+    await page.getByRole('option', { name: /Em analise/i }).click();
+    await page.getByRole('button', { name: /Aplicar filtros/i }).click();
+
+    // Ao terminar a requisição: indicador de loading some; lista filtrada ou mensagem de erro visível
+    const loadingIndicator = page.getByText(/Carregando/i);
+    const tableRows = page.locator('[data-testid="requests-table-row"]');
+    const errorAlert = page.getByRole('alert');
+    await expect(loadingIndicator).not.toBeVisible({ timeout: 15000 });
+    await expect(tableRows.first().or(errorAlert)).toBeVisible({ timeout: 15000 });
+  });
+
+  test('Filtro sempre visível: creator filters by status with no items still sees filter and can change to another status (filtro_sempre_visivel)', async ({
+    page,
+  }) => {
+    await page.goto(myRequestsUrl + '?fixture=empty');
+
+    const filterStatus = page.getByTestId('filter-status');
+    const applyButton = page.getByRole('button', { name: /Aplicar filtros/i });
+    await expect(filterStatus).toBeVisible();
+    await expect(applyButton).toBeVisible();
+
+    const emptyState = page.getByTestId('requests-empty-state');
+    await expect(emptyState).toBeVisible();
+
+    await filterStatus.click();
+    await page.getByRole('option', { name: /Todos/i }).click();
+    await applyButton.click();
+
+    await expect(filterStatus).toBeVisible();
+    await expect(emptyState.or(page.locator('[data-testid="requests-table-row"]').first())).toBeVisible({
+      timeout: 10000,
+    });
+  });
+
   test('CA-RF1-4: creator opens request detail and sees expected information', async ({ page }) => {
     await page.goto(myRequestsUrl + '?fixture=default');
 
