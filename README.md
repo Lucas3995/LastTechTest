@@ -90,10 +90,10 @@ Se aparecer aviso de _orphan containers_ (ex.: `Found orphan containers (docker-
 docker compose -f docker/docker-compose.yml up --build --remove-orphans
 ```
 
-A API ficará acessível em:
+Com o mesmo comando sobem **API e frontend**:
 
-- `http://localhost:5114` (HTTP)
-- `http://localhost:5114/scalar` (Scalar API Reference)
+- **API:** `http://localhost:5114` (HTTP), `http://localhost:5114/scalar` (Scalar API Reference)
+- **Frontend:** `http://localhost:4200`
 
 O banco SQLite é persistido em um volume Docker (`lasttechtest-data`), configurado em `docker/docker-compose.yml`.
 
