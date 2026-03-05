@@ -160,7 +160,7 @@ describe('authTokenInterceptor — resposta 401 e refresh (Plano refresh)', () =
   });
 
   it('should call refresh when response is 401 and request is not to refresh or login route', () => {
-    http.get(`${API_BASE}/api/v1/anticipations`).subscribe({ error: () => {} });
+    http.get(`${API_BASE}/api/v1/anticipations`).subscribe({ error: () => { /* expect 401 then retry */ } });
 
     const apiReq = httpMock.expectOne(`${API_BASE}/api/v1/anticipations`);
     expect(apiReq.request.headers.get('Authorization')).toBe('Bearer old-access');
@@ -181,7 +181,7 @@ describe('authTokenInterceptor — resposta 401 e refresh (Plano refresh)', () =
   it('should not trigger refresh when 401 is from POST .../auth/refresh', () => {
     auth.setSession(makeSession());
 
-    http.post(`${API_BASE}/auth/refresh`, { RefreshToken: 'x' }).subscribe({ error: () => {} });
+    http.post(`${API_BASE}/auth/refresh`, { RefreshToken: 'x' }).subscribe({ error: () => { /* expect 401 → logout */ } });
 
     const refreshReq = httpMock.expectOne(`${API_BASE}/auth/refresh`);
     refreshReq.flush(null, { status: 401, statusText: 'Unauthorized' });
@@ -210,7 +210,7 @@ describe('authTokenInterceptor — resposta 401 e refresh (Plano refresh)', () =
   });
 
   it('should call logout and redirect with returnUrl when refresh fails (4xx/5xx)', () => {
-    http.get(`${API_BASE}/api/v1/anticipations`).subscribe({ error: () => {} });
+    http.get(`${API_BASE}/api/v1/anticipations`).subscribe({ error: () => { /* expect refresh failure → logout */ } });
 
     httpMock.expectOne(`${API_BASE}/api/v1/anticipations`).flush(null, { status: 401, statusText: 'Unauthorized' });
     httpMock.expectOne(`${API_BASE}/auth/refresh`).flush(null, { status: 401, statusText: 'Unauthorized' });
@@ -223,7 +223,7 @@ describe('authTokenInterceptor — resposta 401 e refresh (Plano refresh)', () =
   it('should call logout and redirect when session has no refreshToken on 401', () => {
     auth.setSession(makeSession({ refreshToken: null }));
 
-    http.get(`${API_BASE}/api/v1/anticipations`).subscribe({ error: () => {} });
+    http.get(`${API_BASE}/api/v1/anticipations`).subscribe({ error: () => { /* expect 401 → logout, no refresh */ } });
 
     httpMock.expectOne(`${API_BASE}/api/v1/anticipations`).flush(null, { status: 401, statusText: 'Unauthorized' });
 
