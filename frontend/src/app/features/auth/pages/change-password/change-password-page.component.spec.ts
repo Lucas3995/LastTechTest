@@ -15,9 +15,8 @@ interface ChangePasswordPageModule {
 }
 
 async function loadPageModule(): Promise<ChangePasswordPageModule | null> {
-  const modulePath = './change-password-page.component';
   try {
-    return (await import(/* @vite-ignore */ modulePath)) as ChangePasswordPageModule;
+    return (await import('./change-password-page.component')) as ChangePasswordPageModule;
   } catch {
     return null;
   }

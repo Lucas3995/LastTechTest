@@ -20,9 +20,8 @@ interface ChangePasswordFacadeModule {
 }
 
 async function loadFacadeModule(): Promise<ChangePasswordFacadeModule | null> {
-  const modulePath = './change-password.facade';
   try {
-    return (await import(/* @vite-ignore */ modulePath)) as ChangePasswordFacadeModule;
+    return (await import('./change-password.facade')) as ChangePasswordFacadeModule;
   } catch {
     return null;
   }

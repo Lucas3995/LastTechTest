@@ -1,10 +1,15 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
-import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { ChangePasswordFacade } from '../../../../application';
-import { AuthService } from '../../../../core';
 
 function passwordsMatchValidator(control: AbstractControl): ValidationErrors | null {
   const newPassword = control.get('newPassword')?.value;
@@ -27,7 +32,6 @@ function passwordsMatchValidator(control: AbstractControl): ValidationErrors | n
 export class ChangePasswordPageComponent {
   private readonly fb = inject(FormBuilder);
   private readonly facade = inject(ChangePasswordFacade);
-  private readonly authService = inject(AuthService, { optional: true });
   private readonly router = inject(Router, { optional: true });
 
   readonly form = this.fb.nonNullable.group(
@@ -38,7 +42,7 @@ export class ChangePasswordPageComponent {
     },
     {
       validators: [passwordsMatchValidator],
-    },
+    }
   );
 
   loading = this.facade.loading.bind(this.facade);
@@ -58,11 +62,6 @@ export class ChangePasswordPageComponent {
       newPassword: value.newPassword,
       confirmNewPassword: value.confirmNewPassword,
     });
-
-    if (this.successMessage()) {
-      this.authService?.logout();
-      await this.router?.navigateByUrl('/?returnUrl=%2Fauth%2Fchange-password');
-    }
   }
 
   async onCancel(): Promise<void> {

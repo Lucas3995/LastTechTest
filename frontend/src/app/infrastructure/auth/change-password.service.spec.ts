@@ -13,9 +13,8 @@ interface ChangePasswordServiceModule {
 }
 
 async function loadServiceModule(): Promise<ChangePasswordServiceModule | null> {
-  const modulePath = './change-password.service';
   try {
-    return (await import(/* @vite-ignore */ modulePath)) as ChangePasswordServiceModule;
+    return (await import('./change-password.service')) as ChangePasswordServiceModule;
   } catch {
     return null;
   }

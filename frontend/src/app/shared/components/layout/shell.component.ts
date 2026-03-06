@@ -1,12 +1,6 @@
 import { Component, computed, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import {
-  NavigationEnd,
-  Router,
-  RouterLink,
-  RouterLinkActive,
-  RouterOutlet,
-} from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 
 import { AuthService } from '../../../core';
@@ -21,9 +15,13 @@ export interface ShellNavItem {
 const SHELL_NAV_ITEMS: ShellNavItem[] = [
   { path: '/home', label: 'Home', roles: ['Creator', 'Analista', 'Admin'] },
   { path: '/anticipation/my-requests', label: 'Minhas antecipações', roles: ['Creator', 'Admin'] },
-  { path: '/anticipation/list', label: 'Lista global de solicitações', roles: ['Analista', 'Admin'] },
-  { path: '/auth/change-password', label: 'Alterar senha', roles: ['Creator', 'Analista'] },
+  {
+    path: '/anticipation/list',
+    label: 'Lista global de solicitações',
+    roles: ['Analista', 'Admin'],
+  },
   { path: '/admin/users', label: 'Gestão de Usuários', roles: ['Admin'] },
+  { path: '/auth/change-password', label: 'Alterar Senha', roles: ['Creator', 'Analista'] },
 ];
 
 @Component({

@@ -20,7 +20,7 @@ export const routes: Routes = [
     data: { requiredRoles: ['Creator', 'Admin'] },
     loadComponent: () =>
       import('./features/anticipation/pages/my-requests/anticipation-my-requests-page.component').then(
-        (m) => m.AnticipationMyRequestsPageComponent,
+        (m) => m.AnticipationMyRequestsPageComponent
       ),
   },
   {
@@ -29,7 +29,7 @@ export const routes: Routes = [
     data: { requiredRoles: ['Creator', 'Admin'] },
     loadComponent: () =>
       import('./features/anticipation/pages/new-request/anticipation-new-request-page.component').then(
-        (m) => m.AnticipationNewRequestPageComponent,
+        (m) => m.AnticipationNewRequestPageComponent
       ),
   },
   {
@@ -38,7 +38,7 @@ export const routes: Routes = [
     data: { requiredRoles: ['Admin', 'Analista'] },
     loadComponent: () =>
       import('./features/anticipation/pages/admin-list/anticipation-admin-requests-page.component').then(
-        (m) => m.AnticipationAdminRequestsPageComponent,
+        (m) => m.AnticipationAdminRequestsPageComponent
       ),
   },
   {
@@ -47,7 +47,7 @@ export const routes: Routes = [
     data: { requiredRoles: ['Creator', 'Admin', 'Analista'] },
     loadComponent: () =>
       import('./features/anticipation/pages/simulation/anticipation-simulation-page.component').then(
-        (m) => m.AnticipationSimulationPageComponent,
+        (m) => m.AnticipationSimulationPageComponent
       ),
   },
   {
@@ -56,7 +56,7 @@ export const routes: Routes = [
     data: { requiredRoles: ['Creator', 'Analista'] },
     loadComponent: () =>
       import('./features/auth/pages/change-password/change-password-page.component').then(
-        (m) => m.ChangePasswordPageComponent,
+        (m) => m.ChangePasswordPageComponent
       ),
   },
   {
@@ -65,7 +65,7 @@ export const routes: Routes = [
     data: { requiredRoles: ['Admin'] },
     loadComponent: () =>
       import('./features/auth/pages/admin-users/admin-users-page.component').then(
-        (m) => m.AdminUsersPageComponent,
+        (m) => m.AdminUsersPageComponent
       ),
   },
   {
