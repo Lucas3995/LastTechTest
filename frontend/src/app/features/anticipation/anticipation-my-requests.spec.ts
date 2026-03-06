@@ -5,6 +5,7 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { HttpErrorResponse } from '@angular/common/http';
+import { RouterTestingModule } from '@angular/router/testing';
 import { of, Subject, throwError } from 'rxjs';
 import { vi } from 'vitest';
 
@@ -118,7 +119,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
     it('should call list service with current creator_id (CA_RF1_1)', async () => {
       const listSpy = vi.fn().mockReturnValue(of( [] ));
       await TestBed.configureTestingModule({
-        imports: [AnticipationMyRequestsPageComponent],
+        imports: [AnticipationMyRequestsPageComponent, RouterTestingModule.withRoutes([])],
         providers: [
           AnticipationMyRequestsFacade,
           { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: listSpy } },
@@ -135,7 +136,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
       const myRequests = [createRequest({ creatorId: 'me' }), createRequest({ id: 'r2', creatorId: 'me' })];
       const listSpy = vi.fn().mockReturnValue(of( myRequests ));
       await TestBed.configureTestingModule({
-        imports: [AnticipationMyRequestsPageComponent],
+        imports: [AnticipationMyRequestsPageComponent, RouterTestingModule.withRoutes([])],
         providers: [
           AnticipationMyRequestsFacade,
           { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
@@ -158,7 +159,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
       ];
       const listSpy = vi.fn().mockReturnValue(of( myRequests ));
       await TestBed.configureTestingModule({
-        imports: [AnticipationMyRequestsPageComponent],
+        imports: [AnticipationMyRequestsPageComponent, RouterTestingModule.withRoutes([])],
         providers: [
           AnticipationMyRequestsFacade,
           { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
@@ -202,10 +203,42 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
       expect(el.textContent).toContain('Simular antecipacao');
     });
 
+    // RF-5 (T-RF5-4): Nova solicitação button navigates to anticipation/my-requests/new
+    it('"Nova solicitação" button has routerLink to anticipation/my-requests/new (CA-RF5-1)', async () => {
+      const portMock = {
+        listMyRequests: vi.fn().mockReturnValue(of([])),
+        getRequestDetail: vi.fn(),
+        cancelRequest: vi.fn(),
+        listGlobalRequests: vi.fn(),
+        approveRequest: vi.fn(),
+        rejectRequest: vi.fn(),
+        createRequest: vi.fn(),
+      };
+      await TestBed.configureTestingModule({
+        imports: [
+          AnticipationMyRequestsPageComponent,
+          RouterTestingModule.withRoutes([{ path: 'anticipation/my-requests/new', component: AnticipationMyRequestsPageComponent }]),
+        ],
+        providers: [
+          AnticipationMyRequestsFacade,
+          { provide: ANTICIPATION_REQUESTS_PORT, useValue: portMock },
+          { provide: API_BASE_URL, useValue: '' },
+        ],
+      }).compileComponents();
+      const fixture = TestBed.createComponent(AnticipationMyRequestsPageComponent);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      const link = (fixture.nativeElement.querySelector('a[routerlink="/anticipation/my-requests/new"]') as HTMLAnchorElement | null)
+        ?? (Array.from(fixture.nativeElement.querySelectorAll('a')) as HTMLAnchorElement[]).find((a) => a.textContent?.trim() === 'Nova solicitação');
+      expect(link).toBeTruthy();
+      expect(link?.getAttribute('href')).toBe('/anticipation/my-requests/new');
+    });
+
     it('should switch from grid to empty state when service returns empty list (CA_RF1_2)', async () => {
       const listSpy = vi.fn().mockReturnValue(of( [] ));
       await TestBed.configureTestingModule({
-        imports: [AnticipationMyRequestsPageComponent],
+        imports: [AnticipationMyRequestsPageComponent, RouterTestingModule.withRoutes([])],
         providers: [
           AnticipationMyRequestsFacade,
           { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
@@ -225,7 +258,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         .mockReturnValueOnce(of( [] ))
         .mockReturnValueOnce(of( [createRequest()] ));
       await TestBed.configureTestingModule({
-        imports: [AnticipationMyRequestsPageComponent],
+        imports: [AnticipationMyRequestsPageComponent, RouterTestingModule.withRoutes([])],
         providers: [
           AnticipationMyRequestsFacade,
           { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
@@ -304,7 +337,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
     it('should apply status filter and update grid (CA_RF1_3)', async () => {
       const listSpy = vi.fn().mockReturnValue(of( [createRequest({ status: AnticipationRequestStatus.Pending })] ));
       await TestBed.configureTestingModule({
-        imports: [AnticipationMyRequestsPageComponent],
+        imports: [AnticipationMyRequestsPageComponent, RouterTestingModule.withRoutes([])],
         providers: [
           AnticipationMyRequestsFacade,
           { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
@@ -322,7 +355,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
     it('should apply period filter and update grid (CA_RF1_3)', async () => {
       const listSpy = vi.fn().mockReturnValue(of( [] ));
       await TestBed.configureTestingModule({
-        imports: [AnticipationMyRequestsPageComponent],
+        imports: [AnticipationMyRequestsPageComponent, RouterTestingModule.withRoutes([])],
         providers: [
           AnticipationMyRequestsFacade,
           { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
@@ -355,7 +388,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
     it('should preserve filter values after reload (CA_RF1_3)', async () => {
       const listSpy = vi.fn().mockReturnValue(of( [] ));
       await TestBed.configureTestingModule({
-        imports: [AnticipationMyRequestsPageComponent],
+        imports: [AnticipationMyRequestsPageComponent, RouterTestingModule.withRoutes([])],
         providers: [
           AnticipationMyRequestsFacade,
           { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
@@ -378,7 +411,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
     it('should call facade applyFilters with emitted filter when filters component emits apply (bug_filter)', async () => {
       const listSpy = vi.fn().mockReturnValue(of( [createRequest()] ));
       await TestBed.configureTestingModule({
-        imports: [AnticipationMyRequestsPageComponent],
+        imports: [AnticipationMyRequestsPageComponent, RouterTestingModule.withRoutes([])],
         providers: [
           AnticipationMyRequestsFacade,
           { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
@@ -404,7 +437,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
     it('should call list service with status param when filter emitted has statuses (bug_filter)', async () => {
       const listSpy = vi.fn().mockReturnValue(of( [createRequest()] ));
       await TestBed.configureTestingModule({
-        imports: [AnticipationMyRequestsPageComponent],
+        imports: [AnticipationMyRequestsPageComponent, RouterTestingModule.withRoutes([])],
         providers: [
           AnticipationMyRequestsFacade,
           { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
@@ -440,7 +473,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         .mockReturnValueOnce(of([createRequest()]))
         .mockReturnValue(pendingLoad.asObservable());
       await TestBed.configureTestingModule({
-        imports: [AnticipationMyRequestsPageComponent],
+        imports: [AnticipationMyRequestsPageComponent, RouterTestingModule.withRoutes([])],
         providers: [
           AnticipationMyRequestsFacade,
           { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
@@ -465,7 +498,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
     it('should hide loading and show list or error when loading finishes (bug_filter)', async () => {
       const listSpy = vi.fn().mockReturnValue(of([createRequest()]));
       await TestBed.configureTestingModule({
-        imports: [AnticipationMyRequestsPageComponent],
+        imports: [AnticipationMyRequestsPageComponent, RouterTestingModule.withRoutes([])],
         providers: [
           AnticipationMyRequestsFacade,
           { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
@@ -490,7 +523,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
     it('should show filters and empty state when filters are set and list is empty (filtro_sempre_visivel)', async () => {
       const listSpy = vi.fn().mockReturnValue(of([]));
       await TestBed.configureTestingModule({
-        imports: [AnticipationMyRequestsPageComponent],
+        imports: [AnticipationMyRequestsPageComponent, RouterTestingModule.withRoutes([])],
         providers: [
           AnticipationMyRequestsFacade,
           { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
@@ -510,7 +543,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
     it('should show filters and table when filters are set and list has items (filtro_sempre_visivel)', async () => {
       const listSpy = vi.fn().mockReturnValue(of([createRequest()]));
       await TestBed.configureTestingModule({
-        imports: [AnticipationMyRequestsPageComponent],
+        imports: [AnticipationMyRequestsPageComponent, RouterTestingModule.withRoutes([])],
         providers: [
           AnticipationMyRequestsFacade,
           { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
@@ -531,7 +564,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
       const pendingLoad = new Subject<AnticipationRequest[]>();
       const listSpy = vi.fn().mockReturnValue(pendingLoad.asObservable());
       await TestBed.configureTestingModule({
-        imports: [AnticipationMyRequestsPageComponent],
+        imports: [AnticipationMyRequestsPageComponent, RouterTestingModule.withRoutes([])],
         providers: [
           AnticipationMyRequestsFacade,
           { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
@@ -572,7 +605,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         throwError(() => new HttpErrorResponse({ status: 403 })),
       );
       await TestBed.configureTestingModule({
-        imports: [AnticipationMyRequestsPageComponent],
+        imports: [AnticipationMyRequestsPageComponent, RouterTestingModule.withRoutes([])],
         providers: [
           AnticipationMyRequestsFacade,
           {
@@ -599,7 +632,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
       const detail = createRequest({ id: 'd1' });
       const getDetailSpy = vi.fn().mockReturnValue(of(detail));
       await TestBed.configureTestingModule({
-        imports: [AnticipationMyRequestsPageComponent],
+        imports: [AnticipationMyRequestsPageComponent, RouterTestingModule.withRoutes([])],
         providers: [
           AnticipationMyRequestsFacade,
           {
@@ -629,7 +662,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         throwError(() => new HttpErrorResponse({ status: 404 })),
       );
       await TestBed.configureTestingModule({
-        imports: [AnticipationMyRequestsPageComponent],
+        imports: [AnticipationMyRequestsPageComponent, RouterTestingModule.withRoutes([])],
         providers: [
           AnticipationMyRequestsFacade,
           {
@@ -677,7 +710,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
     it('should call cancel service with correct id on confirm (CA_RF1_5)', async () => {
       const cancelSpy = vi.fn().mockReturnValue(of(createRequest({ id: 'x', status: AnticipationRequestStatus.CanceledByCreator })));
       await TestBed.configureTestingModule({
-        imports: [AnticipationMyRequestsPageComponent],
+        imports: [AnticipationMyRequestsPageComponent, RouterTestingModule.withRoutes([])],
         providers: [
           AnticipationMyRequestsFacade,
           {
@@ -706,7 +739,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
       const canceled = createRequest({ id: 'c1', status: AnticipationRequestStatus.CanceledByCreator });
       const cancelSpy = vi.fn().mockReturnValue(of(canceled));
       await TestBed.configureTestingModule({
-        imports: [AnticipationMyRequestsPageComponent],
+        imports: [AnticipationMyRequestsPageComponent, RouterTestingModule.withRoutes([])],
         providers: [
           AnticipationMyRequestsFacade,
           {
@@ -731,7 +764,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
     it('should show error and keep status on cancel failure (CA_RF1_5)', async () => {
       const cancelSpy = vi.fn().mockReturnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
       await TestBed.configureTestingModule({
-        imports: [AnticipationMyRequestsPageComponent],
+        imports: [AnticipationMyRequestsPageComponent, RouterTestingModule.withRoutes([])],
         providers: [
           AnticipationMyRequestsFacade,
           {
@@ -778,7 +811,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
       const canceled = createRequest({ status: AnticipationRequestStatus.CanceledByCreator });
       const cancelSpy = vi.fn().mockReturnValue(throwError(() => new HttpErrorResponse({ status: 400, error: { message: 'Already canceled' } })));
       await TestBed.configureTestingModule({
-        imports: [AnticipationMyRequestsPageComponent],
+        imports: [AnticipationMyRequestsPageComponent, RouterTestingModule.withRoutes([])],
         providers: [
           AnticipationMyRequestsFacade,
           {
@@ -804,7 +837,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         throwError(() => new HttpErrorResponse({ status: 400, error: { message: 'Already canceled' } })),
       );
       await TestBed.configureTestingModule({
-        imports: [AnticipationMyRequestsPageComponent],
+        imports: [AnticipationMyRequestsPageComponent, RouterTestingModule.withRoutes([])],
         providers: [
           AnticipationMyRequestsFacade,
           {
@@ -831,7 +864,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
   describe('Requisitos transversais de UX, a11y e robustez', () => {
     it('should allow full keyboard navigation with logical focus order', () => {
       TestBed.configureTestingModule({
-        imports: [AnticipationMyRequestsPageComponent],
+        imports: [AnticipationMyRequestsPageComponent, RouterTestingModule.withRoutes([])],
         providers: [
           AnticipationMyRequestsFacade,
           { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: vi.fn().mockReturnValue(of( [] )), getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
@@ -869,7 +902,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
 
     it('should have main landmarks and headings on page for screen readers', async () => {
       await TestBed.configureTestingModule({
-        imports: [AnticipationMyRequestsPageComponent],
+        imports: [AnticipationMyRequestsPageComponent, RouterTestingModule.withRoutes([])],
         providers: [
           AnticipationMyRequestsFacade,
           { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: vi.fn().mockReturnValue(of( [] )), getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
@@ -897,7 +930,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
 
     it('should pass automated accessibility scan without critical issues', async () => {
       await TestBed.configureTestingModule({
-        imports: [AnticipationMyRequestsPageComponent],
+        imports: [AnticipationMyRequestsPageComponent, RouterTestingModule.withRoutes([])],
         providers: [
           AnticipationMyRequestsFacade,
           { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: vi.fn().mockReturnValue(of( [] )), getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
@@ -913,7 +946,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
     it('should show generic error message when list service fails', async () => {
       const listSpy = vi.fn().mockReturnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
       await TestBed.configureTestingModule({
-        imports: [AnticipationMyRequestsPageComponent],
+        imports: [AnticipationMyRequestsPageComponent, RouterTestingModule.withRoutes([])],
         providers: [
           AnticipationMyRequestsFacade,
           { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
@@ -933,7 +966,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         .mockReturnValueOnce(throwError(() => new Error('fail')))
         .mockReturnValueOnce(of( [createRequest()] ));
       await TestBed.configureTestingModule({
-        imports: [AnticipationMyRequestsPageComponent],
+        imports: [AnticipationMyRequestsPageComponent, RouterTestingModule.withRoutes([])],
         providers: [
           AnticipationMyRequestsFacade,
           { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
@@ -950,7 +983,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
     it('should show friendly error when detail service fails', async () => {
       const getDetailSpy = vi.fn().mockReturnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
       await TestBed.configureTestingModule({
-        imports: [AnticipationMyRequestsPageComponent],
+        imports: [AnticipationMyRequestsPageComponent, RouterTestingModule.withRoutes([])],
         providers: [
           AnticipationMyRequestsFacade,
           {
@@ -972,7 +1005,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
     it('should keep navigation usable after detail error', async () => {
       const getDetailSpy = vi.fn().mockReturnValue(throwError(() => new Error('detail fail')));
       await TestBed.configureTestingModule({
-        imports: [AnticipationMyRequestsPageComponent],
+        imports: [AnticipationMyRequestsPageComponent, RouterTestingModule.withRoutes([])],
         providers: [
           AnticipationMyRequestsFacade,
           {
@@ -996,7 +1029,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
     it('should show error and keep status on cancel network failure', async () => {
       const cancelSpy = vi.fn().mockReturnValue(throwError(() => new Error('network')));
       await TestBed.configureTestingModule({
-        imports: [AnticipationMyRequestsPageComponent],
+        imports: [AnticipationMyRequestsPageComponent, RouterTestingModule.withRoutes([])],
         providers: [
           AnticipationMyRequestsFacade,
           {
@@ -1021,7 +1054,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
     it('should allow retry or close after cancel error', async () => {
       const cancelSpy = vi.fn().mockReturnValue(throwError(() => new Error('cancel fail')));
       await TestBed.configureTestingModule({
-        imports: [AnticipationMyRequestsPageComponent],
+        imports: [AnticipationMyRequestsPageComponent, RouterTestingModule.withRoutes([])],
         providers: [
           AnticipationMyRequestsFacade,
           {

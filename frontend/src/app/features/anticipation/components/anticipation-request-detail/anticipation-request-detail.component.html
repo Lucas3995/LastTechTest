@@ -6,6 +6,12 @@
     <h2>Detalhes da solicitacao</h2>
 
     <dl class="request-detail__grid">
+      @if (showCreator) {
+        <div>
+          <dt>Creator</dt>
+          <dd data-testid="request-detail-creator">{{ request.creatorId }}</dd>
+        </div>
+      }
       <div>
         <dt>Valor bruto solicitado</dt>
         <dd data-testid="request-amount">
@@ -26,12 +32,29 @@
       </div>
     </dl>
 
-    <button
-      type="button"
-      (click)="onRequestCancel()"
-    >
-      Cancelar solicitacao
-    </button>
+    @if (canShowApproveReject && request?.status === Pending) {
+      <button
+        type="button"
+        (click)="onRequestApprove()"
+      >
+        Aprovar
+      </button>
+      <button
+        type="button"
+        (click)="onRequestReject()"
+      >
+        Recusar
+      </button>
+    }
+
+    @if (!hideCancel) {
+      <button
+        type="button"
+        (click)="onRequestCancel()"
+      >
+        Cancelar solicitacao
+      </button>
+    }
 
     @if (showConfirmDialog) {
       <div
@@ -48,6 +71,38 @@
               Confirmar
             </button>
             <button type="button" (click)="onCloseDialog()">
+              Fechar
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (showRejectDialog) {
+      <div
+        class="request-detail__dialog-backdrop"
+      >
+        <div
+          class="request-detail__dialog"
+          role="dialog"
+          aria-modal="true"
+        >
+          <label for="reject-reason">Motivo da recusa (obrigatório)</label>
+          <input
+            id="reject-reason"
+            type="text"
+            data-testid="reject-reason"
+            [value]="rejectReason"
+            (input)="rejectReason = $any($event.target).value"
+          />
+          @if (rejectValidationMessage) {
+            <p role="alert">{{ rejectValidationMessage }}</p>
+          }
+          <div class="request-detail__dialog-actions">
+            <button type="button" (click)="onConfirmReject()">
+              Confirmar recusa
+            </button>
+            <button type="button" (click)="onCloseRejectDialog()">
               Fechar
             </button>
           </div>

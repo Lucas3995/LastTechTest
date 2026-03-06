@@ -1,0 +1,45 @@
+<table class="admin-requests-table">
+  <thead>
+    <tr>
+      <th scope="col">Creator</th>
+      <th scope="col">ID</th>
+      <th scope="col">Data da solicitacao</th>
+      <th scope="col">Valor bruto</th>
+      <th scope="col">Valor liquido</th>
+      <th
+        scope="col"
+        role="columnheader"
+        aria-sort="{{ sortDirection === 'none' ? 'none' : sortDirection }}"
+        (click)="onToggleSort()"
+      >
+        Status
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    @for (request of requests; track request.id) {
+      <tr
+        (click)="onRowClick(request)"
+        data-testid="admin-requests-table-row"
+      >
+        <td data-testid="admin-table-creator">{{ request.creatorId }}</td>
+        <td>{{ request.id }}</td>
+        <td>{{ request.createdAt | date: 'dd/MM/yyyy' }}</td>
+        <td>{{ request.grossAmountCents / 100 | number: '1.2-2' }}</td>
+        <td>{{ request.netAmountCents / 100 | number: '1.2-2' }}</td>
+        <td>
+          <span data-testid="admin-request-status-tag">
+            {{ request.status | anticipationStatusLabel }}
+          </span>
+        </td>
+      </tr>
+    }
+  </tbody>
+</table>
+@if (totalCount > 0) {
+  <nav class="admin-requests-table__pagination" data-testid="admin-table-pagination" aria-label="Paginação">
+    <span>Página {{ currentPage }} de {{ totalPages }} ({{ totalCount }} registros)</span>
+    <button type="button" [disabled]="currentPage <= 1" (click)="goToPreviousPage()" aria-label="Página anterior">Anterior</button>
+    <button type="button" [disabled]="currentPage >= totalPages" (click)="goToNextPage()" aria-label="Página seguinte">Próxima</button>
+  </nav>
+}

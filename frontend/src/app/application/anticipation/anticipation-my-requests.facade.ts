@@ -3,6 +3,7 @@ import {
   ANTICIPATION_REQUESTS_PORT,
   AnticipationRequest,
   AnticipationRequestsFilter,
+  CreateAnticipationRequestPayload,
   ERROR_PRESENTATION_BUILDER,
   type ErrorPresentation,
 } from '../../domain';
@@ -101,6 +102,26 @@ export class AnticipationMyRequestsFacade {
       this.setErrorFromPresentation(presentation);
     } finally {
       this._loading.set(false);
+    }
+  }
+
+  async createRequest(payload: CreateAnticipationRequestPayload): Promise<void> {
+    this._errorMessage.set(null);
+    this._infoMessage.set(null);
+    this._errorSupportId.set(null);
+
+    try {
+      await firstValueFrom(this.httpService.createRequest(payload));
+      const currentFilter = this._filters();
+      await this.loadWithFilter(currentFilter);
+      this._infoMessage.set('Solicitação criada com sucesso.');
+    } catch (error) {
+      console.error('RF-5 createRequest error', error);
+      const presentation = this.buildErrorPresentation(
+        error,
+        'Nao foi possivel criar a solicitacao de antecipacao.',
+      );
+      this.setErrorFromPresentation(presentation);
     }
   }
 

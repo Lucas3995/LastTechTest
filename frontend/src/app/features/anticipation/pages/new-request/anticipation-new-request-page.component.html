@@ -1,0 +1,38 @@
+<section class="new-request">
+  <h1>Nova solicitação de antecipação</h1>
+
+  @if (errorMessage()) {
+    <div role="alert" class="new-request__alert new-request__alert--error">
+      <p>{{ errorMessage() }}</p>
+      @if (errorSupportId()) {
+        <p class="new-request__support">Código para suporte: {{ errorSupportId() }}</p>
+      }
+    </div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <div class="new-request__field">
+      <label for="requestedAmount">Valor solicitado (R$)</label>
+      <input
+        id="requestedAmount"
+        type="number"
+        formControlName="requestedAmount"
+        min="100"
+        step="0.01"
+        aria-describedby="requestedAmountError"
+      />
+      @if (requestedAmountControl.invalid && requestedAmountControl.touched) {
+        <p id="requestedAmountError" class="new-request__error">
+          Valor mínimo é 100
+        </p>
+      }
+    </div>
+
+    <div class="new-request__actions">
+      <button type="submit" [disabled]="form.invalid || submitting">
+        Criar solicitação
+      </button>
+      <button type="button" (click)="onCancel()">Cancelar</button>
+    </div>
+  </form>
+</section>

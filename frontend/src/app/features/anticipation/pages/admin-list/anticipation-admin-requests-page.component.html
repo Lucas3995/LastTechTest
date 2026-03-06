@@ -1,0 +1,55 @@
+<section class="admin-requests-page" data-testid="anticipation-admin-requests-page">
+  <header class="admin-requests-page__header">
+    <h1>Solicitações de antecipação – visão Admin</h1>
+    <p>Lista global de solicitações. Filtre por creator, status e período.</p>
+  </header>
+
+  @if (infoMessage()) {
+    <div role="status" class="admin-requests-page__info" data-testid="admin-page-info">
+      <p>{{ infoMessage() }}</p>
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div role="alert" class="admin-requests-page__error" data-testid="admin-page-error">
+      <p>{{ errorMessage() }}</p>
+      @if (errorSupportId()) {
+        <p data-testid="admin-page-support-id">Codigo para suporte: {{ errorSupportId() }}</p>
+      }
+    </div>
+  }
+
+  <app-anticipation-admin-requests-filters
+    [activeFilter]="filters()"
+    (filterApply)="onApplyFilters($event)"
+    (filterClear)="onClearFilters()"
+  />
+
+  @if (loading()) {
+    <p class="admin-requests-page__loading" aria-busy="true">Carregando…</p>
+  } @else {
+    @if (requests().length > 0) {
+      <app-anticipation-admin-requests-table
+        [requests]="requests()"
+        [totalCount]="totalCount()"
+        [currentPage]="filters()?.page ?? 1"
+        [pageSize]="filters()?.pageSize ?? 20"
+        (requestSelected)="onRequestSelected($event)"
+        (pageChange)="onSetPage($event)"
+      />
+    } @else {
+      <p class="admin-requests-page__empty" data-testid="admin-page-empty">
+        Nenhum resultado encontrado. Ajuste os filtros.
+      </p>
+    }
+  }
+
+  <app-anticipation-request-detail
+    [request]="selectedRequest()"
+    [showCreator]="true"
+    [hideCancel]="true"
+    [canShowApproveReject]="canShowApproveReject()"
+    (requestApprove)="onRequestApprove($event)"
+    (requestReject)="onRequestReject($event)"
+  />
+</section>

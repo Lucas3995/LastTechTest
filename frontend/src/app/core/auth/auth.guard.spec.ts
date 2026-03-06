@@ -81,5 +81,38 @@ describe('AuthGuard', () => {
 
     expect(result).toBe(true);
   });
+
+  it('RF-2 T8: deve negar Creator na rota anticipation/list com requiredRoles Admin e Analista', () => {
+    isAuthenticatedFn.mockReturnValue(true);
+    currentUserFn.mockReturnValue({ role: 'Creator' } as AuthUser);
+
+    TestBed.runInInjectionContext(() =>
+      AuthGuard(
+        {
+          data: { requiredRoles: ['Admin', 'Analista'] },
+        } as unknown as ActivatedRouteSnapshot,
+        { url: '/anticipation/list' } as unknown as RouterStateSnapshot,
+      ),
+    );
+
+    expect(createUrlTree).toHaveBeenCalledWith(['/']);
+  });
+
+  it('RF-2 T8: deve permitir Admin e Analista na rota anticipation/list', () => {
+    isAuthenticatedFn.mockReturnValue(true);
+
+    for (const role of ['Admin', 'Analista']) {
+      currentUserFn.mockReturnValue({ role } as AuthUser);
+      const result = TestBed.runInInjectionContext(() =>
+        AuthGuard(
+          {
+            data: { requiredRoles: ['Admin', 'Analista'] },
+          } as unknown as ActivatedRouteSnapshot,
+          { url: '/anticipation/list' } as unknown as RouterStateSnapshot,
+        ),
+      );
+      expect(result).toBe(true);
+    }
+  });
 });
 

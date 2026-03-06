@@ -1,0 +1,30 @@
+.admin-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-end;
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+
+    span {
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+  }
+
+  &__chips {
+    width: 100%;
+    margin-top: 0.5rem;
+
+    .chip {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      background: var(--surface-variant, #e0e0e0);
+      border-radius: 4px;
+      font-size: 0.75rem;
+    }
+  }
+}

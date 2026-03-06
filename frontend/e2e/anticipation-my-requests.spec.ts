@@ -201,5 +201,32 @@ test.describe('RF-1 Minhas solicitacoes de antecipacao (Creator) — E2E', () =>
     const detailText = await detailStatus.textContent();
     expect(friendlyLabels.some((label) => detailText?.trim() === label)).toBe(true);
   });
+
+  // RF-5 (T-RF5-5): Creator goes to my-requests, clicks Nova solicitação, fills value 500, submits, sees success and redirect to list
+  test('RF-5: creator opens new request form, fills 500, submits and sees success or redirect to list', async ({
+    page,
+  }) => {
+    const email = process.env.CREATOR_E2E_EMAIL ?? 'creator@example.com';
+    const password = process.env.CREATOR_E2E_PASSWORD ?? 'password';
+
+    await page.goto(`/?returnUrl=${encodeURIComponent(myRequestsUrl)}`);
+    await page.getByLabel(/Email corporativo/i).fill(email);
+    await page.getByLabel(/Senha/i).fill(password);
+    await page.getByRole('button', { name: /Entrar/i }).click();
+    await expect(page).toHaveURL(new RegExp(`.*${myRequestsUrl.replace(/\//g, '\\/')}`), { timeout: 10000 });
+
+    const newRequestLink = page.getByRole('link', { name: /Nova solicitação/i });
+    await expect(newRequestLink).toBeVisible();
+    await newRequestLink.click();
+
+    await expect(page).toHaveURL(/\/anticipation\/my-requests\/new/, { timeout: 5000 });
+    await expect(page.getByRole('heading', { name: /Nova solicitação de antecipação/i })).toBeVisible();
+
+    await page.getByLabel(/Valor solicitado/i).fill('500');
+    await page.getByRole('button', { name: /Criar solicitação/i }).click();
+
+    await expect(page).toHaveURL(new RegExp(`.*${myRequestsUrl.replace(/\//g, '\\/')}`), { timeout: 15000 });
+    await expect(page.getByRole('heading', { name: /Minhas solicita/i })).toBeVisible({ timeout: 5000 });
+  });
 });
 
