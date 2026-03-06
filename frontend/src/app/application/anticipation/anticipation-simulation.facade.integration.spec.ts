@@ -17,7 +17,7 @@ describe('AnticipationSimulationFacade — Integration with HTTP Service (T8)', 
   let facade: AnticipationSimulationFacade;
   let simulatePortSpy: ReturnType<typeof vi.fn>;
   let convertPortSpy: ReturnType<typeof vi.fn>;
-  let routerSpy: any;
+  let routerSpy: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     simulatePortSpy = vi.fn().mockReturnValue(
@@ -61,7 +61,7 @@ describe('AnticipationSimulationFacade — Integration with HTTP Service (T8)', 
           useValue: (error: unknown, contextMessage: string) => ({
             contextMessage,
             supportId: 'SVC-ERR-001',
-            userMessage: (error as any)?.error?.message || contextMessage,
+            userMessage: (error as { error?: { message?: string } })?.error?.message || contextMessage,
           }),
         },
         {
@@ -72,7 +72,7 @@ describe('AnticipationSimulationFacade — Integration with HTTP Service (T8)', 
     });
 
     facade = TestBed.inject(AnticipationSimulationFacade);
-    routerSpy = vi.spyOn(TestBed.inject(Router), 'navigate');
+    routerSpy = vi.spyOn(TestBed.inject(Router), 'navigate') as any;
   });
 
   describe('Full simulation flow', () => {
@@ -339,7 +339,8 @@ describe('AnticipationSimulationFacade — Integration with HTTP Service (T8)', 
 
       await facade.simulate({ requestedAmount: 1000, creatorId });
 
-      expect((simulatePortSpy as any).mock.calls[0][0].creatorId).toEqual(creatorId);
+      const callArgs = simulatePortSpy.mock.calls[0] as unknown as [{ creatorId?: string }];
+      expect(callArgs[0].creatorId).toEqual(creatorId);
 
       convertPortSpy.mockReturnValue(
         of({

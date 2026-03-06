@@ -19,7 +19,7 @@ describe('AnticipationSimulationFacade — RF-3 Simulação (CA-RF3-1 a CA-RF3-6
   let facade: AnticipationSimulationFacade;
   let simulatePortSpy: ReturnType<typeof vi.fn>;
   let convertPortSpy: ReturnType<typeof vi.fn>;
-  let routerSpy: any;
+  let routerSpy: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     simulatePortSpy = vi.fn().mockReturnValue(
@@ -73,7 +73,7 @@ describe('AnticipationSimulationFacade — RF-3 Simulação (CA-RF3-1 a CA-RF3-6
       ],
     });
     facade = TestBed.inject(AnticipationSimulationFacade);
-    routerSpy = vi.spyOn(TestBed.inject(Router), 'navigate');
+    routerSpy = vi.spyOn(TestBed.inject(Router), 'navigate') as any;
   });
 
   describe('Signals state initialization', () => {
@@ -127,7 +127,6 @@ describe('AnticipationSimulationFacade — RF-3 Simulação (CA-RF3-1 a CA-RF3-6
 
     it('[CA-RF3-1] should set loading during request', async () => {
       const payload: SimulateAnticipationPayload = { requestedAmount: 1000 };
-      let loadingDuringRequest = false;
 
       // Monitor loading state change
       TestBed.inject(AnticipationSimulationFacade);
@@ -175,7 +174,8 @@ describe('AnticipationSimulationFacade — RF-3 Simulação (CA-RF3-1 a CA-RF3-6
 
       await facade.simulate(payload);
 
-      expect((simulatePortSpy as any).mock.calls[0][0].creatorId).toEqual('creator-user-123');
+      const callArgs = simulatePortSpy.mock.calls[0] as unknown as [SimulateAnticipationPayload];
+      expect(callArgs[0].creatorId).toEqual('creator-user-123');
     });
 
     it('should clear errorMessage on successful simulate', async () => {

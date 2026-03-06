@@ -1,18 +1,20 @@
-import { Injectable, Signal, signal, computed, Inject } from '@angular/core';
+import { Injectable, Signal, signal, computed, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { Router } from '@angular/router';
 import {
   AnticipationSimulation,
-  SimulationResult,
   ConversionResult,
   SimulateAnticipationPayload,
   ANTICIPATION_REQUESTS_PORT,
-  AnticipationRequestsPort
 } from '../../domain';
-import { ERROR_PRESENTATION_BUILDER, ErrorPresentation } from '../../domain';
+import { ERROR_PRESENTATION_BUILDER } from '../../domain';
 
 @Injectable()
 export class AnticipationSimulationFacade {
+
+  private port = inject(ANTICIPATION_REQUESTS_PORT);
+  private errorBuilder = inject(ERROR_PRESENTATION_BUILDER);
+  private router = inject(Router);
 
   // Signals de estado
   private readonly _simulationResult = signal<AnticipationSimulation | null>(null);
@@ -42,12 +44,6 @@ export class AnticipationSimulationFacade {
   readonly creatorIdForSimulation: Signal<string | null> = this._creatorIdForSimulation.asReadonly();
   readonly isConverting: Signal<boolean> = this._isConverting.asReadonly();
   readonly canConvert: Signal<boolean> = this._canConvert;
-
-  constructor(
-    @Inject(ANTICIPATION_REQUESTS_PORT) private port: AnticipationRequestsPort,
-    @Inject(ERROR_PRESENTATION_BUILDER) private errorBuilder: (error: unknown, contextMessage: string) => ErrorPresentation,
-    private router: Router
-  ) {}
 
   async simulate(payload: SimulateAnticipationPayload): Promise<void> {
     this._loading.set(true);
@@ -102,10 +98,11 @@ export class AnticipationSimulationFacade {
       // Navegar para a lista de solicitações após conversão bem-sucedida (CA-RF3-4)
       this.router.navigate(['anticipation', 'my-requests']);
 
-    } catch (error) {
+    } catch (error: unknown) {
       // Trata erros específicos de conversão (CA-RF3-5)
-      if ((error as any)?.status === 422) {
-        const body = (error as any).error;
+      const errorResponse = error as { status?: number; error?: { code?: string } };
+      if (errorResponse?.status === 422) {
+        const body = errorResponse.error;
         if (body?.code === 'SIMULATION_EXPIRED') {
           this._errorMessage.set('Simulação expirou. Realize uma nova simulação.');
         } else if (body?.code === 'ALREADY_USED') {
