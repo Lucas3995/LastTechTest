@@ -1,23 +1,40 @@
 import { TestBed } from '@angular/core/testing';
+import { AdminFacade } from '../../../../application';
+import { AuthService } from '../../../../core';
+import { AdminUser } from '../../../../domain';
+import { AdminUsersPageComponent } from './admin-users-page.component';
 
 describe('AdminUsersPageComponent — RF-6 (T6)', () => {
-  async function loadComponentType(): Promise<new (...args: unknown[]) => unknown> {
-    const target = `./${'admin-users-page.component'}`;
-    const module = (await import(/* @vite-ignore */ target)) as {
-      AdminUsersPageComponent?: new (...args: unknown[]) => unknown;
-    };
-    expect(module.AdminUsersPageComponent).toBeTruthy();
-    return module.AdminUsersPageComponent as new (...args: unknown[]) => unknown;
-  }
+  const mockUsers: AdminUser[] = [
+    { id: 'u-1', email: 'admin@example.com', roles: ['Admin'] },
+  ];
+
+  const adminFacadeMock = {
+    users: () => mockUsers,
+    isLoading: () => false,
+    errorMessage: () => null,
+    infoMessage: () => null,
+    setSearchTerm: () => undefined,
+    clearMessages: () => undefined,
+    loadUsers: async () => undefined,
+    createUser: async () => undefined,
+    resetPassword: async () => undefined,
+  };
+
+  const authServiceMock = {
+    currentUser: () => ({ id: 'u-1', role: 'Admin' }),
+  };
 
   it('RF6 T6: should render page title and "Novo Usuário" action', async () => {
-    const componentType = await loadComponentType();
-
     TestBed.configureTestingModule({
-      imports: [componentType as never],
+      imports: [AdminUsersPageComponent],
+      providers: [
+        { provide: AdminFacade, useValue: adminFacadeMock as unknown as AdminFacade },
+        { provide: AuthService, useValue: authServiceMock as unknown as AuthService },
+      ],
     });
 
-    const fixture = TestBed.createComponent(componentType as never);
+    const fixture = TestBed.createComponent(AdminUsersPageComponent);
     fixture.detectChanges();
     await fixture.whenStable();
 
@@ -27,13 +44,15 @@ describe('AdminUsersPageComponent — RF-6 (T6)', () => {
   });
 
   it('RF6 T6: should render users table columns E-mail, Papel and Ações', async () => {
-    const componentType = await loadComponentType();
-
     TestBed.configureTestingModule({
-      imports: [componentType as never],
+      imports: [AdminUsersPageComponent],
+      providers: [
+        { provide: AdminFacade, useValue: adminFacadeMock as unknown as AdminFacade },
+        { provide: AuthService, useValue: authServiceMock as unknown as AuthService },
+      ],
     });
 
-    const fixture = TestBed.createComponent(componentType as never);
+    const fixture = TestBed.createComponent(AdminUsersPageComponent);
     fixture.detectChanges();
     await fixture.whenStable();
 
@@ -44,13 +63,15 @@ describe('AdminUsersPageComponent — RF-6 (T6)', () => {
   });
 
   it('RF6 T6 / CA4: should hide or disable reset action for logged admin own row', async () => {
-    const componentType = await loadComponentType();
-
     TestBed.configureTestingModule({
-      imports: [componentType as never],
+      imports: [AdminUsersPageComponent],
+      providers: [
+        { provide: AdminFacade, useValue: adminFacadeMock as unknown as AdminFacade },
+        { provide: AuthService, useValue: authServiceMock as unknown as AuthService },
+      ],
     });
 
-    const fixture = TestBed.createComponent(componentType as never);
+    const fixture = TestBed.createComponent(AdminUsersPageComponent);
     fixture.detectChanges();
     await fixture.whenStable();
 

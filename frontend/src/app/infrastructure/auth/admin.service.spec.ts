@@ -3,37 +3,26 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 import { vi } from 'vitest';
 
 import { API_BASE_URL } from '../../core/api-base-url';
+import { AdminService } from './admin.service';
 
 describe('AdminService — RF-6 (T4)', () => {
   const BASE_URL = 'http://localhost:5114';
 
-  async function loadAdminServiceType(): Promise<new (...args: unknown[]) => unknown> {
-    const target = `./${'admin.service'}`;
-    const module = (await import(/* @vite-ignore */ target)) as {
-      AdminService?: new (...args: unknown[]) => unknown;
-    };
-    expect(module.AdminService).toBeTruthy();
-    return module.AdminService as new (...args: unknown[]) => unknown;
-  }
-
-  it('RF6 T4: should expose listUsers/createUser/resetPassword contract', async () => {
-    const serviceType = await loadAdminServiceType();
-    const prototype = serviceType.prototype as Record<string, unknown>;
+  it('RF6 T4: should expose listUsers/createUser/resetPassword contract', () => {
+    const prototype = AdminService.prototype as unknown as Record<string, unknown>;
 
     expect(typeof prototype['listUsers']).toBe('function');
     expect(typeof prototype['createUser']).toBe('function');
     expect(typeof prototype['resetPassword']).toBe('function');
   });
 
-  it('RF6 T4: listUsers should call GET /auth/admin/users', async () => {
-    const serviceType = await loadAdminServiceType();
-
+  it('RF6 T4: listUsers should call GET /auth/admin/users', () => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
-      providers: [serviceType, { provide: API_BASE_URL, useValue: BASE_URL }],
+      providers: [AdminService, { provide: API_BASE_URL, useValue: BASE_URL }],
     });
 
-    const service = TestBed.inject(serviceType as never) as { listUsers(): unknown };
+    const service = TestBed.inject(AdminService) as { listUsers(): unknown };
     const httpMock = TestBed.inject(HttpTestingController);
 
     (service.listUsers() as { subscribe(cb?: () => void): void }).subscribe();
@@ -44,15 +33,13 @@ describe('AdminService — RF-6 (T4)', () => {
     httpMock.verify();
   });
 
-  it('RF6 T4: createUser should call POST /auth/admin/users and bubble 400', async () => {
-    const serviceType = await loadAdminServiceType();
-
+  it('RF6 T4: createUser should call POST /auth/admin/users and bubble 400', () => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
-      providers: [serviceType, { provide: API_BASE_URL, useValue: BASE_URL }],
+      providers: [AdminService, { provide: API_BASE_URL, useValue: BASE_URL }],
     });
 
-    const service = TestBed.inject(serviceType as never) as {
+    const service = TestBed.inject(AdminService) as {
       createUser(payload: { email: string; roles: string[] }): { subscribe(observer: { next: () => void; error: (error: unknown) => void }): void };
     };
     const httpMock = TestBed.inject(HttpTestingController);
@@ -78,15 +65,13 @@ describe('AdminService — RF-6 (T4)', () => {
     httpMock.verify();
   });
 
-  it('RF6 T4: resetPassword should call POST /auth/admin/users/reset-password', async () => {
-    const serviceType = await loadAdminServiceType();
-
+  it('RF6 T4: resetPassword should call POST /auth/admin/users/reset-password', () => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
-      providers: [serviceType, { provide: API_BASE_URL, useValue: BASE_URL }],
+      providers: [AdminService, { provide: API_BASE_URL, useValue: BASE_URL }],
     });
 
-    const service = TestBed.inject(serviceType as never) as {
+    const service = TestBed.inject(AdminService) as {
       resetPassword(payload: { email: string }): { subscribe(cb?: () => void): void };
     };
     const httpMock = TestBed.inject(HttpTestingController);
