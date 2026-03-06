@@ -1,3 +1,6 @@
+import { InjectionToken } from '@angular/core';
+import { Observable } from 'rxjs';
+
 export enum AnticipationRequestStatus {
   Pending = 'PENDING',
   Approved = 'APPROVED',
@@ -23,4 +26,15 @@ export interface AnticipationRequestsFilter {
   period?: AnticipationRequestsFilterPeriod;
   statuses?: AnticipationRequestStatus[];
 }
+
+/** Port for loading/listing/cancelling anticipation requests. Implemented in infrastructure. */
+export interface AnticipationRequestsPort {
+  listMyRequests(filter?: AnticipationRequestsFilter): Observable<AnticipationRequest[]>;
+  getRequestDetail(id: string): Observable<AnticipationRequest>;
+  cancelRequest(id: string): Observable<AnticipationRequest>;
+}
+
+export const ANTICIPATION_REQUESTS_PORT = new InjectionToken<AnticipationRequestsPort>(
+  'AnticipationRequestsPort',
+);
 

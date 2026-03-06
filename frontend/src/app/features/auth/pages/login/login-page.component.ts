@@ -4,7 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 
 import { AuthService, AuthSession } from '../../../../core';
-import { buildErrorPresentation } from '../../../../application/anticipation/backend-error.util';
+import { buildErrorPresentation } from '../../../../shared/utils/backend-error.util';
 
 @Component({
   selector: 'app-login-page',

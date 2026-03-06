@@ -3,4 +3,4 @@
  * Future: central de ações (Command pattern) for all backend requests.
  */
 
-export const INFRASTRUCTURE_PLACEHOLDER = true;
+export { AnticipationRequestsHttpService } from './anticipation/anticipation-requests.http.service';

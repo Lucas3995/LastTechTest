@@ -1,6 +1,6 @@
 // RF-1 Minhas solicitações de antecipação — árvore de testes (unitários/integração)
 // Especificação executável ligada aos componentes e à façade.
-// Plano 401: Estes testes mockam AnticipationRequestsHttpService e não dependem do auth-token interceptor (árvore §5.3).
+// Plano 401: Estes testes mockam ANTICIPATION_REQUESTS_PORT e não dependem do auth-token interceptor (árvore §5.3).
 
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
@@ -14,7 +14,7 @@ import {
   AnticipationRequestsFilter,
 } from '../../domain';
 import { AnticipationMyRequestsFacade } from '../../application';
-import { AnticipationRequestsHttpService } from '../../infrastructure/anticipation/anticipation-requests.http.service';
+import { ANTICIPATION_REQUESTS_PORT } from '../../domain';
 import { AnticipationMyRequestsPageComponent } from './pages/my-requests/anticipation-my-requests-page.component';
 import { AnticipationRequestsTableComponent } from './components/anticipation-requests-table/anticipation-requests-table.component';
 import { AnticipationRequestEmptyStateComponent } from './components/anticipation-request-empty-state/anticipation-request-empty-state.component';
@@ -93,7 +93,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         imports: [AnticipationMyRequestsPageComponent],
         providers: [
           AnticipationMyRequestsFacade,
-          { provide: AnticipationRequestsHttpService, useValue: { listMyRequests: listSpy } },
+          { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: listSpy } },
           { provide: API_BASE_URL, useValue: '' },
         ],
       }).compileComponents();
@@ -110,7 +110,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         imports: [AnticipationMyRequestsPageComponent],
         providers: [
           AnticipationMyRequestsFacade,
-          { provide: AnticipationRequestsHttpService, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
+          { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
           { provide: API_BASE_URL, useValue: '' },
         ],
       }).compileComponents();
@@ -133,7 +133,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         imports: [AnticipationMyRequestsPageComponent],
         providers: [
           AnticipationMyRequestsFacade,
-          { provide: AnticipationRequestsHttpService, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
+          { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
           { provide: API_BASE_URL, useValue: '' },
         ],
       }).compileComponents();
@@ -180,7 +180,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         imports: [AnticipationMyRequestsPageComponent],
         providers: [
           AnticipationMyRequestsFacade,
-          { provide: AnticipationRequestsHttpService, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
+          { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
           { provide: API_BASE_URL, useValue: '' },
         ],
       }).compileComponents();
@@ -200,7 +200,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         imports: [AnticipationMyRequestsPageComponent],
         providers: [
           AnticipationMyRequestsFacade,
-          { provide: AnticipationRequestsHttpService, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
+          { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
           { provide: API_BASE_URL, useValue: '' },
         ],
       }).compileComponents();
@@ -229,7 +229,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
       TestBed.configureTestingModule({
         providers: [
           AnticipationMyRequestsFacade,
-          { provide: AnticipationRequestsHttpService, useValue: httpMock },
+          { provide: ANTICIPATION_REQUESTS_PORT, useValue: httpMock },
         ],
       });
       const facade = TestBed.inject(AnticipationMyRequestsFacade);
@@ -279,7 +279,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         imports: [AnticipationMyRequestsPageComponent],
         providers: [
           AnticipationMyRequestsFacade,
-          { provide: AnticipationRequestsHttpService, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
+          { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
           { provide: API_BASE_URL, useValue: '' },
         ],
       }).compileComponents();
@@ -297,7 +297,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         imports: [AnticipationMyRequestsPageComponent],
         providers: [
           AnticipationMyRequestsFacade,
-          { provide: AnticipationRequestsHttpService, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
+          { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
           { provide: API_BASE_URL, useValue: '' },
         ],
       }).compileComponents();
@@ -330,7 +330,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         imports: [AnticipationMyRequestsPageComponent],
         providers: [
           AnticipationMyRequestsFacade,
-          { provide: AnticipationRequestsHttpService, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
+          { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
           { provide: API_BASE_URL, useValue: '' },
         ],
       }).compileComponents();
@@ -353,7 +353,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         imports: [AnticipationMyRequestsPageComponent],
         providers: [
           AnticipationMyRequestsFacade,
-          { provide: AnticipationRequestsHttpService, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
+          { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
           { provide: API_BASE_URL, useValue: '' },
         ],
       }).compileComponents();
@@ -379,7 +379,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         imports: [AnticipationMyRequestsPageComponent],
         providers: [
           AnticipationMyRequestsFacade,
-          { provide: AnticipationRequestsHttpService, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
+          { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
           { provide: API_BASE_URL, useValue: '' },
         ],
       }).compileComponents();
@@ -415,7 +415,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         imports: [AnticipationMyRequestsPageComponent],
         providers: [
           AnticipationMyRequestsFacade,
-          { provide: AnticipationRequestsHttpService, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
+          { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
           { provide: API_BASE_URL, useValue: '' },
         ],
       }).compileComponents();
@@ -440,7 +440,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         imports: [AnticipationMyRequestsPageComponent],
         providers: [
           AnticipationMyRequestsFacade,
-          { provide: AnticipationRequestsHttpService, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
+          { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
           { provide: API_BASE_URL, useValue: '' },
         ],
       }).compileComponents();
@@ -465,7 +465,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         imports: [AnticipationMyRequestsPageComponent],
         providers: [
           AnticipationMyRequestsFacade,
-          { provide: AnticipationRequestsHttpService, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
+          { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
           { provide: API_BASE_URL, useValue: '' },
         ],
       }).compileComponents();
@@ -485,7 +485,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         imports: [AnticipationMyRequestsPageComponent],
         providers: [
           AnticipationMyRequestsFacade,
-          { provide: AnticipationRequestsHttpService, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
+          { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
           { provide: API_BASE_URL, useValue: '' },
         ],
       }).compileComponents();
@@ -506,7 +506,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         imports: [AnticipationMyRequestsPageComponent],
         providers: [
           AnticipationMyRequestsFacade,
-          { provide: AnticipationRequestsHttpService, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
+          { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
           { provide: API_BASE_URL, useValue: '' },
         ],
       }).compileComponents();
@@ -548,7 +548,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         providers: [
           AnticipationMyRequestsFacade,
           {
-            provide: AnticipationRequestsHttpService,
+            provide: ANTICIPATION_REQUESTS_PORT,
             useValue: {
               listMyRequests: vi.fn().mockReturnValue(of( [createRequest()] )),
               getRequestDetail: getDetailSpy,
@@ -575,7 +575,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         providers: [
           AnticipationMyRequestsFacade,
           {
-            provide: AnticipationRequestsHttpService,
+            provide: ANTICIPATION_REQUESTS_PORT,
             useValue: {
               listMyRequests: vi.fn().mockReturnValue(of( [createRequest({ id: 'd1' })] )),
               getRequestDetail: getDetailSpy,
@@ -605,7 +605,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         providers: [
           AnticipationMyRequestsFacade,
           {
-            provide: AnticipationRequestsHttpService,
+            provide: ANTICIPATION_REQUESTS_PORT,
             useValue: {
               listMyRequests: vi.fn().mockReturnValue(of( [] )),
               getRequestDetail: getDetailSpy,
@@ -653,7 +653,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         providers: [
           AnticipationMyRequestsFacade,
           {
-            provide: AnticipationRequestsHttpService,
+            provide: ANTICIPATION_REQUESTS_PORT,
             useValue: {
               listMyRequests: vi.fn().mockReturnValue(of( [createRequest({ id: 'x' })] )),
               getRequestDetail: vi.fn().mockReturnValue(of(createRequest({ id: 'x' }))),
@@ -682,7 +682,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         providers: [
           AnticipationMyRequestsFacade,
           {
-            provide: AnticipationRequestsHttpService,
+            provide: ANTICIPATION_REQUESTS_PORT,
             useValue: {
               listMyRequests: vi.fn().mockReturnValue(of( [createRequest({ id: 'c1' })] )),
               getRequestDetail: vi.fn().mockReturnValue(of(createRequest({ id: 'c1' }))),
@@ -707,7 +707,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         providers: [
           AnticipationMyRequestsFacade,
           {
-            provide: AnticipationRequestsHttpService,
+            provide: ANTICIPATION_REQUESTS_PORT,
             useValue: {
               listMyRequests: vi.fn().mockReturnValue(of( [] )),
               getRequestDetail: vi.fn().mockReturnValue(of(createRequest({ id: 'f1' }))),
@@ -754,7 +754,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         providers: [
           AnticipationMyRequestsFacade,
           {
-            provide: AnticipationRequestsHttpService,
+            provide: ANTICIPATION_REQUESTS_PORT,
             useValue: {
               listMyRequests: vi.fn().mockReturnValue(of( [canceled] )),
               getRequestDetail: vi.fn().mockReturnValue(of(canceled)),
@@ -780,7 +780,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         providers: [
           AnticipationMyRequestsFacade,
           {
-            provide: AnticipationRequestsHttpService,
+            provide: ANTICIPATION_REQUESTS_PORT,
             useValue: {
               listMyRequests: vi.fn().mockReturnValue(of( [] )),
               getRequestDetail: vi.fn().mockReturnValue(of(createRequest({ status: AnticipationRequestStatus.CanceledByCreator }))),
@@ -806,7 +806,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         imports: [AnticipationMyRequestsPageComponent],
         providers: [
           AnticipationMyRequestsFacade,
-          { provide: AnticipationRequestsHttpService, useValue: { listMyRequests: vi.fn().mockReturnValue(of( [] )), getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
+          { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: vi.fn().mockReturnValue(of( [] )), getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
           { provide: API_BASE_URL, useValue: '' },
         ],
       });
@@ -844,7 +844,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         imports: [AnticipationMyRequestsPageComponent],
         providers: [
           AnticipationMyRequestsFacade,
-          { provide: AnticipationRequestsHttpService, useValue: { listMyRequests: vi.fn().mockReturnValue(of( [] )), getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
+          { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: vi.fn().mockReturnValue(of( [] )), getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
           { provide: API_BASE_URL, useValue: '' },
         ],
       }).compileComponents();
@@ -872,7 +872,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         imports: [AnticipationMyRequestsPageComponent],
         providers: [
           AnticipationMyRequestsFacade,
-          { provide: AnticipationRequestsHttpService, useValue: { listMyRequests: vi.fn().mockReturnValue(of( [] )), getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
+          { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: vi.fn().mockReturnValue(of( [] )), getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
           { provide: API_BASE_URL, useValue: '' },
         ],
       }).compileComponents();
@@ -888,7 +888,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         imports: [AnticipationMyRequestsPageComponent],
         providers: [
           AnticipationMyRequestsFacade,
-          { provide: AnticipationRequestsHttpService, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
+          { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
           { provide: API_BASE_URL, useValue: '' },
         ],
       }).compileComponents();
@@ -908,7 +908,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         imports: [AnticipationMyRequestsPageComponent],
         providers: [
           AnticipationMyRequestsFacade,
-          { provide: AnticipationRequestsHttpService, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
+          { provide: ANTICIPATION_REQUESTS_PORT, useValue: { listMyRequests: listSpy, getRequestDetail: vi.fn(), cancelRequest: vi.fn() } },
           { provide: API_BASE_URL, useValue: '' },
         ],
       }).compileComponents();
@@ -926,7 +926,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         providers: [
           AnticipationMyRequestsFacade,
           {
-            provide: AnticipationRequestsHttpService,
+            provide: ANTICIPATION_REQUESTS_PORT,
             useValue: {
               listMyRequests: vi.fn().mockReturnValue(of( [] )),
               getRequestDetail: getDetailSpy,
@@ -948,7 +948,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         providers: [
           AnticipationMyRequestsFacade,
           {
-            provide: AnticipationRequestsHttpService,
+            provide: ANTICIPATION_REQUESTS_PORT,
             useValue: {
               listMyRequests: vi.fn().mockReturnValue(of( [] )),
               getRequestDetail: getDetailSpy,
@@ -972,7 +972,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         providers: [
           AnticipationMyRequestsFacade,
           {
-            provide: AnticipationRequestsHttpService,
+            provide: ANTICIPATION_REQUESTS_PORT,
             useValue: {
               listMyRequests: vi.fn().mockReturnValue(of( [] )),
               getRequestDetail: vi.fn().mockReturnValue(of(createRequest({ id: 'n1' }))),
@@ -997,7 +997,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
         providers: [
           AnticipationMyRequestsFacade,
           {
-            provide: AnticipationRequestsHttpService,
+            provide: ANTICIPATION_REQUESTS_PORT,
             useValue: {
               listMyRequests: vi.fn().mockReturnValue(of( [] )),
               getRequestDetail: vi.fn().mockReturnValue(of(createRequest())),
