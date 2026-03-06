@@ -22,12 +22,12 @@
         data-testid="requests-table-row"
       >
       <td>{{ request.id }}</td>
-      <td>{{ request.createdAt | date: 'shortDate' }}</td>
+      <td>{{ request.createdAt | date: 'dd/MM/yyyy' }}</td>
       <td>{{ request.grossAmountCents / 100 | number: '1.2-2' }}</td>
       <td>{{ request.netAmountCents / 100 | number: '1.2-2' }}</td>
       <td>
         <span data-testid="request-status-tag">
-          {{ request.status }}
+          {{ request.status | anticipationStatusLabel }}
         </span>
       </td>
       </tr>

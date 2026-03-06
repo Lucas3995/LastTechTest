@@ -55,4 +55,13 @@ export class ShellComponent {
         }
       });
   }
+
+  onLogout(): void {
+    this.authService.logout();
+    const returnUrl =
+      typeof window !== 'undefined'
+        ? encodeURIComponent(window.location.pathname + window.location.search)
+        : '';
+    this.router.navigateByUrl(returnUrl ? `/?returnUrl=${returnUrl}` : '/');
+  }
 }

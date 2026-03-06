@@ -34,7 +34,8 @@ export const authTokenInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown
 
   return next(cloned).pipe(
     catchError((err) => {
-      if (err?.status !== 401) {
+      const isAuthError = err?.status === 401 || err?.status === 403;
+      if (!isAuthError) {
         return throwError(() => err);
       }
       const isRefreshOrLogin = SKIP_REFRESH_URL_SUFFIXES.some((s) => req.url.includes(s));

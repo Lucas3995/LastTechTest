@@ -14,6 +14,14 @@
           >
         }
       </nav>
+      <button
+        type="button"
+        class="shell__logout"
+        aria-label="Sair"
+        (click)="onLogout()"
+      >
+        Sair
+      </button>
     } @else {
       <a routerLink="/" class="shell__link">Entrar</a>
     }
