@@ -1,0 +1,72 @@
+.simulation-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 2rem;
+
+  h1 {
+    color: #333;
+    margin-bottom: 0.5rem;
+  }
+
+  .info-text {
+    color: #666;
+    font-size: 1.1rem;
+  }
+}
+
+.info-box {
+  background-color: #e3f2fd;
+  border: 1px solid #2196f3;
+  border-radius: 4px;
+  padding: 1rem;
+  margin-bottom: 2rem;
+
+  p {
+    margin: 0;
+    color: #1976d2;
+  }
+}
+
+.error-box {
+  background-color: #ffebee;
+  border: 1px solid #f44336;
+  border-radius: 4px;
+  padding: 1rem;
+  margin-bottom: 2rem;
+
+  .error-message {
+    color: #c62828;
+    margin: 0 0 0.5rem 0;
+    font-weight: 500;
+  }
+
+  .error-support {
+    color: #d32f2f;
+    margin: 0;
+    font-size: 0.9rem;
+  }
+}
+
+.success-box {
+  background-color: #e8f5e8;
+  border: 1px solid #4caf50;
+  border-radius: 4px;
+  padding: 1rem;
+  margin-bottom: 2rem;
+
+  .success-message {
+    color: #2e7d32;
+    margin: 0;
+    font-weight: 500;
+  }
+}
+
+.form-section,
+.result-section {
+  margin-bottom: 2rem;
+}

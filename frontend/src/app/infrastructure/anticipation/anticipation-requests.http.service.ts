@@ -8,6 +8,9 @@ import {
   AnticipationRequestsPort,
   CreateAnticipationRequestPayload,
   CreateAnticipationRequestResult,
+  SimulateAnticipationPayload,
+  SimulationResult,
+  ConversionResult,
 } from '../../domain';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -65,6 +68,26 @@ interface CreateAnticipationRequestResponseBackend {
   protocol: string;
   netAmount: number;
   status: string;
+}
+
+/** Backend Simulate response (RF-3) */
+interface SimulateAnticipationResponseBackend {
+  simulationCode: string;
+  validUntilUtc: string; // backend: ValidUntilUtc
+  grossAmount: number; // backend: decimal reais
+  feesAmount: number; // backend: decimal reais
+  netAmount: number; // backend: decimal reais
+  requestedAmount: number; // backend: decimal reais
+  creatorId?: string;
+}
+
+/** Backend Convert simulation response (RF-3) */
+interface ConvertSimulationResponseBackend {
+  id: string;
+  protocol: string;
+  status: string;
+  netAmount: number;
+  createdAt: string; // ISO string
 }
 
 @Injectable()
@@ -169,6 +192,31 @@ export class AnticipationRequestsHttpService implements AnticipationRequestsPort
       .pipe(map((d) => this.mapCreateResponseToDomain(d)));
   }
 
+  simulateAnticipation(payload: SimulateAnticipationPayload): Observable<SimulationResult> {
+    const body: { requestedAmount: number; creatorId?: string; contractIds?: string[] } = {
+      requestedAmount: payload.requestedAmount,
+    };
+    if (payload.creatorId != null) {
+      body.creatorId = payload.creatorId;
+    }
+    if (payload.contractIds != null) {
+      body.contractIds = payload.contractIds;
+    }
+    return this.http
+      .post<SimulateAnticipationResponseBackend>(`${this.baseUrl}/simulations`, body)
+      .pipe(map((response) => this.mapSimulateResponseToDomain(response)));
+  }
+
+  convertSimulationToReal(simulationCode: string, creatorId?: string): Observable<ConversionResult> {
+    const body = creatorId ? { creatorId } : {};
+    return this.http
+      .post<ConvertSimulationResponseBackend>(
+        `${this.baseUrl}/simulations/${encodeURIComponent(simulationCode)}/confirm`,
+        body
+      )
+      .pipe(map((response) => this.mapConvertResponseToDomain(response)));
+  }
+
   private mapCreateResponseToDomain(
     d: CreateAnticipationRequestResponseBackend,
   ): CreateAnticipationRequestResult {
@@ -177,6 +225,31 @@ export class AnticipationRequestsHttpService implements AnticipationRequestsPort
       protocol: d.protocol,
       netAmount: d.netAmount ?? 0,
       status: this.mapBackendStatusToDomain(d.status),
+    };
+  }
+
+  private mapSimulateResponseToDomain(
+    response: SimulateAnticipationResponseBackend,
+  ): SimulationResult {
+    return {
+      simulationCode: response.simulationCode,
+      validUntil: new Date(response.validUntilUtc),
+      grossAmountCents: Math.round(response.grossAmount * 100),
+      feesAmountCents: Math.round(response.feesAmount * 100),
+      netAmountCents: Math.round(response.netAmount * 100),
+      createdAt: new Date(),
+      creatorId: response.creatorId,
+    };
+  }
+
+  private mapConvertResponseToDomain(
+    response: ConvertSimulationResponseBackend,
+  ): ConversionResult {
+    return {
+      id: response.id,
+      protocol: response.protocol,
+      status: this.mapBackendStatusToDomain(response.status),
+      netAmount: response.netAmount,
     };
   }
 

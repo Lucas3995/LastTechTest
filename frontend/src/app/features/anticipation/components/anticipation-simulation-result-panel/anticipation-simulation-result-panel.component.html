@@ -1,0 +1,82 @@
+<div class="result-panel">
+  <header class="result-header">
+    <h2>Resultado da Simulação</h2>
+
+    <!-- Label para simulação em nome de outro (Admin/Analista) -->
+    @if (simulatedForCreator) {
+      <p class="simulated-for">Simulação realizada em nome de <strong>{{ simulatedForCreator }}</strong></p>
+    }
+  </header>
+
+  <div class="result-grid">
+    <!-- Coluna 1: Valores -->
+    <div class="values-column">
+      <div class="value-item gross-amount">
+        <span class="label">Valor solicitado</span>
+        <span class="value currency">{{ formatCurrency(simulationResult.grossAmountCents) }}</span>
+        <span style="display:none" class="raw-test-value">{{ simulationResult.grossAmountCents / 100 }}</span>
+      </div>
+
+      <div class="value-item fee-amount">
+        <span class="label">Taxa</span>
+        <span class="value currency">{{ formatCurrency(simulationResult.feesAmountCents) }}</span>
+        <span style="display:none" class="raw-test-value">{{ simulationResult.feesAmountCents / 100 }}</span>
+      </div>
+
+      <div class="value-item net-amount highlight">
+        <span class="label">Valor líquido</span>
+        <span class="value currency">{{ formatCurrency(simulationResult.netAmountCents) }}</span>
+        <span style="display:none" class="raw-test-value">{{ simulationResult.netAmountCents / 100 }}</span>
+      </div>
+    </div>
+
+    <!-- Coluna 2: Datas -->
+    <div class="dates-column">
+      @if (simulationResult.anticipationDate) {
+        <div class="date-item">
+          <span class="label">Data de antecipação</span>
+          <span class="date">{{ formatDate(simulationResult.anticipationDate) }}</span>
+        </div>
+      }
+
+      @if (simulationResult.maturityDate) {
+        <div class="date-item">
+          <span class="label">Data de vencimento</span>
+          <span class="date">{{ formatDate(simulationResult.maturityDate) }}</span>
+        </div>
+      }
+
+      <div class="validity-item valid-badge" [class.expired]="!canConvert" [class.alert]="canConvert && isExpiringSoon()">
+        <span class="label">Simulação válida até</span>
+        <span class="validity-time badge valid">{{ formatDateTime(simulationResult.validUntil) }}</span>
+        @if (!canConvert) {
+          <span class="expired-text">Expirada</span>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Info box -->
+  <div class="sim-hint-box">
+    <p>💡 Esta é uma simulação. Nenhuma solicitação foi criada.</p>
+    @if (simulationResult.simulationCode) {
+      <p class="simulation-code detail-code">Código: {{ simulationResult.simulationCode }}</p>
+    }
+  </div>
+
+  <!-- Conversion section -->
+  @if (canConvert && (userRole === 'Creator' || userRole === 'Admin')) {
+    <div class="conversion-section">
+      <button
+        class="btn-convert"
+        (click)="onConvert()"
+        [disabled]="isConverting">
+        @if (isConverting) {
+          <span>Convertendo...</span>
+        } @else {
+          <span>Criar solicitação real com base nesta simulação</span>
+        }
+      </button>
+    </div>
+  }
+</div>

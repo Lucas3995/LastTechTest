@@ -1,5 +1,6 @@
 import { ChangeDetectorRef, Component, OnInit, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { AnticipationAdminListFacade } from '../../../../application';
 import { AnticipationAdminListFilter, AnticipationRequestStatus } from '../../../../domain';
 import { AnticipationAdminRequestsFiltersComponent } from '../../components/anticipation-admin-requests-filters/anticipation-admin-requests-filters.component';
@@ -21,6 +22,7 @@ import { AnticipationRequestDetailComponent } from '../../components/anticipatio
 export class AnticipationAdminRequestsPageComponent implements OnInit {
   private readonly facade = inject(AnticipationAdminListFacade);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly router = inject(Router);
 
   readonly loading = this.facade.loading;
   readonly errorMessage = this.facade.errorMessage;
@@ -62,5 +64,11 @@ export class AnticipationAdminRequestsPageComponent implements OnInit {
 
   onRequestReject(payload: { id: string; reason: string }): void {
     this.facade.rejectRequest(payload.id, payload.reason);
+  }
+
+  onSimulateForCreator(creatorId: string): void {
+    this.router.navigate(['/anticipation/simulation'], {
+      queryParams: { creatorId }
+    });
   }
 }

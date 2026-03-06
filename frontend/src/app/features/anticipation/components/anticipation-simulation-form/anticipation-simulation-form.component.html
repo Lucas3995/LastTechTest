@@ -1,0 +1,70 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()" class="simulation-form">
+
+  <!-- Campo Valor Solicitado -->
+  <div class="form-group">
+    <label for="requestedAmount">Valor que deseja antecipar (R$)</label>
+    <input
+      id="requestedAmount"
+      type="number"
+      formControlName="requestedAmount"
+      placeholder="Ex: 100 (R$ 100,00)"
+      [class.invalid-input]="requestedAmount?.invalid && requestedAmount?.touched"
+      min="100"
+      step="1">
+
+    @if (requestedAmount?.invalid && requestedAmount?.touched) {
+      <div class="error-message">
+        @if (requestedAmount?.errors?.['required']) {
+          <span>Valor é obrigatório</span>
+        }
+        @if (requestedAmount?.errors?.['min']) {
+          <span>Valor mínimo: R$ 100,00</span>
+        }
+      </div>
+    }
+
+    <small class="help-text">Você pode antecipar até 95% dos seus recebíveis</small>
+  </div>
+
+  <!-- Campo Creator ID (para Admin/Analista) -->
+  <div class="form-group">
+    <label for="creatorId">Creator (opcional - para Admin/Analista)</label>
+    <input
+      id="creatorId"
+      type="text"
+      formControlName="creatorId"
+      placeholder="ID do creator"
+      (input)="onCreatorSelected($event.target.value)">
+    <small class="help-text">Deixe vazio para simular para si mesmo</small>
+  </div>
+
+  <!-- Mensagem de erro externo -->
+  @if (errorMessage) {
+    <div class="error-message">
+      <span>{{ errorMessage }}</span>
+    </div>
+  }
+
+  <!-- Botão Submit -->
+  <div class="form-actions">
+    <button
+      type="submit"
+      class="btn-submit"
+      [disabled]="form.invalid || isSubmitting">
+      @if (isSubmitting) {
+        <span>Simulando...</span>
+      } @else {
+        <span>Simular</span>
+      }
+    </button>
+
+    <button
+      type="button"
+      class="btn-clear"
+      (click)="onReset()"
+      [disabled]="isSubmitting">
+      Limpar
+    </button>
+  </div>
+
+</form>

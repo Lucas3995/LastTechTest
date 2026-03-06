@@ -17,6 +17,7 @@ export class AnticipationAdminRequestsTableComponent {
   @Input() pageSize = 20;
   @Output() requestSelected = new EventEmitter<AnticipationRequest>();
   @Output() pageChange = new EventEmitter<number>();
+  @Output() simulateForCreator = new EventEmitter<string>();
 
   sortDirection: 'none' | 'ascending' | 'descending' = 'none';
 
@@ -46,5 +47,9 @@ export class AnticipationAdminRequestsTableComponent {
     if (this.currentPage < this.totalPages) {
       this.pageChange.emit(this.currentPage + 1);
     }
+  }
+
+  onSimulateClick(creatorId: string): void {
+    this.simulateForCreator.emit(creatorId);
   }
 }

@@ -1,0 +1,52 @@
+<div class="simulation-container">
+  <header class="page-header">
+    <h1>Simulação de Antecipação</h1>
+    <p class="intro-text">Teste diferentes cenários sem criar solicitações reais.</p>
+  </header>
+
+  <!-- Usage Hint Box -->
+  <div class="usage-hint-box">
+    <p>💡 Esta é uma simulação. Nenhuma solicitação foi criada.</p>
+  </div>
+
+  <!-- Error Box -->
+  @if (errorMessage()) {
+    <div class="error-box">
+      <p class="error-message">{{ errorMessage() }}</p>
+      @if (errorSupportId) {
+        <p class="error-support">ID de suporte: {{ errorSupportId }}</p>
+      }
+    </div>
+  }
+
+  <!-- Info Message (success) -->
+  @if (infoMessage()) {
+    <div class="success-box">
+      <p class="success-message">{{ infoMessage() }}</p>
+    </div>
+  }
+
+  <!-- Formulário -->
+  <section class="form-section">
+    <app-anticipation-simulation-form
+      [isSubmitting]="isSubmitting"
+      [errorMessage]="errorMessage()"
+      [creatorIdForSimulation]="creatorIdForSimulation"
+      (simulationRequested)="onSimulate($event)"
+      (creatorSelected)="onCreatorSelected($event)">
+    </app-anticipation-simulation-form>
+  </section>
+
+  <!-- Resultado -->
+  @if (simulationResult()) {
+    <section class="result-section">
+      <app-anticipation-simulation-result-panel
+        [simulationResult]="simulationResult()!"
+        [canConvert]="canConvert"
+        [userRole]="userRole"
+        [isConverting]="isConverting"
+        (convertClick)="onConvertClick()">
+      </app-anticipation-simulation-result-panel>
+    </section>
+  }
+</div>

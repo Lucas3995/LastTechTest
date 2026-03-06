@@ -389,4 +389,293 @@ describe('AnticipationRequestsHttpService — Contrato API (plano 404)', () => {
       expect(result.status).toBe(AnticipationRequestStatus.Pending);
     });
   });
+
+  describe('RF-3-SIMULATION: Simulação de Antecipação (CA-RF3-1 a CA-RF3-6)', () => {
+    describe('simulateAnticipation()', () => {
+      it('[CA-RF3-1] should POST to /simulations endpoint', () => {
+        const payload = { requestedAmount: 1000 };
+        service.simulateAnticipation(payload).subscribe();
+
+        const req = httpMock.expectOne(
+          (r) =>
+            r.url === `${BASE_URL}/api/v1/anticipations/simulations` &&
+            r.method === 'POST'
+        );
+        expect(req.request.method).toBe('POST');
+        expect(req.request.body).toEqual(payload);
+        req.flush({
+          simulationCode: 'SIM-123456',
+          grossAmount: 1000,
+          feesAmount: 50,
+          netAmount: 950,
+          validUntilUtc: new Date().toISOString(),
+          requestedAmount: 1000
+        });
+      });
+
+      it('[CA-RF3-1] should map response to SimulationResult', async () => {
+        const payload = { requestedAmount: 1000 };
+        const backendResponse = {
+          simulationCode: 'SIM-ABC123',
+          grossAmount: 1000,
+          feesAmount: 50,
+          netAmount: 950,
+          validUntilUtc: '2026-03-06T11:40:00Z',
+          requestedAmount: 1000
+        };
+
+        const resultPromise = firstValueFrom(
+          service.simulateAnticipation(payload)
+        );
+
+        const req = httpMock.expectOne(
+          (r) =>
+            r.url === `${BASE_URL}/api/v1/anticipations/simulations` &&
+            r.method === 'POST'
+        );
+        req.flush(backendResponse);
+
+        const result = await resultPromise;
+        expect(result.simulationCode).toBe(backendResponse.simulationCode);
+        expect(result.grossAmountCents).toBe(100000);
+        expect(result.feesAmountCents).toBe(5000);
+        expect(result.netAmountCents).toBe(95000);
+        expect(result.validUntil).toBeDefined();
+        expect(result.validUntil instanceof Date).toBe(true);
+      });
+
+      it('[CA-RF3-2] should handle validation errors (400)', async () => {
+        const payload = { requestedAmount: 50 }; // below minimum (100)
+        const errorPromise = firstValueFrom(
+          service.simulateAnticipation(payload)
+        ).catch((error) => error);
+
+        const req = httpMock.expectOne(
+          (r) =>
+            r.url === `${BASE_URL}/api/v1/anticipations/simulations` &&
+            r.method === 'POST'
+        );
+        req.flush(
+          {
+            message: 'Validation failed',
+            errors: [{ field: 'requestedAmount', message: 'Mínimo R$ 100,00' }],
+          },
+          { status: 400, statusText: 'Bad Request' }
+        );
+
+        const error = await errorPromise;
+        expect(error).toBeDefined();
+        expect(error.status).toBe(400);
+      });
+
+      it('[CA-RF3-2] should handle server errors (500)', async () => {
+        const payload = { requestedAmount: 1000 };
+        const errorPromise = firstValueFrom(
+          service.simulateAnticipation(payload)
+        ).catch((error) => error);
+
+        const req = httpMock.expectOne(
+          (r) =>
+            r.url === `${BASE_URL}/api/v1/anticipations/simulations` &&
+            r.method === 'POST'
+        );
+        req.flush(
+          { error: 'Internal server error' },
+          { status: 500, statusText: 'Internal Server Error' }
+        );
+
+        const error = await errorPromise;
+        expect(error).toBeDefined();
+        expect(error.status).toBe(500);
+      });
+
+      it('[CA-RF3-6] should accept creatorId for Admin/Analista simulation', () => {
+        const payload = {
+          requestedAmount: 1000,
+          creatorId: 'creator-user-123',
+        };
+        service.simulateAnticipation(payload).subscribe();
+
+        const req = httpMock.expectOne(
+          (r) =>
+            r.url === `${BASE_URL}/api/v1/anticipations/simulations` &&
+            r.method === 'POST'
+        );
+        expect(req.request.body).toEqual(payload);
+        expect(req.request.body.creatorId).toBe('creator-user-123');
+        req.flush({
+          simulationCode: 'SIM-ADMIN-001',
+          grossAmountCents: 100000,
+          feesAmountCents: 5000,
+          netAmountCents: 95000,
+          validUntil: new Date().toISOString(),
+        });
+      });
+    });
+
+    describe('convertSimulationToReal()', () => {
+      const simulationCode = 'SIM-123456';
+
+      it('[CA-RF3-4] should POST to /simulations/{code}/confirm endpoint', () => {
+        service.convertSimulationToReal(simulationCode).subscribe();
+
+        const req = httpMock.expectOne(
+          (r) =>
+            r.url ===
+              `${BASE_URL}/api/v1/anticipations/simulations/${simulationCode}/confirm` &&
+            r.method === 'POST'
+        );
+        expect(req.request.method).toBe('POST');
+        expect(
+          req.request.url.includes(`/simulations/${simulationCode}/confirm`)
+        ).toBe(true);
+        req.flush({
+          id: 'req-789',
+          protocol: 'PROT-001',
+          status: 'Pending',
+          netAmount: 950,
+        });
+      });
+
+      it('[CA-RF3-4] should handle conversion success (201/200)', async () => {
+        const backendResponse = {
+          id: 'req-123456',
+          protocol: 'PROT-20260306-001',
+          status: 'Pending',
+          netAmount: 95000,
+        };
+
+        const resultPromise = firstValueFrom(
+          service.convertSimulationToReal(simulationCode)
+        );
+
+        const req = httpMock.expectOne(
+          (r) =>
+            r.url ===
+              `${BASE_URL}/api/v1/anticipations/simulations/${simulationCode}/confirm` &&
+            r.method === 'POST'
+        );
+        req.flush(backendResponse);
+
+        const result = await resultPromise;
+        expect(result.id).toBe(backendResponse.id);
+        expect(result.protocol).toBe(backendResponse.protocol);
+        expect(result.status).toBe(AnticipationRequestStatus.Pending);
+        expect(result.netAmount).toBe(backendResponse.netAmount);
+      });
+
+      it('[CA-RF3-5] should handle expired simulation (422)', async () => {
+        const errorPromise = firstValueFrom(
+          service.convertSimulationToReal(simulationCode)
+        ).catch((error) => error);
+
+        const req = httpMock.expectOne(
+          (r) =>
+            r.url ===
+              `${BASE_URL}/api/v1/anticipations/simulations/${simulationCode}/confirm` &&
+            r.method === 'POST'
+        );
+        req.flush(
+          {
+            code: 'SIMULATION_EXPIRED',
+            message: 'Simulação expirou. Realize uma nova simulação.',
+          },
+          { status: 422, statusText: 'Unprocessable Entity' }
+        );
+
+        const error = await errorPromise;
+        expect(error.status).toBe(422);
+      });
+
+      it('[CA-RF3-5] should handle pending request exists (422)', async () => {
+        const errorPromise = firstValueFrom(
+          service.convertSimulationToReal(simulationCode)
+        ).catch((error) => error);
+
+        const req = httpMock.expectOne(
+          (r) =>
+            r.url ===
+              `${BASE_URL}/api/v1/anticipations/simulations/${simulationCode}/confirm` &&
+            r.method === 'POST'
+        );
+        req.flush(
+          {
+            code: 'PENDING_EXISTS',
+            message:
+              'Você já possui uma solicitação em aberto. Conclua ou cancele-a antes.',
+          },
+          { status: 422, statusText: 'Unprocessable Entity' }
+        );
+
+        const error = await errorPromise;
+        expect(error.status).toBe(422);
+      });
+
+      it('[CA-RF3-5] should handle rules violation (422)', async () => {
+        const errorPromise = firstValueFrom(
+          service.convertSimulationToReal(simulationCode)
+        ).catch((error) => error);
+
+        const req = httpMock.expectOne(
+          (r) =>
+            r.url ===
+              `${BASE_URL}/api/v1/anticipations/simulations/${simulationCode}/confirm` &&
+            r.method === 'POST'
+        );
+        req.flush(
+          {
+            code: 'RULES_VIOLATED',
+            message:
+              'As condições de negócio mudaram. Realize uma nova simulação.',
+          },
+          { status: 422, statusText: 'Unprocessable Entity' }
+        );
+
+        const error = await errorPromise;
+        expect(error.status).toBe(422);
+      });
+
+      it('[CA-RF3-5] should handle already used simulation (422)', async () => {
+        const errorPromise = firstValueFrom(
+          service.convertSimulationToReal(simulationCode)
+        ).catch((error) => error);
+
+        const req = httpMock.expectOne(
+          (r) =>
+            r.url ===
+              `${BASE_URL}/api/v1/anticipations/simulations/${simulationCode}/confirm` &&
+            r.method === 'POST'
+        );
+        req.flush(
+          {
+            code: 'ALREADY_USED',
+            message: 'Esta simulação já foi utilizada para criar uma solicitação.',
+          },
+          { status: 422, statusText: 'Unprocessable Entity' }
+        );
+
+        const error = await errorPromise;
+        expect(error.status).toBe(422);
+      });
+
+      it('[CA-RF3-6] should include creatorId in payload for Admin/Analista', () => {
+        const creatorId = 'creator-user-123';
+        service.convertSimulationToReal(simulationCode, creatorId).subscribe();
+
+        const req = httpMock.expectOne(
+          (r) =>
+            r.url ===
+              `${BASE_URL}/api/v1/anticipations/simulations/${simulationCode}/confirm` &&
+            r.method === 'POST'
+        );
+        expect(req.request.body).toEqual({ creatorId });
+        req.flush({
+          id: 'req-admin-001',
+          protocol: 'PROT-ADM-001',
+          status: 'Pending',
+          netAmount: 95000,
+        });
+      });
+    });
+  });
 });

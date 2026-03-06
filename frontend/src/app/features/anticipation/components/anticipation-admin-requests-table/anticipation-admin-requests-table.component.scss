@@ -26,3 +26,17 @@
     font-size: 0.875rem;
   }
 }
+
+.simulate-btn {
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+
+  &:hover {
+    background-color: #1976d2;
+  }
+}

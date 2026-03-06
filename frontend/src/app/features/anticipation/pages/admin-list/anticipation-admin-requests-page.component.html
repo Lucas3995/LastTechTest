@@ -36,6 +36,7 @@
         [pageSize]="filters()?.pageSize ?? 20"
         (requestSelected)="onRequestSelected($event)"
         (pageChange)="onSetPage($event)"
+        (simulateForCreator)="onSimulateForCreator($event)"
       />
     } @else {
       <p class="admin-requests-page__empty" data-testid="admin-page-empty">

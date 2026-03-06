@@ -42,6 +42,15 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'anticipation/simulation',
+    canActivate: [AuthGuard],
+    data: { requiredRoles: ['Creator', 'Admin', 'Analista'] },
+    loadComponent: () =>
+      import('./features/anticipation/pages/simulation/anticipation-simulation-page.component').then(
+        (m) => m.AnticipationSimulationPageComponent,
+      ),
+  },
+  {
     path: 'login',
     redirectTo: '',
     pathMatch: 'full',
