@@ -8,24 +8,11 @@ import { vi } from 'vitest';
 import {
   AnticipationRequest,
   AnticipationRequestStatus,
-  AnticipationRequestsFilter,
   ANTICIPATION_REQUESTS_PORT,
   CreateAnticipationRequestPayload,
   ERROR_PRESENTATION_BUILDER,
 } from '../../domain';
 import { AnticipationMyRequestsFacade } from './anticipation-my-requests.facade';
-
-function createRequest(overrides: Partial<AnticipationRequest> = {}): AnticipationRequest {
-  return {
-    id: 'req-1',
-    creatorId: 'creator-1',
-    createdAt: '2025-01-15T10:00:00Z',
-    grossAmountCents: 10000,
-    netAmountCents: 9500,
-    status: AnticipationRequestStatus.Pending,
-    ...overrides,
-  };
-}
 
 describe('AnticipationMyRequestsFacade — RF-5 createRequest (T-RF5-1)', () => {
   let facade: AnticipationMyRequestsFacade;

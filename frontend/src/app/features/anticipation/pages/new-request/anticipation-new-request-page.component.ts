@@ -2,7 +2,6 @@ import { Component, inject, DestroyRef, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AnticipationMyRequestsFacade } from '../../../../application';
 
 @Component({
