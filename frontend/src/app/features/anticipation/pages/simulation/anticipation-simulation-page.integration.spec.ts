@@ -5,11 +5,9 @@ import { vi } from 'vitest';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatDialog } from '@angular/material/dialog';
 
 import {
-  AnticipationRequestStatus,
-  AnticipationSimulation,
   ANTICIPATION_REQUESTS_PORT,
   ERROR_PRESENTATION_BUILDER,
 } from '../../../../domain';
@@ -41,7 +39,7 @@ describe('AnticipationSimulationPageComponent — Integration with Facade (T9)',
       of({
         id: 'req-123',
         protocol: 'PROT-001',
-        status: AnticipationRequestStatus.Pending,
+        status: 'Pending',
         netAmount: 95000,
       }),
     );
@@ -114,7 +112,7 @@ describe('AnticipationSimulationPageComponent — Integration with Facade (T9)',
 
   const wait = (ms = 50) => new Promise(resolve => setTimeout(resolve, ms));
 
-  const waitForSignal = async (signalFn: () => any, match: (val: any) => boolean, timeout = 1000) => {
+  const waitForSignal = async (signalFn: () => unknown, match: (val: any) => boolean, timeout = 1000) => {
     const start = Date.now();
     while (!match(signalFn()) && Date.now() - start < timeout) {
       await wait(20);

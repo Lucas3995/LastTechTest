@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
@@ -21,7 +21,7 @@ import { SimulateAnticipationPayload } from '../../../../domain';
   styleUrl: './anticipation-simulation-page.component.scss',
   providers: [AnticipationSimulationFacade]
 })
-export class AnticipationSimulationPageComponent implements OnInit, OnDestroy {
+export class AnticipationSimulationPageComponent implements OnInit {
 
   private facade = inject(AnticipationSimulationFacade);
   private authService = inject(AuthService);
@@ -36,7 +36,7 @@ export class AnticipationSimulationPageComponent implements OnInit, OnDestroy {
   infoMessage = this.facade.infoMessage;
 
   // Writable properties exposed for tests (tests set them directly)
-  userRole: string = '';
+  userRole = '';
   selectedCreatorId: string | null = null;
   isSubmitting = false;
   canConvert = false;
@@ -57,10 +57,6 @@ export class AnticipationSimulationPageComponent implements OnInit, OnDestroy {
     if (creatorId) {
       this.facade.setCreatorIdForSimulation(creatorId);
     }
-  }
-
-  ngOnDestroy(): void {
-    // Cleanup opcional
   }
 
   async onSimulate(payload: SimulateAnticipationPayload): Promise<void> {

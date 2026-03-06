@@ -24,8 +24,21 @@ import { AnticipationSimulationPageComponent } from './anticipation-simulation-p
 describe('AnticipationSimulationPageComponent — RF-3 Page (CA-RF3-1 a CA-RF3-6)', () => {
   let component: AnticipationSimulationPageComponent;
   let fixture: ComponentFixture<AnticipationSimulationPageComponent>;
-  let facadeSpy: any;
-  let routerSpy: any;
+  let facadeSpy: {
+    simulationResult: any;
+    loading: any;
+    errorMessage: any;
+    infoMessage: any;
+    canConvert: any;
+    creatorIdForSimulation: any;
+    simulate: any;
+    convertToRealRequest: any;
+    reset: any;
+    setCreatorIdForSimulation: any;
+    errorSupportId: any;
+    isConverting: any;
+  };
+  let routerSpy: { navigate: any };
 
   beforeEach(async () => {
     facadeSpy = {

@@ -7,11 +7,11 @@
     @if (data) {
       <div class="simulation-summary">
         <div class="value-item">
-          <label>Valor líquido</label>
+          <span class="label">Valor líquido</span>
           <span class="value">{{ formatCurrency(data.netAmountCents) }}</span>
         </div>
         <div class="code-item">
-          <label>Código da simulação</label>
+          <span class="label">Código da simulação</span>
           <span class="code">{{ data.simulationCode }}</span>
         </div>
       </div>

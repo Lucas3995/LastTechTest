@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -13,10 +13,8 @@ import { AnticipationSimulation } from '../../../../domain';
 })
 export class ConfirmConversionDialogComponent {
 
-  constructor(
-    public dialogRef: MatDialogRef<ConfirmConversionDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: AnticipationSimulation
-  ) {}
+  public dialogRef = inject(MatDialogRef<ConfirmConversionDialogComponent>);
+  public data = inject<AnticipationSimulation>(MAT_DIALOG_DATA);
 
   onConfirm(): void {
     this.dialogRef.close(true);

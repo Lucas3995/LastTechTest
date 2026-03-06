@@ -1,7 +1,6 @@
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
 import { CommonModule } from '@angular/common';
-import { AnticipationRequestStatus, AnticipationSimulation } from '../../../../domain';
 import { AnticipationSimulationResultPanelComponent } from './anticipation-simulation-result-panel.component';
 
 describe('AnticipationSimulationResultPanelComponent — RF-3 Result Panel (CA-RF3-1, CA-RF3-3, CA-RF3-4, CA-RF3-6)', () => {
@@ -132,9 +131,6 @@ describe('AnticipationSimulationResultPanelComponent — RF-3 Result Panel (CA-R
       };
       fixture.detectChanges();
 
-      const badge = fixture.nativeElement.querySelector('[class*="success"]') ||
-        fixture.nativeElement.querySelector('[class*="primary"]');
-      // At minimum one styling should be applied
       expect(fixture.nativeElement.querySelector('[class*="valid"]')).toBeTruthy();
     });
   });

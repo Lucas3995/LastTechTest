@@ -13,7 +13,7 @@ export class AnticipationSimulationResultPanelComponent {
 
   @Input({ required: true }) simulationResult!: AnticipationSimulation;
   @Input() canConvert = false;
-  @Input() userRole: string = 'Creator';
+  @Input() userRole = 'Creator';
   @Input() isConverting = false;
   @Input() simulatedForCreator?: string; // CA-RF3-6: for admin label
 

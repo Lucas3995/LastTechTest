@@ -11,7 +11,7 @@ import { ConfirmConversionDialogComponent } from './confirm-conversion-dialog.co
 describe('ConfirmConversionDialogComponent — RF-3 Dialog (CA-RF3-4)', () => {
   let component: ConfirmConversionDialogComponent;
   let fixture: ComponentFixture<ConfirmConversionDialogComponent>;
-  let mockDialogRef: { close: (result: any) => void };
+  let mockDialogRef: { close: (result: boolean) => void };
 
   const mockSimulation: AnticipationSimulation = {
     simulationCode: 'SIM-123456',
@@ -60,26 +60,26 @@ describe('ConfirmConversionDialogComponent — RF-3 Dialog (CA-RF3-4)', () => {
 
   describe('Dialog interaction', () => {
     it('should have "Confirmar" or "Criar" button', () => {
-      const buttons = fixture.nativeElement.querySelectorAll('button');
-      const confirmButton = Array.from(buttons).find((btn: any) =>
-        btn.textContent.toLowerCase().includes('criar') || btn.textContent.toLowerCase().includes('confirmar'),
+      const buttons = fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>;
+      const confirmButton = Array.from(buttons).find((btn) =>
+        btn.textContent?.toLowerCase().includes('criar') || btn.textContent?.toLowerCase().includes('confirmar'),
       );
       expect(confirmButton).toBeTruthy();
     });
 
     it('should have "Cancelar" button', () => {
-      const buttons = fixture.nativeElement.querySelectorAll('button');
-      const cancelButton = Array.from(buttons).find((btn: any) =>
-        btn.textContent.toLowerCase().includes('cancelar') || btn.textContent.toLowerCase().includes('voltar'),
+      const buttons = fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>;
+      const cancelButton = Array.from(buttons).find((btn) =>
+        btn.textContent?.toLowerCase().includes('cancelar') || btn.textContent?.toLowerCase().includes('voltar'),
       );
       expect(cancelButton).toBeTruthy();
     });
 
     it('should close dialog with true when confirming', () => {
-      const buttons = fixture.nativeElement.querySelectorAll('button');
-      const confirmButton = Array.from(buttons).find((btn: any) =>
-        btn.textContent.toLowerCase().includes('criar') || btn.textContent.toLowerCase().includes('confirmar'),
-      ) as HTMLButtonElement;
+      const buttons = fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>;
+      const confirmButton = Array.from(buttons).find((btn) =>
+        btn.textContent?.toLowerCase().includes('criar') || btn.textContent?.toLowerCase().includes('confirmar'),
+      );
 
       if (confirmButton) {
         confirmButton.click();
@@ -88,10 +88,10 @@ describe('ConfirmConversionDialogComponent — RF-3 Dialog (CA-RF3-4)', () => {
     });
 
     it('should close dialog with false when cancelling', () => {
-      const buttons = fixture.nativeElement.querySelectorAll('button');
-      const cancelButton = Array.from(buttons).find((btn: any) =>
-        btn.textContent.toLowerCase().includes('cancelar') || btn.textContent.toLowerCase().includes('voltar'),
-      ) as HTMLButtonElement;
+      const buttons = fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>;
+      const cancelButton = Array.from(buttons).find((btn) =>
+        btn.textContent?.toLowerCase().includes('cancelar') || btn.textContent?.toLowerCase().includes('voltar'),
+      );
 
       if (cancelButton) {
         cancelButton.click();
@@ -101,10 +101,10 @@ describe('ConfirmConversionDialogComponent — RF-3 Dialog (CA-RF3-4)', () => {
 
     it('should call component.onConfirm on confirm button click', () => {
       vi.spyOn(component, 'onConfirm');
-      const buttons = fixture.nativeElement.querySelectorAll('button');
-      const confirmButton = Array.from(buttons).find((btn: any) =>
-        btn.textContent.toLowerCase().includes('criar') || btn.textContent.toLowerCase().includes('confirmar'),
-      ) as HTMLButtonElement;
+      const buttons = fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>;
+      const confirmButton = Array.from(buttons).find((btn) =>
+        btn.textContent?.toLowerCase().includes('criar') || btn.textContent?.toLowerCase().includes('confirmar'),
+      );
 
       if (confirmButton) {
         confirmButton.click();
@@ -114,10 +114,10 @@ describe('ConfirmConversionDialogComponent — RF-3 Dialog (CA-RF3-4)', () => {
 
     it('should call component.onCancel on cancel button click', () => {
       vi.spyOn(component, 'onCancel');
-      const buttons = fixture.nativeElement.querySelectorAll('button');
-      const cancelButton = Array.from(buttons).find((btn: any) =>
-        btn.textContent.toLowerCase().includes('cancelar') || btn.textContent.toLowerCase().includes('voltar'),
-      ) as HTMLButtonElement;
+      const buttons = fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>;
+      const cancelButton = Array.from(buttons).find((btn) =>
+        btn.textContent?.toLowerCase().includes('cancelar') || btn.textContent?.toLowerCase().includes('voltar'),
+      );
 
       if (cancelButton) {
         cancelButton.click();
