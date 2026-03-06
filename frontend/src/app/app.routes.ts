@@ -24,6 +24,24 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'anticipation/my-requests/new',
+    canActivate: [AuthGuard],
+    data: { requiredRoles: ['Creator', 'Admin'] },
+    loadComponent: () =>
+      import('./features/anticipation/pages/new-request/anticipation-new-request-page.component').then(
+        (m) => m.AnticipationNewRequestPageComponent,
+      ),
+  },
+  {
+    path: 'anticipation/list',
+    canActivate: [AuthGuard],
+    data: { requiredRoles: ['Admin', 'Analista'] },
+    loadComponent: () =>
+      import('./features/anticipation/pages/admin-list/anticipation-admin-requests-page.component').then(
+        (m) => m.AnticipationAdminRequestsPageComponent,
+      ),
+  },
+  {
     path: 'login',
     redirectTo: '',
     pathMatch: 'full',

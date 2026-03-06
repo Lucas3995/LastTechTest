@@ -1,0 +1,23 @@
+.new-request {
+  max-width: 32rem;
+}
+
+.new-request__alert--error {
+  color: var(--color-error, #b71c1c);
+}
+
+.new-request__field {
+  margin-bottom: 1rem;
+}
+
+.new-request__error {
+  color: var(--color-error, #b71c1c);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.new-request__actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}

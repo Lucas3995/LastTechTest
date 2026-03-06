@@ -139,6 +139,30 @@ Este arquivo funciona como ponto de apoio para o `maestro` e o `quadro-de-recomp
       - `AnticipationSimulationE2ETests.cs` — RA4_CA1 (POST simulations 200 + contrato), RA4_CA2 (amount &lt; 100 → 400), RA4_CA3 (múltiplas simulações sem criar antecipações), RA4_CA4 (Analista/Admin com creatorId), RA4_CA6/CA7/CA8 (confirm primeiro/segundo código, confirm inexistente/usado/pendente), POST sem token 401
   - Mapeamento CA → testes: CA1 (unit Simulate handler, E2E RA4_CA1), CA2 (unit Simulate + Validator, E2E RA4_CA2), CA3 (unit + integration I1, E2E RA4_CA3), CA4 (unit Simulate Analista/Admin, E2E RA4_CA4), CA5 (opcional desempenho), CA6 (unit duas simulações, integration I2, E2E RA4_CA6), CA7 (unit Convert, integration I4, E2E RA4_CA7), CA8 (unit Convert cenários, integration I5–I6, E2E RA4_CA8).
 
+### 3.1. Requisitos de frontend – antecipação (RF-x)
+
+- **RF-4 – Aprovar e recusar solicitações no frontend (Analistas e Admins)** (implementado)
+  - Demanda: `demandas/RF-4-aprovar-recusar-solicitacoes-frontend.md`
+  - Backend utilizado: RA-3 — `POST /api/v1/anticipations/{id}/approve` (body: Observation opcional), `POST /api/v1/anticipations/{id}/reject` (body: Reason obrigatório); roles Analista, Admin.
+  - Frontend (implementado):
+    - Domain: `AnticipationRequestsPort` em `domain/anticipation.ts` estendido com `approveRequest(id, observation?)` e `rejectRequest(id, reason)`.
+    - Infrastructure: `AnticipationRequestsHttpService` — POST `.../id/approve` e POST `.../id/reject`; mapeamento resposta `{ id, protocol, status }` para domínio.
+    - Application: `AnticipationAdminListFacade` com `approveRequest` e `rejectRequest`; atualização de `selectedRequest` e lista; mensagens de sucesso/erro.
+    - Features: `AnticipationRequestDetailComponent` com input `canShowApproveReject`, botões Aprovar/Recusar quando status Pending, outputs `requestApprove`/`requestReject`; recusa com motivo obrigatório (diálogo e validação). Página admin-list passa `canShowApproveReject` e liga eventos à facade; exibe `infoMessage`.
+  - Dependências: RF-2 (lista global e detalhe).
+  - Testes: unit (facade approve/reject sucesso e erro; componente detalhe visibilidade e validação motivo); integração (HTTP approve/reject); E2E em `anticipation-admin-requests.e2e.spec.ts`.
+
+- **RF-5 – Criar nova solicitação de antecipação no frontend (Creators)** (card criado; implementação pendente)
+  - Demanda: `demandas/RF-5-criar-solicitacao-frontend.md`
+  - Backend utilizado: RA-1, RC-1 — `POST /api/v1/anticipations` (body: requestedAmount, creatorId?); validação valor >= 100 e uma pendente por creator.
+  - Frontend (a implementar):
+    - Domain: `AnticipationRequestsPort` estendido com `createRequest(payload)` (requestedAmount, creatorId?).
+    - Infrastructure: `AnticipationRequestsHttpService` — POST `/api/v1/anticipations`; mapeamento resposta para domínio.
+    - Application: facade Minhas solicitações (ou dedicado) com `createRequest(...)`; em sucesso recarrega lista e feedback; em erro mensagem apresentável.
+    - Features: formulário/página "Nova solicitação" (campo valor mínimo 100, opcional creator para Admin); rota ex.: `anticipation/my-requests/new` ou modal; botão "Nova solicitação" em RF-1 ligado a navegação/abertura.
+  - Dependências: RF-1 (Minhas solicitações e botão "Nova solicitação").
+  - Testes (a preencher na implementação): unit (port, facade, formulário — validação valor, cancelar); integração (HTTP create, facade + lista); E2E opcional (Creator cria e vê na lista).
+
 ### 4. Correções (cards RC-x)
 
 - **RC-1 – Corrigir validações no endpoint de criar solicitação de antecipação** (implementado)

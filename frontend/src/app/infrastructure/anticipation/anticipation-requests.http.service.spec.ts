@@ -14,11 +14,14 @@ import {
   HttpClientTestingModule,
   HttpTestingController,
 } from '@angular/common/http/testing';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 
 import {
+  AnticipationAdminListFilter,
+  AnticipationRequest,
   AnticipationRequestStatus,
   AnticipationRequestsFilter,
+  CreateAnticipationRequestPayload,
 } from '../../domain';
 import { AnticipationRequestsHttpService } from './anticipation-requests.http.service';
 import { API_BASE_URL } from '../../core/api-base-url';
@@ -195,6 +198,195 @@ describe('AnticipationRequestsHttpService — Contrato API (plano 404)', () => {
 
       const items = await itemsPromise;
       expect(items[0].status).toBe(AnticipationRequestStatus.CanceledByCreator);
+    });
+  });
+
+  // RF-2 Lista global Admin — T2: listGlobalRequests (params + totalCount)
+  describe('RF-2 listGlobalRequests (T2)', () => {
+    it('should call GET anticipations with creatorId, status, fromUtc, toUtc, page, pageSize', () => {
+      const filter: AnticipationAdminListFilter = {
+        creatorId: 'creator-123',
+        statuses: [AnticipationRequestStatus.Pending],
+        period: {
+          from: new Date('2025-01-01T00:00:00.000Z'),
+          to: new Date('2025-01-31T23:59:59.999Z'),
+        },
+        page: 2,
+        pageSize: 20,
+      };
+
+      service.listGlobalRequests(filter).subscribe();
+
+      const req = httpMock.expectOne(
+        (r) =>
+          r.url === `${BASE_URL}/api/v1/anticipations` &&
+          r.method === 'GET'
+      );
+      const params = req.request.params;
+      expect(params.get('creatorId')).toBe('creator-123');
+      expect(params.get('status')).toBeTruthy();
+      expect(params.get('fromUtc')).toBe('2025-01-01T00:00:00.000Z');
+      expect(params.get('toUtc')).toBe('2025-01-31T23:59:59.999Z');
+      expect(params.get('page')).toBe('2');
+      expect(params.get('pageSize')).toBe('20');
+      req.flush({ items: [], totalCount: 0 });
+    });
+
+    it('should map response items and totalCount to domain (T2)', async () => {
+      const backendItem = {
+        id: 'req-global-1',
+        protocol: 'ANT-G-001',
+        creatorId: 'creator-global',
+        status: 'Pending',
+        requestedAmount: 50.0,
+        netAmount: 47.5,
+        requestedAtUtc: '2025-02-10T12:00:00Z',
+        createdAtUtc: '2025-02-10T10:00:00Z',
+      };
+
+      const resultPromise = firstValueFrom(
+        service.listGlobalRequests({ page: 1, pageSize: 10 }),
+      );
+
+      const req = httpMock.expectOne(
+        (r) =>
+          r.url.startsWith(`${BASE_URL}/api/v1/anticipations`) &&
+          r.method === 'GET'
+      );
+      req.flush({
+        items: [backendItem],
+        totalCount: 1,
+      });
+
+      const result = await resultPromise;
+      expect(result.items).toBeDefined();
+      expect(result.totalCount).toBe(1);
+      expect(result.items.length).toBe(1);
+      expect(result.items[0].id).toBe(backendItem.id);
+      expect(result.items[0].creatorId).toBe(backendItem.creatorId);
+      expect(result.items[0].status).toBe(AnticipationRequestStatus.Pending);
+    });
+  });
+
+  // RF-4 Aprovar/Recusar — POST approve e reject, body e mapeamento da resposta (id, protocol, status) para domínio.
+  // Serviço implementará approveRequest e rejectRequest; até lá os testes falham por método inexistente.
+  describe('RF-4 approveRequest', () => {
+    it('should send POST to .../id/approve with body observation and map response id protocol status to domain', async () => {
+      const id = 'req-approve-1';
+      const observation = 'Aprovado conforme política.';
+      const backendResponse = { id, protocol: 'ANT-001', status: 'Approved' };
+
+      const svc = service as AnticipationRequestsHttpService & {
+        approveRequest(id: string, observation?: string): Observable<AnticipationRequest>;
+      };
+      const resultPromise = firstValueFrom(svc.approveRequest(id, observation));
+
+      const req = httpMock.expectOne(
+        (r) =>
+          r.url === `${BASE_URL}/api/v1/anticipations/${id}/approve` &&
+          r.method === 'POST',
+      );
+      expect(req.request.body).toEqual({ observation });
+      req.flush(backendResponse);
+
+      const result = await resultPromise;
+      expect(result.id).toBe(id);
+      expect(result.status).toBe(AnticipationRequestStatus.Approved);
+    });
+  });
+
+  describe('RF-4 rejectRequest', () => {
+    it('should send POST to .../id/reject with body reason and map response id protocol status to domain', async () => {
+      const id = 'req-reject-1';
+      const reason = 'Documentação incompleta.';
+      const backendResponse = { id, protocol: 'ANT-002', status: 'Rejected' };
+
+      const svc = service as AnticipationRequestsHttpService & {
+        rejectRequest(id: string, reason: string): Observable<AnticipationRequest>;
+      };
+      const resultPromise = firstValueFrom(svc.rejectRequest(id, reason));
+
+      const req = httpMock.expectOne(
+        (r) =>
+          r.url === `${BASE_URL}/api/v1/anticipations/${id}/reject` &&
+          r.method === 'POST',
+      );
+      expect(req.request.body).toEqual({ reason });
+      req.flush(backendResponse);
+
+      const result = await resultPromise;
+      expect(result.id).toBe(id);
+      expect(result.status).toBe(AnticipationRequestStatus.Rejected);
+    });
+  });
+
+  // RF-5 Criar solicitação — POST createRequest, body e mapeamento 201 → CreateAnticipationRequestResult
+  describe('RF-5 createRequest', () => {
+    it('createRequest sends POST to baseUrl with body requestedAmount (and optional creatorId)', () => {
+      const payload: CreateAnticipationRequestPayload = { requestedAmount: 500 };
+      service.createRequest(payload).subscribe();
+
+      const req = httpMock.expectOne(
+        (r) =>
+          r.url === `${BASE_URL}/api/v1/anticipations` &&
+          r.method === 'POST',
+      );
+      expect(req.request.body).toEqual({ requestedAmount: 500 });
+      req.flush({
+        id: 'new-req-1',
+        protocol: 'ANT-NEW-001',
+        netAmount: 475,
+        status: 'Pending',
+      });
+    });
+
+    it('createRequest sends creatorId when provided', () => {
+      const payload: CreateAnticipationRequestPayload = {
+        requestedAmount: 1000,
+        creatorId: 'creator-admin-123',
+      };
+      service.createRequest(payload).subscribe();
+
+      const req = httpMock.expectOne(
+        (r) =>
+          r.url === `${BASE_URL}/api/v1/anticipations` &&
+          r.method === 'POST',
+      );
+      expect(req.request.body).toEqual({
+        requestedAmount: 1000,
+        creatorId: 'creator-admin-123',
+      });
+      req.flush({
+        id: 'new-req-2',
+        protocol: 'ANT-NEW-002',
+        netAmount: 950,
+        status: 'Pending',
+      });
+    });
+
+    it('createRequest maps 201 response Id Protocol NetAmount Status to CreateAnticipationRequestResult', async () => {
+      const payload: CreateAnticipationRequestPayload = { requestedAmount: 300 };
+      const backendResponse = {
+        id: 'created-id-1',
+        protocol: 'ANT-100',
+        netAmount: 285,
+        status: 'Pending',
+      };
+
+      const resultPromise = firstValueFrom(service.createRequest(payload));
+
+      const req = httpMock.expectOne(
+        (r) =>
+          r.url === `${BASE_URL}/api/v1/anticipations` &&
+          r.method === 'POST',
+      );
+      req.flush(backendResponse);
+
+      const result = await resultPromise;
+      expect(result.id).toBe(backendResponse.id);
+      expect(result.protocol).toBe(backendResponse.protocol);
+      expect(result.netAmount).toBe(backendResponse.netAmount);
+      expect(result.status).toBe(AnticipationRequestStatus.Pending);
     });
   });
 });

@@ -21,7 +21,7 @@ export interface ShellNavItem {
 const SHELL_NAV_ITEMS: ShellNavItem[] = [
   { path: '/home', label: 'Home', roles: ['Creator', 'Analista', 'Admin'] },
   { path: '/anticipation/my-requests', label: 'Minhas antecipações', roles: ['Creator', 'Admin'] },
-  // When RF-2 exists: { path: '/anticipation/list', label: 'Lista global', roles: ['Analista', 'Admin'] },
+  { path: '/anticipation/list', label: 'Lista global de solicitações', roles: ['Analista', 'Admin'] },
 ];
 
 @Component({

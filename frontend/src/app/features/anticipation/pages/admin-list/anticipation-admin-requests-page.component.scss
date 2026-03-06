@@ -1,0 +1,32 @@
+.admin-requests-page {
+  padding: 1rem;
+
+  &__header {
+    margin-bottom: 1rem;
+
+    h1 {
+      margin: 0 0 0.25rem 0;
+      font-size: 1.5rem;
+    }
+
+    p {
+      margin: 0;
+      color: var(--text-secondary, #666);
+      font-size: 0.875rem;
+    }
+  }
+
+  &__error {
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: #fee;
+    border: 1px solid #c00;
+    border-radius: 4px;
+  }
+
+  &__loading,
+  &__empty {
+    margin: 1rem 0;
+    font-size: 0.875rem;
+  }
+}

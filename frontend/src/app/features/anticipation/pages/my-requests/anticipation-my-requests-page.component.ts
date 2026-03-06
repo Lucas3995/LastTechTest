@@ -1,5 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { AnticipationMyRequestsFacade } from '../../../../application';
 import { AnticipationRequestsFilter } from '../../../../domain';
 import { AnticipationRequestsFiltersComponent } from '../../components/anticipation-requests-filters/anticipation-requests-filters.component';
@@ -12,6 +13,7 @@ import { AnticipationRequestDetailComponent } from '../../components/anticipatio
   standalone: true,
   imports: [
     CommonModule,
+    RouterLink,
     AnticipationRequestsFiltersComponent,
     AnticipationRequestsTableComponent,
     AnticipationRequestEmptyStateComponent,

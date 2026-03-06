@@ -76,3 +76,46 @@ describe('ShellComponent — logout button', () => {
     expect(hasAriaLabel).toBe(true);
   });
 });
+
+describe('ShellComponent — RF-2 Lista global menu (T7)', () => {
+  const setupWithRole = (role: string) => {
+    const authService = {
+      logout: vi.fn(),
+      isAuthenticated: () => true,
+      currentUser: () => ({ id: 'u1', role, creatorId: 'c1' }),
+    };
+    TestBed.configureTestingModule({
+      imports: [ShellComponent],
+      providers: [provideRouter([]), { provide: AuthService, useValue: authService }],
+    });
+    const fixture = TestBed.createComponent(ShellComponent);
+    fixture.detectChanges();
+    return { fixture };
+  };
+
+  it('should show Lista global menu item for Admin role', () => {
+    const { fixture } = setupWithRole('Admin');
+    const nav = fixture.nativeElement.querySelector('nav');
+    expect(nav?.textContent).toMatch(/Lista global/);
+    const link = (Array.from(fixture.nativeElement.querySelectorAll('a')) as Element[]).find(
+      (a) => a.getAttribute('href')?.includes('/anticipation/list'),
+    );
+    expect(link).toBeTruthy();
+  });
+
+  it('should show Lista global menu item for Analista role', () => {
+    const { fixture } = setupWithRole('Analista');
+    const link = (Array.from(fixture.nativeElement.querySelectorAll('a')) as Element[]).find(
+      (a) => a.getAttribute('href')?.includes('/anticipation/list'),
+    );
+    expect(link).toBeTruthy();
+  });
+
+  it('should not show Lista global for Creator role', () => {
+    const { fixture } = setupWithRole('Creator');
+    const link = (Array.from(fixture.nativeElement.querySelectorAll('a')) as Element[]).find(
+      (a) => a.getAttribute('href')?.includes('/anticipation/list'),
+    );
+    expect(link).toBeFalsy();
+  });
+});

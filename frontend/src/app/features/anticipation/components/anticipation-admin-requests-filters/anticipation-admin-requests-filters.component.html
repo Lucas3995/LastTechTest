@@ -1,0 +1,35 @@
+<form class="admin-filters" (submit)="$event.preventDefault(); onApply()" novalidate>
+  <label class="admin-filters__field" for="admin-filter-creator">
+    <span>Creator (ID)</span>
+    <input
+      id="admin-filter-creator"
+      type="text"
+      data-testid="admin-filter-creator"
+      [(ngModel)]="creatorId"
+      [ngModelOptions]="{ standalone: true }"
+      placeholder="ID do creator"
+      aria-label="Filtrar por ID do creator"
+    />
+  </label>
+  <label class="admin-filters__field" for="admin-filter-status">
+    <span>Status</span>
+    <select
+      id="admin-filter-status"
+      data-testid="admin-filter-status"
+      [(ngModel)]="selectedStatus"
+      [ngModelOptions]="{ standalone: true }"
+      aria-label="Filtrar por status"
+    >
+      @for (opt of statusOptions; track opt.value) {
+        <option [value]="opt.value">{{ opt.label }}</option>
+      }
+    </select>
+  </label>
+  <button type="submit" data-testid="admin-filters-apply">Aplicar filtros</button>
+  <button type="button" (click)="onClear()" data-testid="admin-filters-clear">Limpar filtros</button>
+</form>
+@if (hasActiveFilters) {
+  <div class="admin-filters__chips" data-testid="admin-filter-chips" role="status" aria-live="polite">
+    <span class="chip">Filtros ativos</span>
+  </div>
+}
