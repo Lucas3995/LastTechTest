@@ -476,9 +476,9 @@ public class AnticipationE2ETests : IClassFixture<CustomWebApplicationFactory>
         secondApprove.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, (HttpStatusCode)422, HttpStatusCode.NotImplemented);
     }
 
-    /// <summary>CA5 – Creator a chamar approve → 400 (falta de permissão, regra de negócio).</summary>
+    /// <summary>CA5 – Creator a chamar approve → 403 (endpoint restrito a Analista/Admin).</summary>
     [Fact]
-    public async Task E18_RA3_CA5_PostApprove_AsCreator_Should_Return400()
+    public async Task E18_RA3_CA5_PostApprove_AsCreator_Should_Return403()
     {
         var client = _factory.CreateClient();
         var creatorId = Guid.NewGuid();
@@ -492,7 +492,7 @@ public class AnticipationE2ETests : IClassFixture<CustomWebApplicationFactory>
 
         var approveResponse = await client.PostAsJsonAsync($"/api/v1/anticipations/{created!.Id}/approve", new { Observation = "Trying as Creator" });
 
-        approveResponse.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.NotImplemented);
+        approveResponse.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
     /// <summary>CA5 – Admin pode executar transição em qualquer solicitação (approve).</summary>
