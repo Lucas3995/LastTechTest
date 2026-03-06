@@ -14,6 +14,7 @@
       >
         Status
       </th>
+      <th scope="col">Ações</th>
     </tr>
   </thead>
   <tbody>
@@ -31,6 +32,15 @@
           <span data-testid="admin-request-status-tag">
             {{ request.status | anticipationStatusLabel }}
           </span>
+        </td>
+        <td>
+          <button
+            type="button"
+            class="simulate-btn"
+            (click)="onSimulateClick(request.creatorId); $event.stopPropagation()"
+            title="Simular antecipação em nome deste creator">
+            Simular
+          </button>
         </td>
       </tr>
     }

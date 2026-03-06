@@ -1,0 +1,25 @@
+<div class="confirm-dialog-container">
+  <h2 class="confirm-dialog-title">Confirmar Criação de Solicitação</h2>
+
+  <mat-dialog-content>
+    <p>Deseja criar uma solicitação real com base nesta simulação?</p>
+
+    @if (data) {
+      <div class="simulation-summary">
+        <div class="value-item">
+          <label>Valor líquido</label>
+          <span class="value">{{ formatCurrency(data.netAmountCents) }}</span>
+        </div>
+        <div class="code-item">
+          <label>Código da simulação</label>
+          <span class="code">{{ data.simulationCode }}</span>
+        </div>
+      </div>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions>
+    <button type="button" mat-button class="btn-cancel" (click)="onCancel()">Cancelar</button>
+    <button type="button" mat-raised-button color="primary" class="btn-confirm" (click)="onConfirm()">Criar solicitação</button>
+  </mat-dialog-actions>
+</div>
