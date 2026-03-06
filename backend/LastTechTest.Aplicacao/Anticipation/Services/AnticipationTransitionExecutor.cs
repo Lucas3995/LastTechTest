@@ -48,7 +48,7 @@ public sealed class AnticipationTransitionExecutor : IAnticipationTransitionExec
 
         var isOwner = entity.CreatorId == userId;
         if (!CanPerform(entity, action, role, isOwner))
-            throw new UnauthorizedAccessException(PermissionMessage(action));
+            throw new InvalidOperationException(PermissionMessage(action));
 
         ApplyTransition(entity, action);
         await _auditService.RecordTransitionAsync(

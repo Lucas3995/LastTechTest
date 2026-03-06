@@ -72,7 +72,7 @@ public class CreateAnticipationRequestCommandHandlerTests
 
         var act = () => _sut.Handle(new CreateAnticipationRequestCommand(1000m, otherId, null), CancellationToken.None);
 
-        await act.Should().ThrowAsync<UnauthorizedAccessException>().WithMessage("*not allowed*");
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*not allowed*");
     }
 
     [Fact]

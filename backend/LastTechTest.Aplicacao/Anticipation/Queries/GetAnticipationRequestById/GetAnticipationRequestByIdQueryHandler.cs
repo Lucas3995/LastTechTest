@@ -30,7 +30,7 @@ public sealed class GetAnticipationRequestByIdQueryHandler : IRequestHandler<Get
 
         var role = _currentUser.GetRole();
         if (role != KnownRoles.Admin && entity.CreatorId != userId)
-            throw new UnauthorizedAccessException("You are not allowed to access this request.");
+            throw new InvalidOperationException("You are not allowed to access this request.");
 
         return new GetAnticipationRequestByIdResponse(
             entity.Id,

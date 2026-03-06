@@ -14,7 +14,7 @@ public static class ExceptionMapping
         return ex switch
         {
             NotFoundException => Results.Json(new { error = ex.Message }, statusCode: 404),
-            UnauthorizedAccessException => Results.Json(new { error = ex.Message }, statusCode: 403),
+            UnauthorizedAccessException => Results.Json(new { error = ex.Message }, statusCode: 401),
             InvalidOperationException => Results.BadRequest(new { error = ex.Message }),
             ValidationException => Results.BadRequest(new { error = ex.Message }),
             _ => Results.Json(new { error = "An error occurred." }, statusCode: 500)
@@ -27,7 +27,7 @@ public static class ExceptionMapping
         return ex switch
         {
             NotFoundException => new ObjectResult(new { error = ex.Message }) { StatusCode = 404 },
-            UnauthorizedAccessException => new ObjectResult(new { error = ex.Message }) { StatusCode = 403 },
+            UnauthorizedAccessException => new ObjectResult(new { error = ex.Message }) { StatusCode = 401 },
             InvalidOperationException => new BadRequestObjectResult(new { error = ex.Message }),
             ValidationException => new BadRequestObjectResult(new { error = ex.Message }),
             _ => new ObjectResult(new { error = "An error occurred." }) { StatusCode = 500 }

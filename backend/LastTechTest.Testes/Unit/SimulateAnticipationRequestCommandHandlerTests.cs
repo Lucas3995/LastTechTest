@@ -186,7 +186,7 @@ public class SimulateAnticipationRequestCommandHandlerTests
 
         var act = () => _sut.Handle(new SimulateAnticipationRequestCommand(1000m, otherId, null), CancellationToken.None);
 
-        await act.Should().ThrowAsync<UnauthorizedAccessException>().WithMessage("*not allowed*");
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*not allowed*");
     }
 
     /// <summary>Boundary: RequestedAmount 100 (minimum valid) — accepted when validation and calculation succeed.</summary>

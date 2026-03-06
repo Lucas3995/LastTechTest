@@ -1,5 +1,6 @@
 // Plano 401 — Interceptor JWT para eliminar 401 na tela Minhas solicitações.
 // Plano refresh_token_e_filtro_pendências — 401 → refresh, retry, logout e redirect (T1).
+// Plano árvore testes logout auth — 403 nunca auth, sempre propaga (contrato Opção A); 401 mantidos.
 
 import { TestBed } from '@angular/core/testing';
 import {
@@ -249,5 +250,130 @@ describe('authTokenInterceptor — resposta 401 e refresh (Plano refresh)', () =
     const retries = httpMock.match(`${API_BASE}/api/v1/anticipations`);
     expect(retries.length).toBe(2);
     retries.forEach((r) => r.flush({ items: [], totalCount: 0 }));
+  });
+
+  it('should call logout and redirect with returnUrl when retry after successful refresh returns 401', () => {
+    http.get(`${API_BASE}/api/v1/anticipations`).subscribe({ error: () => { /* expect retry 401 → logout */ } });
+
+    httpMock.expectOne(`${API_BASE}/api/v1/anticipations`).flush(null, { status: 401, statusText: 'Unauthorized' });
+    const roleClaim = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
+    const payload = btoa(JSON.stringify({ sub: 'u1', [roleClaim]: 'Creator' }));
+    const newToken = `eyJ.${payload}.sig`;
+    httpMock.expectOne(`${API_BASE}/auth/refresh`).flush(makeTokensResponse(newToken));
+    const retryReq = httpMock.expectOne(`${API_BASE}/api/v1/anticipations`);
+    expect(retryReq.request.headers.get('Authorization')).toBe(`Bearer ${newToken}`);
+    retryReq.flush(null, { status: 401, statusText: 'Unauthorized' });
+
+    expect(auth.session()).toBeNull();
+    const navigateCalls = (router.navigateByUrl as ReturnType<typeof vi.fn>).mock.calls;
+    expect(navigateCalls.some(([url]) => String(url).includes('returnUrl='))).toBe(true);
+    httpMock.expectNone(`${API_BASE}/auth/refresh`);
+  });
+
+  it('should NOT call logout when retry after successful refresh returns 403 (403 is not auth, error propagates)', () => {
+    const errSpy = vi.fn();
+    http.get(`${API_BASE}/api/v1/anticipations`).subscribe({ error: errSpy });
+
+    httpMock.expectOne(`${API_BASE}/api/v1/anticipations`).flush(null, { status: 401, statusText: 'Unauthorized' });
+    const roleClaim = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
+    const payload = btoa(JSON.stringify({ sub: 'u1', [roleClaim]: 'Creator' }));
+    const newToken = `eyJ.${payload}.sig`;
+    httpMock.expectOne(`${API_BASE}/auth/refresh`).flush(makeTokensResponse(newToken));
+    const retryReq = httpMock.expectOne(`${API_BASE}/api/v1/anticipations`);
+    retryReq.flush(null, { status: 403, statusText: 'Forbidden' });
+
+    expect(auth.session()).not.toBeNull();
+    expect(router.navigateByUrl).not.toHaveBeenCalled();
+    expect(errSpy).toHaveBeenCalledTimes(1);
+    const err = (errSpy.mock.calls[0] as unknown[])[0];
+    expect(err).toBeDefined();
+    expect((err as { status?: number }).status).toBe(403);
+  });
+});
+
+describe('authTokenInterceptor — resposta 403 (contrato Opção A: 403 nunca auth, sempre propaga)', () => {
+  let http: HttpClient;
+  let httpMock: HttpTestingController;
+  let auth: AuthService;
+  let router: Router;
+
+  beforeEach(() => {
+    window.localStorage.clear();
+    const routerSpy = { navigateByUrl: vi.fn() as unknown as () => Promise<boolean> };
+
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(withInterceptors([authTokenInterceptor])),
+        provideHttpClientTesting(),
+        { provide: API_BASE_URL, useValue: API_BASE },
+        AuthService,
+        { provide: Router, useValue: routerSpy },
+      ],
+    });
+
+    http = TestBed.inject(HttpClient);
+    httpMock = TestBed.inject(HttpTestingController);
+    auth = TestBed.inject(AuthService);
+    router = TestBed.inject(Router);
+    auth.setSession(makeSession());
+  });
+
+  afterEach(() => {
+    httpMock.verify();
+    auth.logout();
+  });
+
+  it('should propagate 403 to subscriber and NOT call refresh or logout', () => {
+    const errSpy = vi.fn();
+    http.get(`${API_BASE}/api/v1/anticipations`).subscribe({ error: errSpy });
+
+    const apiReq = httpMock.expectOne(`${API_BASE}/api/v1/anticipations`);
+    apiReq.flush(null, { status: 403, statusText: 'Forbidden' });
+
+    expect(errSpy).toHaveBeenCalled();
+    expect(auth.session()).not.toBeNull();
+    expect(router.navigateByUrl).not.toHaveBeenCalled();
+    httpMock.expectNone(`${API_BASE}/auth/refresh`);
+  });
+
+  it('should propagate 403 from auth/refresh route without calling logout', () => {
+    const errSpy = vi.fn();
+    http.post(`${API_BASE}/auth/refresh`, { RefreshToken: 'x' }).subscribe({ error: errSpy });
+
+    const refreshReq = httpMock.expectOne(`${API_BASE}/auth/refresh`);
+    refreshReq.flush(null, { status: 403, statusText: 'Forbidden' });
+
+    expect(errSpy).toHaveBeenCalled();
+    expect(router.navigateByUrl).not.toHaveBeenCalled();
+    expect(auth.session()).not.toBeNull();
+  });
+
+  it('should propagate 403 when session has no refreshToken (no refresh, no logout)', () => {
+    auth.setSession(makeSession({ refreshToken: null }));
+    const errSpy = vi.fn();
+    http.get(`${API_BASE}/api/v1/anticipations`).subscribe({ error: errSpy });
+
+    httpMock.expectOne(`${API_BASE}/api/v1/anticipations`).flush(null, { status: 403, statusText: 'Forbidden' });
+
+    expect(errSpy).toHaveBeenCalled();
+    expect(auth.session()).not.toBeNull();
+    expect(router.navigateByUrl).not.toHaveBeenCalled();
+    httpMock.expectNone(`${API_BASE}/auth/refresh`);
+  });
+
+  it('should propagate 403 on retry without calling logout', () => {
+    const errSpy = vi.fn();
+    http.get(`${API_BASE}/api/v1/anticipations`).subscribe({ error: errSpy });
+
+    httpMock.expectOne(`${API_BASE}/api/v1/anticipations`).flush(null, { status: 401, statusText: 'Unauthorized' });
+    const roleClaim = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
+    const payload = btoa(JSON.stringify({ sub: 'u1', [roleClaim]: 'Creator' }));
+    httpMock.expectOne(`${API_BASE}/auth/refresh`).flush(makeTokensResponse(`eyJ.${payload}.sig`));
+    const retryReq = httpMock.expectOne(`${API_BASE}/api/v1/anticipations`);
+    retryReq.flush(null, { status: 403, statusText: 'Forbidden' });
+
+    expect(errSpy).toHaveBeenCalled();
+    expect(auth.session()).not.toBeNull();
+    expect(router.navigateByUrl).not.toHaveBeenCalled();
   });
 });

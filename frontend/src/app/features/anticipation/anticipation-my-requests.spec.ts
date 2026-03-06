@@ -69,7 +69,8 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
       const el = fixture.nativeElement as HTMLElement;
       expect(el.textContent).toContain('123.45');
       expect(el.textContent).toContain('110.00');
-      expect(el.textContent).toMatch(/\d{1,2}\/\d{1,2}\/\d{2,4}/);
+      // Coluna "Data da solicitacao" deve exibir data no formato dd/MM/yyyy (ex.: 20/02/2025)
+      expect(el.textContent).toContain('20/02/2025');
     });
 
     it('should build minimum columns for table (CA_RF1_1)', () => {
@@ -85,6 +86,33 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
       expect(header?.textContent).toContain('Valor');
       expect(header?.textContent).toContain('Valor liquido');
       expect(header?.textContent).toContain('Status');
+    });
+
+    it('should display friendly status label in table column (not enum value)', () => {
+      TestBed.configureTestingModule({
+        imports: [AnticipationRequestsTableComponent],
+      });
+      const fixture = TestBed.createComponent(AnticipationRequestsTableComponent);
+      fixture.componentInstance.requests = [
+        createRequest({ status: AnticipationRequestStatus.Pending }),
+        createRequest({ id: 'r2', status: AnticipationRequestStatus.Approved }),
+      ];
+      fixture.detectChanges();
+      const tags = fixture.nativeElement.querySelectorAll('[data-testid="request-status-tag"]');
+      expect(tags.length).toBe(2);
+      expect(tags[0].textContent?.trim()).toBe('Em analise');
+      expect(tags[1].textContent?.trim()).toBe('Aprovada');
+    });
+
+    it('should display friendly status label in detail (not enum value)', () => {
+      TestBed.configureTestingModule({
+        imports: [AnticipationRequestDetailComponent],
+      });
+      const fixture = TestBed.createComponent(AnticipationRequestDetailComponent);
+      fixture.componentInstance.request = createRequest({ status: AnticipationRequestStatus.Rejected });
+      fixture.detectChanges();
+      const statusEl = fixture.nativeElement.querySelector('[data-testid="request-status"]');
+      expect(statusEl?.textContent?.trim()).toBe('Recusada');
     });
 
     it('should call list service with current creator_id (CA_RF1_1)', async () => {
@@ -536,7 +564,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
       const el = fixture.nativeElement as HTMLElement;
       expect(el.querySelector('[data-testid="request-detail"]')).toBeTruthy();
       expect(el.querySelector('[data-testid="request-amount"]')?.textContent).toContain('500');
-      expect(el.querySelector('[data-testid="request-status"]')?.textContent).toContain('APPROVED');
+      expect(el.querySelector('[data-testid="request-status"]')?.textContent).toContain('Aprovada');
     });
 
     it('should show access denied message when request is not from creator (CA_RF1_4)', async () => {
@@ -864,7 +892,7 @@ describe('RF-1 Minhas solicitações de antecipação (Creator)', () => {
       fixture.componentInstance.requests = [createRequest({ status: AnticipationRequestStatus.Pending })];
       fixture.detectChanges();
       const tag = fixture.nativeElement.querySelector('[data-testid="request-status-tag"]');
-      expect(tag?.textContent).toContain('PENDING');
+      expect(tag?.textContent).toContain('Em analise');
     });
 
     it('should pass automated accessibility scan without critical issues', async () => {

@@ -1,11 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { AnticipationRequest } from '../../../../domain';
+import { AnticipationStatusLabelPipe } from '../../../../shared/pipes/anticipation-status-label.pipe';
 
 @Component({
   selector: 'app-anticipation-requests-table',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, AnticipationStatusLabelPipe],
   templateUrl: './anticipation-requests-table.component.html',
   styleUrl: './anticipation-requests-table.component.scss',
 })

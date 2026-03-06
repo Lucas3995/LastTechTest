@@ -60,9 +60,9 @@ public class GetAnticipationRequestByIdQueryHandlerTests
         result.CreatorId.Should().Be(creatorId);
     }
 
-    /// <summary>CA2 – Creator + id de outro: deve retornar erro de autorização (não os detalhes).</summary>
+    /// <summary>CA2 – Creator + id de outro: deve retornar erro de regra de negócio (400).</summary>
     [Fact]
-    public async Task Creator_WhenGettingOtherCreatorRequest_Should_ThrowUnauthorizedAccessException()
+    public async Task Creator_WhenGettingOtherCreatorRequest_Should_ThrowInvalidOperationException()
     {
         var creatorId = Guid.NewGuid();
         var otherCreatorId = Guid.NewGuid();
@@ -74,7 +74,7 @@ public class GetAnticipationRequestByIdQueryHandlerTests
         var query = new GetAnticipationRequestByIdQuery(entity.Id);
         var act = () => _sut.Handle(query, CancellationToken.None);
 
-        await act.Should().ThrowAsync<UnauthorizedAccessException>().WithMessage("*not allowed*");
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*not allowed*");
     }
 
     /// <summary>Id inexistente: deve retornar null (404 na API).</summary>

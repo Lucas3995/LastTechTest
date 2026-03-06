@@ -23,6 +23,26 @@
   gap: var(--spacing-sm, 0.5rem);
 }
 
+.shell__logout {
+  margin-left: auto;
+  padding: var(--spacing-sm) var(--spacing-md);
+  color: var(--mat-sys-primary, var(--color-primary));
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font: inherit;
+}
+
+.shell__logout:hover {
+  text-decoration: underline;
+}
+
+.shell__logout:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
 .shell__link {
   padding: var(--spacing-sm) var(--spacing-md);
   color: var(--mat-sys-primary, var(--color-primary));

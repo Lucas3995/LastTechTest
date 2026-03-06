@@ -179,5 +179,27 @@ test.describe('RF-1 Minhas solicitacoes de antecipacao (Creator) — E2E', () =>
     await expect(infoBanner).toBeVisible();
     await expect(infoBanner).toContainText(/Esta solicitacao ja foi cancelada/i);
   });
+
+  test('Plano 4 ajustes: table and detail show friendly status labels (not PENDING/APPROVED)', async ({
+    page,
+  }) => {
+    await page.goto(myRequestsUrl + '?fixture=many');
+
+    const firstStatusTag = page.locator('[data-testid="request-status-tag"]').first();
+    await expect(firstStatusTag).toBeVisible({ timeout: 10000 });
+    // Rótulos amigáveis: Em analise, Aprovada, Recusada, Cancelada pelo creator (não valores técnicos)
+    await expect(firstStatusTag).not.toContainText(/^PENDING$|^APPROVED$|^REJECTED$|^CANCELED_BY_CREATOR$/);
+    const tagText = await firstStatusTag.textContent();
+    const friendlyLabels = ['Em analise', 'Aprovada', 'Recusada', 'Cancelada pelo creator'];
+    expect(friendlyLabels.some((label) => tagText?.trim() === label)).toBe(true);
+
+    const firstRow = page.locator('[data-testid="requests-table-row"]').first();
+    await firstRow.click();
+
+    const detailStatus = page.getByTestId('request-status');
+    await expect(detailStatus).toBeVisible();
+    const detailText = await detailStatus.textContent();
+    expect(friendlyLabels.some((label) => detailText?.trim() === label)).toBe(true);
+  });
 });
 

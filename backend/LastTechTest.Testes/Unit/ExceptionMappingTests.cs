@@ -32,11 +32,11 @@ public sealed class ExceptionMappingTests
     }
 
     [Fact]
-    public async Task MapException_UnauthorizedAccessException_Returns_403()
+    public async Task MapException_UnauthorizedAccessException_Returns_401()
     {
-        var ex = new UnauthorizedAccessException("Forbidden.");
+        var ex = new UnauthorizedAccessException("Unauthorized.");
         var result = ExceptionMapping.MapException(ex);
-        (await GetStatusCodeAsync(result)).Should().Be(StatusCodes.Status403Forbidden);
+        (await GetStatusCodeAsync(result)).Should().Be(StatusCodes.Status401Unauthorized);
     }
 
     [Fact]
@@ -77,11 +77,11 @@ public sealed class ExceptionMappingTests
     }
 
     [Fact]
-    public void ToActionResult_UnauthorizedAccessException_Returns_403()
+    public void ToActionResult_UnauthorizedAccessException_Returns_401()
     {
-        var ex = new UnauthorizedAccessException("Forbidden.");
+        var ex = new UnauthorizedAccessException("Unauthorized.");
         var result = ExceptionMapping.ToActionResult(ex);
-        GetStatusCode(result).Should().Be(403);
+        GetStatusCode(result).Should().Be(401);
     }
 
     [Fact]

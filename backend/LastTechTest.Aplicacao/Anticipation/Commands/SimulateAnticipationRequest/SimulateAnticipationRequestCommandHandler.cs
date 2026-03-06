@@ -42,7 +42,7 @@ public sealed class SimulateAnticipationRequestCommandHandler : IRequestHandler<
 
         var creatorId = ResolveCreatorId(request.CreatorId, userId.Value, role);
         if (creatorId is null)
-            throw new UnauthorizedAccessException("Creator is not allowed to act on behalf of another creator.");
+            throw new InvalidOperationException("Creator is not allowed to act on behalf of another creator.");
 
         var (isValid, errorMessage) = _calculationService.ValidateWithinCreatorLimit(creatorId.Value, request.RequestedAmount);
         if (!isValid)
