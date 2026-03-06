@@ -1,8 +1,5 @@
 import {
-  AnticipationRequest,
   AnticipationRequestStatus,
-  AnticipationRequestsFilter,
-  CreateAnticipationRequestPayload,
   AnticipationSimulation,
   SimulationResult,
   ConversionResult,
@@ -160,7 +157,7 @@ describe('Domain Types - Anticipation Simulation', () => {
   describe('AnticipationRequestsPort interface extension', () => {
     it('should include simulateAnticipation method', () => {
       const port = {
-        simulateAnticipation: (payload: SimulateAnticipationPayload) => {
+        simulateAnticipation: () => {
           // returns Observable<SimulationResult>
         },
       };
@@ -170,10 +167,7 @@ describe('Domain Types - Anticipation Simulation', () => {
 
     it('should include convertSimulationToReal method', () => {
       const port = {
-        convertSimulationToReal: (
-          simulationCode: string,
-          creatorId?: string
-        ) => {
+        convertSimulationToReal: () => {
           // returns Observable<ConversionResult>
         },
       };
@@ -204,10 +198,10 @@ describe('Domain Types - Anticipation Simulation', () => {
         status: AnticipationRequestStatus.Pending,
         netAmount: 95000,
       };
-      expect(result).toHaveProperty('id');
-      expect(result).toHaveProperty('protocol');
-      expect(result).toHaveProperty('status');
-      expect(result).toHaveProperty('netAmount');
+      expect(result.id).toBeDefined();
+      expect(result.protocol).toBeDefined();
+      expect(result.status).toBeDefined();
+      expect(result.netAmount).toBeDefined();
     });
 
     it('should ensure SimulationError values are strings', () => {

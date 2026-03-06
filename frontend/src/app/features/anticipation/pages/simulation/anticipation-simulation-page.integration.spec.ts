@@ -112,7 +112,7 @@ describe('AnticipationSimulationPageComponent — Integration with Facade (T9)',
 
   const wait = (ms = 50) => new Promise(resolve => setTimeout(resolve, ms));
 
-  const waitForSignal = async (signalFn: () => unknown, match: (val: any) => boolean, timeout = 1000) => {
+  const waitForSignal = async (signalFn: () => unknown, match: (val: unknown) => boolean, timeout = 1000) => {
     const start = Date.now();
     while (!match(signalFn()) && Date.now() - start < timeout) {
       await wait(20);
@@ -208,7 +208,6 @@ describe('AnticipationSimulationPageComponent — Integration with Facade (T9)',
       await waitForSignal(() => facade.infoMessage(), (msg) => msg !== null);
       fixture.detectChanges();
 
-      // expect((facade as any).router.navigate).toHaveBeenCalledWith(['anticipation', 'my-requests']); // Flaky in containerized Vitest due to instance shadowing
     });
 
     it('should clear simulation result after conversion', async () => {
@@ -331,7 +330,7 @@ describe('AnticipationSimulationPageComponent — Integration with Facade (T9)',
       }));
 
       component.onSimulate({ requestedAmount: 2000 });
-      await waitForSignal(() => facade.simulationResult(), (res) => res?.simulationCode === 'SIM-SECOND');
+      await waitForSignal(() => facade.simulationResult(), (res) => (res as { simulationCode?: string })?.simulationCode === 'SIM-SECOND');
       fixture.detectChanges();
       expect(facade.simulationResult()?.simulationCode).toBe('SIM-SECOND');
     });

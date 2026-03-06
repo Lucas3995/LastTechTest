@@ -9,7 +9,6 @@ import { AnticipationSimulationFormComponent } from './anticipation-simulation-f
 describe('AnticipationSimulationFormComponent — RF-3 Form (CA-RF3-1, CA-RF3-2, CA-RF3-6)', () => {
   let component: AnticipationSimulationFormComponent;
   let fixture: ComponentFixture<AnticipationSimulationFormComponent>;
-  let formBuilder: FormBuilder;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -19,7 +18,6 @@ describe('AnticipationSimulationFormComponent — RF-3 Form (CA-RF3-1, CA-RF3-2,
 
     fixture = TestBed.createComponent(AnticipationSimulationFormComponent);
     component = fixture.componentInstance;
-    formBuilder = TestBed.inject(FormBuilder);
   });
 
   describe('Form initialization', () => {
@@ -141,7 +139,8 @@ describe('AnticipationSimulationFormComponent — RF-3 Form (CA-RF3-1, CA-RF3-2,
 
       const emitSpy = vi.spyOn(component.submit, 'emit');
       component.onSubmit();
-      expect((emitSpy as any).mock.calls[0][0].creatorId).toEqual('creator-for-admin');
+      const callArgs = emitSpy.mock.calls[0] as unknown as [{ creatorId?: string }];
+      expect(callArgs[0].creatorId).toEqual('creator-for-admin');
     });
 
     it('should not include creatorId in payload for Creator', () => {
@@ -153,7 +152,8 @@ describe('AnticipationSimulationFormComponent — RF-3 Form (CA-RF3-1, CA-RF3-2,
 
       const emitSpy = vi.spyOn(component.submit, 'emit');
       component.onSubmit();
-      expect((emitSpy as any).mock.calls[0][0].creatorId).toEqual(undefined);
+      const callArgs = emitSpy.mock.calls[0] as unknown as [{ creatorId?: string }];
+      expect(callArgs[0].creatorId).toEqual(undefined);
     });
   });
 

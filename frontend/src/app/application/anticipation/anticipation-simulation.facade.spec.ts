@@ -5,7 +5,7 @@
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
-import { vi } from 'vitest';
+import { Mock, vi } from 'vitest';
 
 import {
   AnticipationRequestStatus,
@@ -19,7 +19,7 @@ describe('AnticipationSimulationFacade — RF-3 Simulação (CA-RF3-1 a CA-RF3-6
   let facade: AnticipationSimulationFacade;
   let simulatePortSpy: ReturnType<typeof vi.fn>;
   let convertPortSpy: ReturnType<typeof vi.fn>;
-  let routerSpy: ReturnType<typeof vi.fn>;
+  let routerSpy: Mock;
 
   beforeEach(() => {
     simulatePortSpy = vi.fn().mockReturnValue(
@@ -73,7 +73,7 @@ describe('AnticipationSimulationFacade — RF-3 Simulação (CA-RF3-1 a CA-RF3-6
       ],
     });
     facade = TestBed.inject(AnticipationSimulationFacade);
-    routerSpy = vi.spyOn(TestBed.inject(Router), 'navigate') as any;
+    routerSpy = vi.spyOn(TestBed.inject(Router), 'navigate') as Mock;
   });
 
   describe('Signals state initialization', () => {

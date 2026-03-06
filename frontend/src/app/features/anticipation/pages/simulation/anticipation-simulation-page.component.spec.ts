@@ -6,7 +6,7 @@ import 'zone.js/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { of } from 'rxjs';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { vi, describe, it, expect, beforeEach, Mock } from 'vitest';
 import { CommonModule } from '@angular/common';
 import {
   AnticipationSimulationFacade,
@@ -17,7 +17,7 @@ import {
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { API_BASE_URL } from '../../../../core/api-base-url';
 import { AuthService } from '../../../../core/auth/auth.service';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { ActivatedRoute } from '@angular/router';
 import { AnticipationSimulationPageComponent } from './anticipation-simulation-page.component';
 
@@ -25,20 +25,20 @@ describe('AnticipationSimulationPageComponent — RF-3 Page (CA-RF3-1 a CA-RF3-6
   let component: AnticipationSimulationPageComponent;
   let fixture: ComponentFixture<AnticipationSimulationPageComponent>;
   let facadeSpy: {
-    simulationResult: any;
-    loading: any;
-    errorMessage: any;
-    infoMessage: any;
-    canConvert: any;
-    creatorIdForSimulation: any;
-    simulate: any;
-    convertToRealRequest: any;
-    reset: any;
-    setCreatorIdForSimulation: any;
-    errorSupportId: any;
-    isConverting: any;
+    simulationResult: Mock;
+    loading: Mock;
+    errorMessage: Mock;
+    infoMessage: Mock;
+    canConvert: Mock;
+    creatorIdForSimulation: Mock;
+    simulate: Mock;
+    convertToRealRequest: Mock;
+    reset: Mock;
+    setCreatorIdForSimulation: Mock;
+    errorSupportId: Mock;
+    isConverting: Mock;
   };
-  let routerSpy: { navigate: any };
+  let routerSpy: { navigate: Mock };
 
   beforeEach(async () => {
     facadeSpy = {
@@ -184,7 +184,7 @@ describe('AnticipationSimulationPageComponent — RF-3 Page (CA-RF3-1 a CA-RF3-6
     it('should call facade.convertToRealRequest on convert click', async () => {
       const dialogRefSpy = { afterClosed: vi.fn(() => of(true)) };
       const dialogSpy = TestBed.inject(MatDialog);
-      vi.spyOn(dialogSpy, 'open').mockReturnValue(dialogRefSpy as any);
+      vi.spyOn(dialogSpy, 'open').mockReturnValue(dialogRefSpy as unknown as MatDialogRef<ConfirmConversionDialogComponent>);
 
       await component.onConvertClick();
 
@@ -357,7 +357,7 @@ describe('AnticipationSimulationPageComponent — RF-3 Page (CA-RF3-1 a CA-RF3-6
     it('should navigate to my-requests after successful conversion', async () => {
       const dialogRefSpy = { afterClosed: vi.fn(() => of(true)) };
       const dialogSpy = TestBed.inject(MatDialog);
-      vi.spyOn(dialogSpy, 'open').mockReturnValue(dialogRefSpy as any);
+      vi.spyOn(dialogSpy, 'open').mockReturnValue(dialogRefSpy as unknown as MatDialogRef<ConfirmConversionDialogComponent>);
 
       facadeSpy.convertToRealRequest.mockReturnValue(Promise.resolve());
 
