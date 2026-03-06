@@ -32,7 +32,7 @@
       [isSubmitting]="isSubmitting"
       [errorMessage]="errorMessage()"
       [creatorIdForSimulation]="creatorIdForSimulation"
-      (submit)="onSimulate($event)"
+      (simulationRequested)="onSimulate($event)"
       (creatorSelected)="onCreatorSelected($event)">
     </app-anticipation-simulation-form>
   </section>

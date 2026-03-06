@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { SimulateAnticipationPayload } from '../../../../domain';
@@ -13,21 +13,19 @@ import { SimulateAnticipationPayload } from '../../../../domain';
 export class AnticipationSimulationFormComponent implements OnInit {
 
   @Input() isSubmitting = false;
-  @Input() userRole: string = 'Creator';
+  @Input() userRole = 'Creator';
   @Input() errorMessage?: string | null;
   @Input() creatorIdForSimulation?: string;
 
-  @Output() submit = new EventEmitter<SimulateAnticipationPayload>();
+  @Output() simulationRequested = new EventEmitter<SimulateAnticipationPayload>();
   @Output() creatorSelected = new EventEmitter<string>();
 
-  form: FormGroup;
+  private fb = inject(FormBuilder);
 
-  constructor(private fb: FormBuilder) {
-    this.form = this.fb.group({
-      requestedAmount: ['', [Validators.required, Validators.min(100), Validators.pattern(/^[0-9]+$/)]], // apenas números, mín 100
-      creatorId: [''] // para Admin/Analista
-    });
-  }
+  form = this.fb.group({
+    requestedAmount: ['', [Validators.required, Validators.min(100), Validators.pattern(/^[0-9]+$/)]], // apenas números, mín 100
+    creatorId: [''] // para Admin/Analista
+  }) as FormGroup;
 
   ngOnInit(): void {
     // Se creatorId fornecido, pré-popular
@@ -42,7 +40,7 @@ export class AnticipationSimulationFormComponent implements OnInit {
         requestedAmount: this.form.value.requestedAmount,
         creatorId: this.form.value.creatorId || undefined
       };
-      this.submit.emit(payload);
+      this.simulationRequested.emit(payload);
     }
   }
 

@@ -70,7 +70,7 @@ describe('AnticipationSimulationFormComponent — RF-3 Form (CA-RF3-1, CA-RF3-2,
 
   describe('Submit behavior — CA-RF3-1', () => {
     it('should emit submit event with payload', () => {
-      const emitSpy = vi.spyOn(component.submit, 'emit');
+      const emitSpy = vi.spyOn(component.simulationRequested, 'emit');
       component.form.patchValue({ requestedAmount: 500 });
       component.onSubmit();
       expect(emitSpy).toHaveBeenCalledWith({ requestedAmount: 500, creatorId: undefined });
@@ -78,7 +78,7 @@ describe('AnticipationSimulationFormComponent — RF-3 Form (CA-RF3-1, CA-RF3-2,
 
     it('should not emit submit when form invalid', () => {
       let emitted = false;
-      component.submit.subscribe(() => {
+      component.simulationRequested.subscribe(() => {
         emitted = true;
       });
 
@@ -137,7 +137,7 @@ describe('AnticipationSimulationFormComponent — RF-3 Form (CA-RF3-1, CA-RF3-2,
         creatorId: 'creator-for-admin',
       });
 
-      const emitSpy = vi.spyOn(component.submit, 'emit');
+      const emitSpy = vi.spyOn(component.simulationRequested, 'emit');
       component.onSubmit();
       const callArgs = emitSpy.mock.calls[0] as unknown as [{ creatorId?: string }];
       expect(callArgs[0].creatorId).toEqual('creator-for-admin');
@@ -150,7 +150,7 @@ describe('AnticipationSimulationFormComponent — RF-3 Form (CA-RF3-1, CA-RF3-2,
         creatorId: undefined,
       });
 
-      const emitSpy = vi.spyOn(component.submit, 'emit');
+      const emitSpy = vi.spyOn(component.simulationRequested, 'emit');
       component.onSubmit();
       const callArgs = emitSpy.mock.calls[0] as unknown as [{ creatorId?: string }];
       expect(callArgs[0].creatorId).toEqual(undefined);
