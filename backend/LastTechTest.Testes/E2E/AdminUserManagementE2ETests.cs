@@ -99,6 +99,57 @@ public class AdminUserManagementE2ETests : IClassFixture<CustomWebApplicationFac
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
+    [Fact]
+    public async Task RF6_T3_GetUsers_AsAdmin_ShouldReturnOk()
+    {
+        var client = _factory.CreateClient();
+
+        var adminLogin = await client.PostAsJsonAsync("/auth/login", new
+        {
+            Email = "usu_acesso_total@example.com",
+            Password = "Acess0@t0ta1"
+        });
+        adminLogin.StatusCode.Should().Be(HttpStatusCode.OK);
+        var adminTokens = await adminLogin.Content.ReadFromJsonAsync<AuthTokensDtoLike>();
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", adminTokens!.AccessToken);
+
+        var response = await client.GetAsync("/auth/admin/users");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task RF6_T3_GetUsers_AsCreator_ShouldReturnForbidden()
+    {
+        var client = _factory.CreateClient();
+
+        var adminLogin = await client.PostAsJsonAsync("/auth/login", new
+        {
+            Email = "usu_acesso_total@example.com",
+            Password = "Acess0@t0ta1"
+        });
+        adminLogin.StatusCode.Should().Be(HttpStatusCode.OK);
+        var adminTokens = await adminLogin.Content.ReadFromJsonAsync<AuthTokensDtoLike>();
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", adminTokens!.AccessToken);
+
+        var creatorEmail = $"rf6-list-creator-{Guid.NewGuid():N}@example.com";
+        var createResponse = await client.PostAsJsonAsync("/auth/admin/users", new { Email = creatorEmail, Roles = new[] { "Creator" } });
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        client.DefaultRequestHeaders.Authorization = null;
+        var creatorLogin = await client.PostAsJsonAsync("/auth/login", new { Email = creatorEmail, Password = "Trocar@123" });
+        creatorLogin.StatusCode.Should().Be(HttpStatusCode.OK);
+        var creatorTokens = await creatorLogin.Content.ReadFromJsonAsync<AuthTokensDtoLike>();
+
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", creatorTokens!.AccessToken);
+        var response = await client.GetAsync("/auth/admin/users");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
     private sealed class AuthTokensDtoLike
     {
         public string AccessToken { get; set; } = string.Empty;

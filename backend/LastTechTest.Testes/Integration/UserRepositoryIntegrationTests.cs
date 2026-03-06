@@ -44,6 +44,37 @@ public class UserRepositoryIntegrationTests : IAsyncLifetime
         loaded!.Id.Should().Be(user.Id);
     }
 
+    [Fact]
+    public async Task RF6_T2_ListAsync_ShouldReturnUsers_WithBasicConsistency()
+    {
+        var first = new User();
+        first.SetEmail($"rf6-first-{Guid.NewGuid():N}@example.com");
+        first.SetPasswordHash("hash-1");
+        await _repository.AddAsync(first);
+
+        var second = new User();
+        second.SetEmail($"rf6-second-{Guid.NewGuid():N}@example.com");
+        second.SetPasswordHash("hash-2");
+        await _repository.AddAsync(second);
+
+        var listMethod = typeof(UserRepository).GetMethod("ListAsync", new[] { typeof(CancellationToken) });
+        listMethod.Should().NotBeNull("RF-6 requires UserRepository.ListAsync(CancellationToken)");
+
+        var task = listMethod!.Invoke(_repository, new object[] { CancellationToken.None }) as Task;
+        task.Should().NotBeNull();
+        await task!;
+
+        var resultObj = task.GetType().GetProperty("Result")?.GetValue(task);
+        resultObj.Should().NotBeNull();
+
+        var rows = ((System.Collections.IEnumerable)resultObj!).Cast<object>().ToList();
+        rows.Should().NotBeEmpty();
+        rows.Select(x => x.GetType().GetProperty("Email")?.GetValue(x)?.ToString())
+            .Should()
+            .Contain(first.Email)
+            .And.Contain(second.Email);
+    }
+
     public Task InitializeAsync() => Task.CompletedTask;
 
     public async Task DisposeAsync()

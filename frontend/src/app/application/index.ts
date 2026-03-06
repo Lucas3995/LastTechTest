@@ -5,3 +5,4 @@
 
 export * from './anticipation/anticipation-admin-list.facade';
 export * from './anticipation/anticipation-my-requests.facade';
+export * from './auth/admin.facade';

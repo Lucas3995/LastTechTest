@@ -114,5 +114,36 @@ describe('AuthGuard', () => {
       expect(result).toBe(true);
     }
   });
-});
 
+  it('RF-6 T6 / CA5: deve negar Creator na rota /admin/users com requiredRoles Admin', () => {
+    isAuthenticatedFn.mockReturnValue(true);
+    currentUserFn.mockReturnValue({ role: 'Creator' } as AuthUser);
+
+    TestBed.runInInjectionContext(() =>
+      AuthGuard(
+        {
+          data: { requiredRoles: ['Admin'] },
+        } as unknown as ActivatedRouteSnapshot,
+        { url: '/admin/users' } as unknown as RouterStateSnapshot,
+      ),
+    );
+
+    expect(createUrlTree).toHaveBeenCalledWith(['/']);
+  });
+
+  it('RF-6 T6 / CA5: deve permitir Admin na rota /admin/users com requiredRoles Admin', () => {
+    isAuthenticatedFn.mockReturnValue(true);
+    currentUserFn.mockReturnValue({ role: 'Admin' } as AuthUser);
+
+    const result = TestBed.runInInjectionContext(() =>
+      AuthGuard(
+        {
+          data: { requiredRoles: ['Admin'] },
+        } as unknown as ActivatedRouteSnapshot,
+        { url: '/admin/users' } as unknown as RouterStateSnapshot,
+      ),
+    );
+
+    expect(result).toBe(true);
+  });
+});

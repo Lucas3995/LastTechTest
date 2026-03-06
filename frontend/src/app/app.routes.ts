@@ -51,6 +51,15 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'admin/users',
+    canActivate: [AuthGuard],
+    data: { requiredRoles: ['Admin'] },
+    loadComponent: () =>
+      import('./features/auth/pages/admin-users/admin-users-page.component').then(
+        (m) => m.AdminUsersPageComponent,
+      ),
+  },
+  {
     path: 'login',
     redirectTo: '',
     pathMatch: 'full',

@@ -45,6 +45,10 @@ docker-compose.override.yml
 node_modules/
 dist/
 build/
+frontend/playwright-report/
+frontend/test-results/
+frontend/dist_root_backup_*/
+frontend/node_modules_root_backup_*/
 
 ## Ferramentas de configuração de IA (manter fora do controle de versão)
 .cursor/
