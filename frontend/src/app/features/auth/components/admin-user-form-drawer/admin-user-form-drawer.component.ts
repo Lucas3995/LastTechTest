@@ -29,7 +29,7 @@ export class AdminUserFormDrawerComponent {
   @Input() backendErrorMessage: string | null = null;
 
   @Output() save = new EventEmitter<CreateAdminUserPayload>();
-  @Output() close = new EventEmitter<void>();
+  @Output() drawerClose = new EventEmitter<void>();
 
   readonly roleOptions = ['Creator', 'Analista', 'Admin'];
 
@@ -52,6 +52,6 @@ export class AdminUserFormDrawerComponent {
   }
 
   onClose(): void {
-    this.close.emit();
+    this.drawerClose.emit();
   }
 }
