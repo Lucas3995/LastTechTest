@@ -6,7 +6,6 @@ import { of, throwError } from 'rxjs';
 import { vi } from 'vitest';
 
 import {
-  AnticipationRequest,
   AnticipationRequestStatus,
   ANTICIPATION_REQUESTS_PORT,
   CreateAnticipationRequestPayload,
