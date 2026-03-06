@@ -6,14 +6,14 @@ import { vi } from 'vitest';
 import { API_BASE_URL } from '../../core/api-base-url';
 import * as Domain from '../../domain';
 
-type ChangePasswordServiceModule = {
+interface ChangePasswordServiceModule {
   AuthChangePasswordService?: new () => {
     changePassword(payload: { currentPassword: string; newPassword: string }): unknown;
   };
-};
+}
 
 async function loadServiceModule(): Promise<ChangePasswordServiceModule | null> {
-  const modulePath: string = './change-password.service';
+  const modulePath = './change-password.service';
   try {
     return (await import(/* @vite-ignore */ modulePath)) as ChangePasswordServiceModule;
   } catch {
@@ -60,7 +60,7 @@ describe('RF-8 Infrastructure HTTP — change password service (T-RF8-02)', () =
       service.changePassword({
         currentPassword: 'Atual@123',
         newPassword: 'Nova@123',
-      }) as never,
+      }) as never
     );
 
     expect(postSpy).toHaveBeenCalledWith(`${BASE_URL}/auth/change-password`, {
@@ -105,8 +105,8 @@ describe('RF-8 Infrastructure HTTP — change password service (T-RF8-02)', () =
         service.changePassword({
           currentPassword: 'Errada@123',
           newPassword: 'Nova@123',
-        }) as never,
-      ),
+        }) as never
+      )
     ).rejects.toEqual(httpError);
   });
 });

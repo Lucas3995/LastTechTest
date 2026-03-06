@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 
-type ChangePasswordPageModule = {
+interface ChangePasswordPageModule {
   ChangePasswordPageComponent?: new () => {
     form: {
       controls: Record<string, { setValue(value: string): void }>;
@@ -12,10 +12,10 @@ type ChangePasswordPageModule = {
     errorMessage: () => string | null;
     onSubmit(): Promise<void> | void;
   };
-};
+}
 
 async function loadPageModule(): Promise<ChangePasswordPageModule | null> {
-  const modulePath: string = './change-password-page.component';
+  const modulePath = './change-password-page.component';
   try {
     return (await import(/* @vite-ignore */ modulePath)) as ChangePasswordPageModule;
   } catch {
@@ -54,7 +54,9 @@ describe('RF-8 Feature page — change password (T-RF8-04)', () => {
 
     fixture.detectChanges();
 
-    const submit = fixture.nativeElement.querySelector('button[type="submit"]') as HTMLButtonElement | null;
+    const submit = fixture.nativeElement.querySelector(
+      'button[type="submit"]'
+    ) as HTMLButtonElement | null;
     expect(component.form.invalid).toBe(true);
     expect(submit?.disabled).toBe(true);
   });
@@ -84,7 +86,9 @@ describe('RF-8 Feature page — change password (T-RF8-04)', () => {
     await component.onSubmit();
     fixture.detectChanges();
 
-    const submit = fixture.nativeElement.querySelector('button[type="submit"]') as HTMLButtonElement | null;
+    const submit = fixture.nativeElement.querySelector(
+      'button[type="submit"]'
+    ) as HTMLButtonElement | null;
     const status = fixture.nativeElement.querySelector('[role="status"]');
 
     expect(component.form.valid).toBe(true);

@@ -4,7 +4,7 @@ import { vi } from 'vitest';
 
 import * as Domain from '../../domain';
 
-type ChangePasswordFacadeModule = {
+interface ChangePasswordFacadeModule {
   ChangePasswordFacade?: new () => {
     loading(): boolean;
     successMessage(): string | null;
@@ -17,10 +17,10 @@ type ChangePasswordFacadeModule = {
       confirmNewPassword: string;
     }): Promise<void>;
   };
-};
+}
 
 async function loadFacadeModule(): Promise<ChangePasswordFacadeModule | null> {
-  const modulePath: string = './change-password.facade';
+  const modulePath = './change-password.facade';
   try {
     return (await import(/* @vite-ignore */ modulePath)) as ChangePasswordFacadeModule;
   } catch {
@@ -61,7 +61,9 @@ describe('RF-8 Application facade — change password (T-RF8-03)', () => {
       ],
     });
 
-    const facade = TestBed.inject(FacadeCtor as never) as InstanceType<NonNullable<typeof FacadeCtor>>;
+    const facade = TestBed.inject(FacadeCtor as never) as InstanceType<
+      NonNullable<typeof FacadeCtor>
+    >;
 
     await facade.submit({
       currentPassword: 'Atual@123',
@@ -98,7 +100,9 @@ describe('RF-8 Application facade — change password (T-RF8-03)', () => {
       ],
     });
 
-    const facade = TestBed.inject(FacadeCtor as never) as InstanceType<NonNullable<typeof FacadeCtor>>;
+    const facade = TestBed.inject(FacadeCtor as never) as InstanceType<
+      NonNullable<typeof FacadeCtor>
+    >;
 
     await facade.submit({
       currentPassword: 'Atual@123',
@@ -158,7 +162,9 @@ describe('RF-8 Application facade — change password (T-RF8-03)', () => {
       ],
     });
 
-    const facade = TestBed.inject(FacadeCtor as never) as InstanceType<NonNullable<typeof FacadeCtor>>;
+    const facade = TestBed.inject(FacadeCtor as never) as InstanceType<
+      NonNullable<typeof FacadeCtor>
+    >;
 
     await facade.submit({
       currentPassword: 'Errada@123',
