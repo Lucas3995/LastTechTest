@@ -46,5 +46,5 @@ node_modules/
 dist/
 build/
 
-## Ferramentas do Cursor (manter fora do controle de versão)
-# .cursor/
+## Ferramentas de configuração de IA (manter fora do controle de versão)
+ .cursor/
