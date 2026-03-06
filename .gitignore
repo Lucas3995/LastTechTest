@@ -47,4 +47,4 @@ dist/
 build/
 
 ## Ferramentas de configuração de IA (manter fora do controle de versão)
- .cursor/
+.cursor/
