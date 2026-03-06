@@ -5,3 +5,4 @@
  */
 
 export * from './anticipation';
+export * from './error-presentation';

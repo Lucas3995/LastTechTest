@@ -1,8 +1,17 @@
 import { inject, Injectable, signal } from '@angular/core';
-import { AnticipationRequest, AnticipationRequestsFilter } from '../../domain';
-import { AnticipationRequestsHttpService } from '../../infrastructure/anticipation/anticipation-requests.http.service';
+import {
+  ANTICIPATION_REQUESTS_PORT,
+  AnticipationRequest,
+  AnticipationRequestsFilter,
+  ERROR_PRESENTATION_BUILDER,
+  type ErrorPresentation,
+} from '../../domain';
 import { firstValueFrom } from 'rxjs';
-import { buildErrorPresentation } from './backend-error.util';
+
+/** Minimal fallback when ERROR_PRESENTATION_BUILDER is not provided (e.g. in tests). Application layer does not depend on shared. */
+function defaultErrorPresentation(_error: unknown, contextMessage: string): ErrorPresentation {
+  return { contextMessage };
+}
 
 @Injectable({
   providedIn: 'root',
@@ -24,7 +33,9 @@ export class AnticipationMyRequestsFacade {
   readonly errorSupportId = this._errorSupportId.asReadonly();
   readonly selectedRequest = this._selectedRequest.asReadonly();
 
-  private readonly httpService = inject(AnticipationRequestsHttpService);
+  private readonly httpService = inject(ANTICIPATION_REQUESTS_PORT);
+  private readonly buildErrorPresentation =
+    inject(ERROR_PRESENTATION_BUILDER, { optional: true }) ?? defaultErrorPresentation;
 
   async loadInitialRequests(): Promise<void> {
     const now = new Date();
@@ -60,7 +71,7 @@ export class AnticipationMyRequestsFacade {
       this._selectedRequest.set(request);
     } catch (error) {
       console.error('RF-1 selectRequest error', error);
-      const presentation = buildErrorPresentation(
+      const presentation = this.buildErrorPresentation(
         error,
         'Nao foi possivel carregar os detalhes da solicitacao.',
       );
@@ -83,7 +94,7 @@ export class AnticipationMyRequestsFacade {
       this._infoMessage.set('Solicitacao cancelada com sucesso.');
     } catch (error) {
       console.error('RF-1 cancelRequest error', error);
-      const presentation = buildErrorPresentation(
+      const presentation = this.buildErrorPresentation(
         error,
         'Nao foi possivel cancelar a solicitacao agora.',
       );
@@ -110,7 +121,7 @@ export class AnticipationMyRequestsFacade {
       this._requests.set(items);
     } catch (error) {
       console.error('RF-1 loadWithFilter error', error);
-      const presentation = buildErrorPresentation(
+      const presentation = this.buildErrorPresentation(
         error,
         'Nao foi possivel carregar suas solicitacoes de antecipacao.',
       );

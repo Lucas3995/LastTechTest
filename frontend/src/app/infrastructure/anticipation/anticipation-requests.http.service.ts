@@ -4,6 +4,7 @@ import {
   AnticipationRequest,
   AnticipationRequestStatus,
   AnticipationRequestsFilter,
+  AnticipationRequestsPort,
 } from '../../domain';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -48,10 +49,8 @@ interface CancelAnticipationRequestResponseBackend {
   alreadyCanceled: boolean;
 }
 
-@Injectable({
-  providedIn: 'root',
-})
-export class AnticipationRequestsHttpService {
+@Injectable()
+export class AnticipationRequestsHttpService implements AnticipationRequestsPort {
   private readonly http = inject(HttpClient);
   private readonly apiBaseUrl = inject(API_BASE_URL);
   private readonly baseUrl = `${this.apiBaseUrl}/api/v1/anticipations`;

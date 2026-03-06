@@ -1,15 +1,10 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { ErrorPresentation } from '../../domain';
 
 export interface BackendErrorPayload {
   code?: string;
   message?: string;
   traceId?: string;
-}
-
-export interface ErrorPresentation {
-  contextMessage: string;
-  detailMessage?: string;
-  supportId?: string;
 }
 
 export function buildErrorPresentation(
@@ -48,4 +43,3 @@ export function buildErrorPresentation(
     contextMessage,
   };
 }
-
