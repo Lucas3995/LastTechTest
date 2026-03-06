@@ -29,7 +29,8 @@ public sealed class GetAnticipationRequestByIdQueryHandler : IRequestHandler<Get
             return null;
 
         var role = _currentUser.GetRole();
-        if (role != KnownRoles.Admin && entity.CreatorId != userId)
+        var hasGlobalReadAccess = role == KnownRoles.Admin || role == KnownRoles.Analista;
+        if (!hasGlobalReadAccess && entity.CreatorId != userId)
             throw new InvalidOperationException("You are not allowed to access this request.");
 
         return new GetAnticipationRequestByIdResponse(

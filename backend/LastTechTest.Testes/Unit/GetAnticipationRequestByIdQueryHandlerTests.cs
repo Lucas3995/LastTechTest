@@ -42,6 +42,25 @@ public class GetAnticipationRequestByIdQueryHandlerTests
         result.NetAmount.Should().Be(98m);
     }
 
+    /// <summary>CA-RF7-2 – Analista: consulta por id deve retornar detalhes para solicitação de outro creator.</summary>
+    [Fact]
+    public async Task Analista_WhenGettingOtherCreatorRequest_Should_ReturnDetails()
+    {
+        var analistaUserId = Guid.NewGuid();
+        var creatorId = Guid.NewGuid();
+        var entity = AnticipationRequest.Create(creatorId, 100m, 100m, 2m, 98m);
+        _currentUser.Setup(x => x.GetCurrentUserId()).Returns(analistaUserId);
+        _currentUser.Setup(x => x.GetRole()).Returns("Analista");
+        _repository.Setup(x => x.GetByIdAsync(entity.Id, It.IsAny<CancellationToken>())).ReturnsAsync(entity);
+
+        var query = new GetAnticipationRequestByIdQuery(entity.Id);
+        var result = await _sut.Handle(query, CancellationToken.None);
+
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(entity.Id);
+        result.CreatorId.Should().Be(creatorId);
+    }
+
     /// <summary>Creator + id próprio: deve retornar detalhes (CA2 happy path).</summary>
     [Fact]
     public async Task Creator_WhenGettingOwnRequest_Should_ReturnDetails()

@@ -84,6 +84,33 @@ public class ListAnticipationRequestsQueryHandlerTests
             Times.Once);
     }
 
+    /// <summary>CA-RF7-1 – Analista: listagem deve operar visão global sem forçar creator_id do token.</summary>
+    [Fact]
+    public async Task Analista_WhenListing_Should_NotForceCreatorFilterFromToken()
+    {
+        var analistaUserId = Guid.NewGuid();
+        var filterCreatorId = Guid.NewGuid();
+        _currentUser.Setup(x => x.GetCurrentUserId()).Returns(analistaUserId);
+        _currentUser.Setup(x => x.GetRole()).Returns("Analista");
+
+        var entity = AnticipationRequest.Create(filterCreatorId, 120m, 120m, 2.4m, 117.6m);
+        _repository
+            .Setup(x => x.ListAsync(It.Is<ListAnticipationRequestsFilter>(f => f.CreatorId == filterCreatorId && f.Page == 1 && f.PageSize == 20), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((new List<AnticipationRequest> { entity }, 1));
+
+        var query = new ListAnticipationRequestsQuery(CreatorId: filterCreatorId, Status: null, FromUtc: null, ToUtc: null, Page: 1, PageSize: 20);
+        var result = await _sut.Handle(query, CancellationToken.None);
+
+        result.Should().NotBeNull();
+        result.TotalCount.Should().Be(1);
+        result.Items.Should().HaveCount(1);
+        result.Items[0].CreatorId.Should().Be(filterCreatorId);
+        _repository.Verify(
+            x => x.ListAsync(It.Is<ListAnticipationRequestsFilter>(f => f.CreatorId == filterCreatorId && f.Page == 1 && f.PageSize == 20), It.IsAny<CancellationToken>()),
+            Times.Once,
+            "Analista must use global listing semantics instead of forcing token creator_id");
+    }
+
     /// <summary>CA5 – Paginação: handler deve repassar page e pageSize e retornar TotalCount e Items.</summary>
     [Fact]
     public async Task Pagination_Should_PassPageAndPageSize_AndReturnTotalCountAndItems()

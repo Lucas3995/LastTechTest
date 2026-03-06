@@ -22,6 +22,7 @@ const SHELL_NAV_ITEMS: ShellNavItem[] = [
   { path: '/home', label: 'Home', roles: ['Creator', 'Analista', 'Admin'] },
   { path: '/anticipation/my-requests', label: 'Minhas antecipações', roles: ['Creator', 'Admin'] },
   { path: '/anticipation/list', label: 'Lista global de solicitações', roles: ['Analista', 'Admin'] },
+  { path: '/auth/change-password', label: 'Alterar senha', roles: ['Creator', 'Analista'] },
   { path: '/admin/users', label: 'Gestão de Usuários', roles: ['Admin'] },
 ];
 

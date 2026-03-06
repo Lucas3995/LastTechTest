@@ -27,7 +27,8 @@ public sealed class ListAnticipationRequestsQueryHandler : IRequestHandler<ListA
         var userId = _currentUser.EnsureAuthenticated();
 
         var role = _currentUser.GetRole();
-        Guid? creatorFilter = role == KnownRoles.Admin ? request.CreatorId : userId;
+        var hasGlobalReadAccess = role == KnownRoles.Admin || role == KnownRoles.Analista;
+        Guid? creatorFilter = hasGlobalReadAccess ? request.CreatorId : userId;
 
         var statusFilter = request.Status.HasValue && Enum.IsDefined(typeof(AnticipationRequestStatus), request.Status.Value)
             ? (AnticipationRequestStatus?)request.Status.Value

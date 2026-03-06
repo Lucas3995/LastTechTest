@@ -49,14 +49,15 @@ describe('AnticipationAdminRequestsPageComponent — RF-2 (T3)', () => {
     });
   });
 
-  it('should show page title and subtitle', async () => {
+  it('RF-7 CA-RF7-5: should show shared internal operation microcopy (Admin/Analista)', async () => {
     const fixture = TestBed.createComponent(AnticipationAdminRequestsPageComponent);
     fixture.detectChanges();
     await fixture.whenStable();
 
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.querySelector('h1')?.textContent).toContain('visão Admin');
-    expect(el.textContent).toContain('Lista global');
+    expect(el.querySelector('h1')?.textContent).toContain('Operações internas');
+    expect(el.textContent).toContain('Admin e Analista');
+    expect(el.textContent).not.toContain('visão Admin');
   });
 
   it('should pass filter output to facade applyFilters', async () => {

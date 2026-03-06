@@ -51,6 +51,15 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'auth/change-password',
+    canActivate: [AuthGuard],
+    data: { requiredRoles: ['Creator', 'Analista'] },
+    loadComponent: () =>
+      import('./features/auth/pages/change-password/change-password-page.component').then(
+        (m) => m.ChangePasswordPageComponent,
+      ),
+  },
+  {
     path: 'admin/users',
     canActivate: [AuthGuard],
     data: { requiredRoles: ['Admin'] },

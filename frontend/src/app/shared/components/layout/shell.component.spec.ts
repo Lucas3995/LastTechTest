@@ -93,7 +93,7 @@ describe('ShellComponent — RF-2 Lista global menu (T7)', () => {
     return { fixture };
   };
 
-  it('should show Lista global menu item for Admin role', () => {
+  it('RF-7 CA-RF7-3: should show Lista global menu item for Admin role', () => {
     const { fixture } = setupWithRole('Admin');
     const nav = fixture.nativeElement.querySelector('nav');
     expect(nav?.textContent).toMatch(/Lista global/);
@@ -103,7 +103,7 @@ describe('ShellComponent — RF-2 Lista global menu (T7)', () => {
     expect(link).toBeTruthy();
   });
 
-  it('should show Lista global menu item for Analista role', () => {
+  it('RF-7 CA-RF7-3: should show Lista global menu item for Analista role', () => {
     const { fixture } = setupWithRole('Analista');
     const link = (Array.from(fixture.nativeElement.querySelectorAll('a')) as Element[]).find(
       (a) => a.getAttribute('href')?.includes('/anticipation/list'),
@@ -111,7 +111,7 @@ describe('ShellComponent — RF-2 Lista global menu (T7)', () => {
     expect(link).toBeTruthy();
   });
 
-  it('should not show Lista global for Creator role', () => {
+  it('RF-7 CA-RF7-3: should not show Lista global for Creator role', () => {
     const { fixture } = setupWithRole('Creator');
     const link = (Array.from(fixture.nativeElement.querySelectorAll('a')) as Element[]).find(
       (a) => a.getAttribute('href')?.includes('/anticipation/list'),
@@ -133,6 +133,30 @@ describe('ShellComponent — RF-2 Lista global menu (T7)', () => {
     const { fixture } = setupWithRole('Creator');
     const link = (Array.from(fixture.nativeElement.querySelectorAll('a')) as Element[]).find(
       (a) => a.getAttribute('href')?.includes('/admin/users'),
+    );
+    expect(link).toBeFalsy();
+  });
+
+  it('RF-8 T-RF8-06 / CA-RF8-1: should show Alterar senha menu item for Creator role', () => {
+    const { fixture } = setupWithRole('Creator');
+    const link = (Array.from(fixture.nativeElement.querySelectorAll('a')) as Element[]).find(
+      (a) => a.getAttribute('href')?.includes('/auth/change-password'),
+    );
+    expect(link).toBeTruthy();
+  });
+
+  it('RF-8 T-RF8-06 / CA-RF8-1: should show Alterar senha menu item for Analista role', () => {
+    const { fixture } = setupWithRole('Analista');
+    const link = (Array.from(fixture.nativeElement.querySelectorAll('a')) as Element[]).find(
+      (a) => a.getAttribute('href')?.includes('/auth/change-password'),
+    );
+    expect(link).toBeTruthy();
+  });
+
+  it('RF-8 T-RF8-06 / CA-RF8-2: should not show Alterar senha menu item for Admin role', () => {
+    const { fixture } = setupWithRole('Admin');
+    const link = (Array.from(fixture.nativeElement.querySelectorAll('a')) as Element[]).find(
+      (a) => a.getAttribute('href')?.includes('/auth/change-password'),
     );
     expect(link).toBeFalsy();
   });
