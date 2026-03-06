@@ -1,0 +1,19 @@
+.admin-user-form {
+  padding: 1rem;
+}
+
+.admin-user-form__field {
+  width: 100%;
+  margin-bottom: 0.75rem;
+}
+
+.admin-user-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.admin-user-form__error {
+  min-height: 1.5rem;
+  color: #c62828;
+}

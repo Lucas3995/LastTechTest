@@ -118,4 +118,22 @@ describe('ShellComponent — RF-2 Lista global menu (T7)', () => {
     );
     expect(link).toBeFalsy();
   });
+
+  it('RF-6 T6 / CA1: should show Gestão de Usuários menu item for Admin role', () => {
+    const { fixture } = setupWithRole('Admin');
+    const nav = fixture.nativeElement.querySelector('nav');
+    expect(nav?.textContent).toMatch(/Gestão de Usuários/i);
+    const link = (Array.from(fixture.nativeElement.querySelectorAll('a')) as Element[]).find(
+      (a) => a.getAttribute('href')?.includes('/admin/users'),
+    );
+    expect(link).toBeTruthy();
+  });
+
+  it('RF-6 T6 / CA1: should not show Gestão de Usuários menu item for Creator role', () => {
+    const { fixture } = setupWithRole('Creator');
+    const link = (Array.from(fixture.nativeElement.querySelectorAll('a')) as Element[]).find(
+      (a) => a.getAttribute('href')?.includes('/admin/users'),
+    );
+    expect(link).toBeFalsy();
+  });
 });

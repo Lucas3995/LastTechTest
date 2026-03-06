@@ -4,6 +4,7 @@ using LastTechTest.Aplicacao.Authentication.Commands.ChangePassword;
 using LastTechTest.Aplicacao.Authentication.Commands.Login;
 using LastTechTest.Aplicacao.Authentication.Commands.Logout;
 using LastTechTest.Aplicacao.Authentication.Commands.RefreshToken;
+using LastTechTest.Aplicacao.Authentication.Queries.ListUsers;
 
 using MediatR;
 
@@ -52,6 +53,14 @@ public class AuthController : ControllerBase
         {
             return ExceptionMapping.ToActionResult(ex);
         }
+    }
+
+    [HttpGet("admin/users")]
+    [Authorize(Roles = LastTechTest.Dominio.Authorization.KnownRoles.Admin)]
+    public async Task<IActionResult> AdminListUsers(CancellationToken ct)
+    {
+        var result = await _sender.Send(new ListUsersQuery(), ct);
+        return Ok(result);
     }
 
     [HttpPost("login")]

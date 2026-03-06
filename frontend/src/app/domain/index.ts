@@ -5,4 +5,5 @@
  */
 
 export * from './anticipation';
+export * from './admin-user';
 export * from './error-presentation';

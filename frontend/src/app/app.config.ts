@@ -7,8 +7,9 @@ import { routes } from './app.routes';
 import { environment } from '../environments/environment';
 import { API_BASE_URL } from './core/api-base-url';
 import { authTokenInterceptor } from './core/auth/auth-token.interceptor';
-import { ANTICIPATION_REQUESTS_PORT, ERROR_PRESENTATION_BUILDER } from './domain';
+import { ADMIN_USERS_PORT, ANTICIPATION_REQUESTS_PORT, ERROR_PRESENTATION_BUILDER } from './domain';
 import { AnticipationRequestsHttpService } from './infrastructure/anticipation/anticipation-requests.http.service';
+import { AdminService } from './infrastructure/auth/admin.service';
 import { buildErrorPresentation } from './shared/utils/backend-error.util';
 
 export const appConfig: ApplicationConfig = {
@@ -19,6 +20,7 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptors([authTokenInterceptor])),
     { provide: API_BASE_URL, useValue: environment.apiUrl },
     { provide: ANTICIPATION_REQUESTS_PORT, useClass: AnticipationRequestsHttpService },
+    { provide: ADMIN_USERS_PORT, useClass: AdminService },
     { provide: ERROR_PRESENTATION_BUILDER, useValue: buildErrorPresentation },
   ],
 };

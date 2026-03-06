@@ -1,0 +1,38 @@
+.admin-users-page {
+  padding: 1rem;
+}
+
+.admin-users-page__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.admin-users-page__search {
+  width: 100%;
+  max-width: 480px;
+}
+
+.admin-users-page__drawer-container {
+  min-height: 320px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.admin-users-page__table-wrap {
+  overflow: auto;
+}
+
+.admin-users-page__table {
+  width: 100%;
+}
+
+.admin-users-page__error {
+  color: #c62828;
+}
+
+.admin-users-page__info {
+  color: #2e7d32;
+}
