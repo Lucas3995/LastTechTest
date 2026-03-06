@@ -1,5 +1,5 @@
 import { inject } from '@angular/core';
-import { HttpInterceptorFn, HttpRequest } from '@angular/common/http';
+import { HttpErrorResponse, HttpInterceptorFn, HttpRequest } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { catchError, finalize, Observable, shareReplay, switchMap, throwError } from 'rxjs';
 import { AuthService } from './auth.service';
@@ -14,8 +14,10 @@ let refreshInFlight: Observable<AuthSession> | null = null;
 
 /**
  * Adds Authorization: Bearer <accessToken> to outgoing requests whose URL
- * starts with the API base URL. On 401, tries refresh then retries the request;
- * on refresh failure or no refresh token, logs out and redirects with returnUrl.
+ * starts with the API base URL. Only 401 is treated as auth error (token/session invalid):
+ * tries refresh then retries; on refresh failure or no refresh token, logs out and
+ * redirects to login with returnUrl. If the retry returns 401, also logs out and redirects.
+ * 403 is not treated as auth and always propagates to the caller (API contract: business rules use 400).
  */
 export const authTokenInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, next) => {
   const apiBase = inject(API_BASE_URL);
@@ -34,7 +36,8 @@ export const authTokenInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown
 
   return next(cloned).pipe(
     catchError((err) => {
-      const isAuthError = err?.status === 401 || err?.status === 403;
+      const isAuthError =
+        err instanceof HttpErrorResponse && err.status === 401;
       if (!isAuthError) {
         return throwError(() => err);
       }
@@ -72,7 +75,20 @@ export const authTokenInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown
           const retryReq = req.clone({
             setHeaders: { Authorization: `Bearer ${newSession.accessToken}` },
           });
-          return next(retryReq);
+          return next(retryReq).pipe(
+            catchError((retryErr) => {
+              const isRetryAuthError =
+                retryErr instanceof HttpErrorResponse && retryErr.status === 401;
+              if (isRetryAuthError) {
+                auth.logout();
+                const returnUrl = encodeURIComponent(
+                  typeof window !== 'undefined' ? window.location.pathname + window.location.search : '/'
+                );
+                router.navigateByUrl(`/?returnUrl=${returnUrl}`);
+              }
+              return throwError(() => retryErr);
+            })
+          );
         }),
       );
     }),

@@ -38,7 +38,7 @@ public sealed class CreateAnticipationRequestCommandHandler : IRequestHandler<Cr
 
         var creatorId = ResolveCreatorId(request.CreatorId, userId.Value, role);
         if (creatorId is null)
-            throw new UnauthorizedAccessException("Creator is not allowed to act on behalf of another creator.");
+            throw new InvalidOperationException("Creator is not allowed to act on behalf of another creator.");
 
         var hasPending = await _repository.HasPendingByCreatorAsync(creatorId.Value, cancellationToken);
         if (hasPending)

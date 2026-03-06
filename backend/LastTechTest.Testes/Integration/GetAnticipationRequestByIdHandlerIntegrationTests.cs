@@ -64,9 +64,9 @@ public class GetAnticipationRequestByIdHandlerIntegrationTests : IAsyncLifetime
         result.NetAmount.Should().Be(98m);
     }
 
-    /// <summary>CA2 – Creator consulta id de outro → 403.</summary>
+    /// <summary>CA2 – Creator consulta id de outro → 400 (regra de negócio).</summary>
     [Fact]
-    public async Task I2_GetById_AsCreator_OtherCreatorRequest_Should_ThrowUnauthorized()
+    public async Task I2_GetById_AsCreator_OtherCreatorRequest_Should_ThrowInvalidOperation()
     {
         var creatorA = Guid.NewGuid();
         var creatorB = Guid.NewGuid();
@@ -80,7 +80,7 @@ public class GetAnticipationRequestByIdHandlerIntegrationTests : IAsyncLifetime
 
         var act = () => sender.Send(query);
 
-        await act.Should().ThrowAsync<UnauthorizedAccessException>().WithMessage("*not allowed*");
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*not allowed*");
     }
 
     /// <summary>CA4 – Admin consulta qualquer id → 200.</summary>

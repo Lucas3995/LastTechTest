@@ -158,7 +158,7 @@ public class AnticipationTransitionHandlersIntegrationTests : IAsyncLifetime
 
         var act = () => sender.Send(command);
 
-        await act.Should().ThrowAsync<UnauthorizedAccessException>();
+        await act.Should().ThrowAsync<InvalidOperationException>();
     }
 
     [Fact]
@@ -173,7 +173,7 @@ public class AnticipationTransitionHandlersIntegrationTests : IAsyncLifetime
 
         var act = () => sender.Send(command);
 
-        await act.Should().ThrowAsync<UnauthorizedAccessException>();
+        await act.Should().ThrowAsync<InvalidOperationException>();
     }
 
     [Fact]

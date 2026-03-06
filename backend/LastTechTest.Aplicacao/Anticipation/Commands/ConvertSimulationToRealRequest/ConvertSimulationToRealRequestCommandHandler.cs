@@ -50,7 +50,7 @@ public sealed class ConvertSimulationToRealRequestCommandHandler : IRequestHandl
 
         var creatorId = entry.Data.CreatorId;
         if (!CanConvert(creatorId, userId.Value, role))
-            throw new UnauthorizedAccessException("Only the creator who simulated or Admin can convert this simulation.");
+            throw new InvalidOperationException("Only the creator who simulated or Admin can convert this simulation.");
 
         var hasPending = await _repository.HasPendingByCreatorAsync(creatorId, cancellationToken);
         if (hasPending)

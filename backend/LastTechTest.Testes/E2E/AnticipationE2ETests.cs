@@ -254,9 +254,9 @@ public class AnticipationE2ETests : IClassFixture<CustomWebApplicationFactory>
         list.Items.Should().NotBeNull();
     }
 
-    /// <summary>CA2 – GET by id as Creator for other creator's request returns 403.</summary>
+    /// <summary>CA2 – GET by id as Creator for other creator's request returns 400 (regra de negócio).</summary>
     [Fact]
-    public async Task E8_GetAnticipationById_AsCreator_OtherCreatorRequest_Should_Return403()
+    public async Task E8_GetAnticipationById_AsCreator_OtherCreatorRequest_Should_Return400()
     {
         var client = _factory.CreateClient();
         var adminId = Guid.NewGuid();
@@ -275,7 +275,7 @@ public class AnticipationE2ETests : IClassFixture<CustomWebApplicationFactory>
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", CreateJwt(creatorA, "Creator"));
         var getResponse = await client.GetAsync($"/api/v1/anticipations/{created!.Id}");
 
-        getResponse.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        getResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     /// <summary>CA4 – GET by id as Admin returns 200 for any request.</summary>
@@ -476,9 +476,9 @@ public class AnticipationE2ETests : IClassFixture<CustomWebApplicationFactory>
         secondApprove.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, (HttpStatusCode)422, HttpStatusCode.NotImplemented);
     }
 
-    /// <summary>CA5 – Creator a chamar approve → 403 (falta de permissão).</summary>
+    /// <summary>CA5 – Creator a chamar approve → 400 (falta de permissão, regra de negócio).</summary>
     [Fact]
-    public async Task E18_RA3_CA5_PostApprove_AsCreator_Should_Return403()
+    public async Task E18_RA3_CA5_PostApprove_AsCreator_Should_Return400()
     {
         var client = _factory.CreateClient();
         var creatorId = Guid.NewGuid();
@@ -492,7 +492,7 @@ public class AnticipationE2ETests : IClassFixture<CustomWebApplicationFactory>
 
         var approveResponse = await client.PostAsJsonAsync($"/api/v1/anticipations/{created!.Id}/approve", new { Observation = "Trying as Creator" });
 
-        approveResponse.StatusCode.Should().BeOneOf(HttpStatusCode.Forbidden, HttpStatusCode.NotImplemented);
+        approveResponse.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.NotImplemented);
     }
 
     /// <summary>CA5 – Admin pode executar transição em qualquer solicitação (approve).</summary>
