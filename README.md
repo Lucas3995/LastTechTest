@@ -1,6 +1,8 @@
-## LastTechTest Backend (.NET 10, Clean Architecture)
+## LastTechTest — Antecipação de Recebíveis (.NET 10 + Angular 20)
 
 [![.NET](https://img.shields.io/badge/.NET-10.0-blue.svg)](https://dotnet.microsoft.com/download)
+[![Angular](https://img.shields.io/badge/Angular-20-red.svg)](https://angular.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
 [![Architecture](https://img.shields.io/badge/Architecture-Clean%20Architecture-orange.svg)](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
 [![Tests](https://img.shields.io/badge/Tests-Unit%20%7C%20Integration%20%7C%20E2E-brightgreen.svg)](#-pirâmide-de-testes)
 [![Docker](https://img.shields.io/badge/Docker-Compose-blue.svg)](#quick-start)
@@ -29,19 +31,18 @@ cd LastTechTest
 docker compose -f docker/docker-compose.yml up --build
 ```
 
-- **API:** `http://localhost:5114`
-- **Documentação (Scalar):** `http://localhost:5114/scalar`
-
-O banco SQLite fica em volume Docker `lasttechtest-data` (ver `docker/docker-compose.yml`). Se aparecer aviso de _orphan containers_, use `--remove-orphans` no comando acima.
-
-Com o mesmo comando sobem **API e frontend**:
+Com um único comando sobem **API e frontend**:
 
 - **API:** `http://localhost:5114` (HTTP), `http://localhost:5114/scalar` (Scalar API Reference)
 - **Frontend:** `http://localhost:4200`
 
+O banco SQLite fica em volume Docker `lasttechtest-data` (ver `docker/docker-compose.yml`). Se aparecer aviso de _orphan containers_, use `--remove-orphans` no comando acima.
+
 **Para acessar a API com usuário admin e entender perfis, credenciais e o que cada role faz, veja a secção [Usuários, roles e credenciais](#usuários-roles-e-credenciais) na Parte 2.**
 
 ### Rodar localmente
+
+**Backend (.NET 10)**
 
 **Pré-requisito:** .NET SDK 10.
 
@@ -51,11 +52,27 @@ dotnet restore
 dotnet run --project LastTechTest.API/LastTechTest.API.csproj
 ```
 
-A API fica disponível nas URLs padrão do ASP.NET Core (ex.: `http://localhost:5114`).
+A API fica disponível em `http://localhost:5114`.
+
+---
+
+**Frontend (Angular 20)**
+
+**Pré-requisito:** Node.js 20+ (22 recomendado).
+
+```bash
+cd frontend
+npm ci
+npm run start
+```
+
+O app fica disponível em `http://localhost:4200`. O dev server proxifica `/auth`, `/api` e `/user` para `http://localhost:5114` — suba o backend antes de acessar o app para que login e antecipações funcionem.
 
 ### Testes (pirâmide de testes) {#-piramide-de-testes}
 
-Com .NET SDK 10 na raiz do repositório:
+**Backend**
+
+Com .NET SDK 10, a partir da raiz do repositório:
 
 ```bash
 dotnet test backend/LastTechTest.Testes/LastTechTest.Testes.csproj -c Release
@@ -67,15 +84,46 @@ Sem .NET 10 no host:
 ./scripts/run-tests-docker.sh
 ```
 
+---
+
+**Frontend**
+
+Dentro de `frontend/`:
+
+| Comando                  | O que faz                                                          |
+|--------------------------|--------------------------------------------------------------------|
+| `npm run test`           | Testes unitários (Vitest)                                          |
+| `npm run test:coverage`  | Testes unitários com relatório de cobertura                        |
+| `npm run e2e`            | Testes E2E (Playwright; sobe dev server se necessário)             |
+| `npm run lint`           | ESLint (inclui regras de acessibilidade de templates)              |
+
+Sem Node 20+ no host:
+
+```bash
+./scripts/frontend-test-docker.sh
+```
+
+> **Primeira execução de E2E:** antes de rodar `npm run e2e`, instale o Chromium com `npx playwright install chromium` (ou `npx playwright install` para todos os navegadores).
+
 ### Troubleshooting
 
 **Build: "Access to the path '.../obj/Release/net10.0/...' is denied"**
 
 Em disco externo ou montagem só-leitura, o build pode falhar. Use `./scripts/run-tests-docker.sh` para testes em Docker ou clone o repositório para um diretório com permissão de escrita.
 
-**E2E: "DirectoryNotFoundException: /src/backend/LastTechTest.API/"**
+**E2E backend: "DirectoryNotFoundException: /src/backend/LastTechTest.API/"**
 
 Execute os testes a partir da raiz do repositório (`dotnet test backend/LastTechTest.Testes/...`) ou use `./scripts/run-tests-docker.sh`.
+
+**E2E frontend: "browserType.launch: Executable doesn't exist" (Playwright)**
+
+O Playwright não encontra o executável do browser. Dentro de `frontend/`, execute:
+
+```bash
+npx playwright install chromium
+# ou, para todos os navegadores suportados:
+npx playwright install
+```
 
 ---
 
@@ -111,15 +159,15 @@ Endpoints de auth: `POST /auth/login`, `POST /auth/refresh`, `DELETE /auth/logou
 
 ### Descrição breve do projeto
 
-A LastLink permite que criadores recebam receitas pela plataforma. Para ajudar no fluxo de caixa, existe **antecipação de valores**: o criador pode solicitar que parte dos recebíveis futuros seja liberada antes do prazo, mediante taxa. Este backend expõe uma **API REST** para gerenciar essas solicitações, consumida por sistema interno (sem front-end no escopo atual).
+A LastLink permite que criadores recebam receitas pela plataforma. Para ajudar no fluxo de caixa, existe **antecipação de valores**: o criador pode solicitar que parte dos recebíveis futuros seja liberada antes do prazo, mediante taxa. O projeto expõe uma **API REST** para gerenciar essas solicitações, consumida por um **SPA Angular 20** que oferece interfaces para Creator, Analista e Admin realizarem todos os fluxos de antecipação diretamente no navegador.
 
 ### Regras de negócio e fluxos
 
-**Criação de solicitação:** Apenas recebíveis elegíveis; valor solicitado **acima de R$ 100**; respeito ao limite por criador (configurável). **Uma solicitação “em análise” por criador** — não é permitido criar nova solicitação enquanto existir uma com status `Created` ou `Pending`.
+**Criação de solicitação:** Apenas recebíveis elegíveis; valor solicitado **acima de R$ 100**; respeito ao limite por criador (configurável). **Uma solicitação "em análise" por criador** — não é permitido criar nova solicitação enquanto existir uma com status `Created` ou `Pending`.
 
 **Consulta:** Creator lista e vê detalhe apenas das próprias solicitações; Admin lista e vê de qualquer criador, com filtros (creatorId, status, período) e paginação (page, pageSize).
 
-**Estados e transições:** Estados: `Created`, `Pending` (ambos “em análise”), `Approved`, `Rejected`, `CanceledByCreator`. **Aprovar/Recusar:** apenas Analista ou Admin; apenas a partir de “em análise”. **Cancelar:** Creator (apenas próprias) ou Admin; apenas a partir de “em análise”. Cancelar já cancelada é idempotente (resposta clara, estado inalterado).
+**Estados e transições:** Estados: `Created`, `Pending` (ambos "em análise"), `Approved`, `Rejected`, `CanceledByCreator`. **Aprovar/Recusar:** apenas Analista ou Admin; apenas a partir de "em análise". **Cancelar:** Creator (apenas próprias) ou Admin; apenas a partir de "em análise". Cancelar já cancelada é idempotente (resposta clara, estado inalterado).
 
 **Simulação:** Usa as mesmas regras de cálculo e validação da criação real; sem persistência na chamada. Cache in-memory: apenas a última simulação por criador; validade real 2 h; validade exposta ao usuário 20 min antes. Endpoint de conversão transforma simulação em solicitação real (valores idênticos; bloqueada se já existir solicitação em aberto ou simulação expirada/já utilizada).
 
@@ -135,7 +183,20 @@ A LastLink permite que criadores recebam receitas pela plataforma. Para ajudar n
 
 O escopo inicial do desafio (referência: `.cursor/escopo_inicial.txt`) previa: API para criar solicitação (creator_id, valor, data; taxa 5%); listar por creator_id; aprovar ou recusar; opcional simulação GET; regras valor > R$ 100, uma pendente por creator, taxa 5% fixa. Stack sugerida: C#/.NET Core, SQLite, README com como rodar.
 
-**Entregue além desse escopo:** Autenticação e autorização (JWT, roles Admin, Creator, Analista); cancelamento pelo creator (e por admin) em solicitações em análise; simulação como fluxo completo (POST, cache, conversão em real), não GET opcional; estados explícitos e regras de transição centralizadas; auditoria de transições; Clean Architecture, CQRS/MediatR, DDD; API versionada (`/api/v1/anticipations`); pirâmide de testes e CI com cobertura mínima; Docker e script para testes sem SDK local.
+**Entregue além desse escopo — Backend:** Autenticação e autorização (JWT, roles Admin, Creator, Analista); cancelamento pelo creator (e por admin) em solicitações em análise; simulação como fluxo completo (POST, cache, conversão em real), não GET opcional; estados explícitos e regras de transição centralizadas; auditoria de transições; Clean Architecture, CQRS/MediatR, DDD; API versionada (`/api/v1/anticipations`); pirâmide de testes e CI com cobertura mínima; Docker e script para testes sem SDK local.
+
+**Entregue além desse escopo — Frontend:** SPA Angular 20 com Angular Material, autenticação JWT integrada e guardas de rota por role, cobrindo os principais fluxos do sistema:
+
+- **RF-1 – Minhas solicitações (Creator):** listagem, filtros, detalhe e cancelamento das próprias solicitações.
+- **RF-2 – Lista global (Admin/Analista):** listagem de todas as solicitações com filtros avançados, paginação e detalhe de qualquer creator.
+- **RF-3 – Simulação de antecipação:** tela de simulação com resultado, validade da oferta e conversão em solicitação real com um clique.
+- **RF-4 – Aprovar e recusar (Analista/Admin):** ações inline na lista global com motivo obrigatório na recusa.
+- **RF-5 – Nova solicitação (Creator):** formulário de criação com validação de valor mínimo e feedback de erro contextual.
+- **RF-6 – Gestão de usuários (Admin):** listagem, cadastro via drawer lateral e reset de senha com diálogo de confirmação.
+- **RF-7 – Operação de Analista na fila global:** autorização backend ajustada para Analista em leitura global (lista e detalhe de qualquer solicitação); microcopy da tela de lista global atualizado para contexto de operação interna (Admin/Analista); E2E cobrindo jornada completa do Analista (listar → detalhar → decidir).
+- **RF-8 – Alteração de senha (Creator/Analista):** tela com formulário reativo tipado (senha atual, nova senha, confirmação), validação inline e feedback de sucesso/erro; item de navegação visível apenas para Creator e Analista; E2E cobrindo troca bem-sucedida e erro de senha atual inválida.
+- Arquitetura Angular em camadas (domain / application / infrastructure / core / shared / features) com Port/Adapter, facades com Signals e Typed Forms.
+- Testes: Vitest (unit/integration) e Playwright (E2E) cobrindo os fluxos críticos.
 
 ---
 
@@ -145,10 +206,12 @@ Esta parte resume a stack, as escolhas técnicas e a metodologia de desenvolvime
 
 ### Stack e ganhos
 
+**Backend**
+
 - **Stack:** .NET 10 / C# 14, ASP.NET Core 10, EF Core 10, SQLite — ambiente moderno; SQLite como placeholder para troca futura de persistência.
 - **Arquitetura:** Clean Architecture (Domínio → Aplicação → Persistência/Infraestrutura → API) — domínio e regras isolados de frameworks; testes e evolução previsíveis. Ver `docs/architecture/ADR-001-clean-architecture.md`.
 - **Padrões:** CQRS + MediatR (Commands/Queries/Handlers) — casos de uso explícitos, testáveis e rastreáveis a requisitos.
-- **Domínio:** DDD (entidades, value objects, serviços de domínio), regras de transição centralizadas — linguagem ubíqua e uma única fonte de verdade para “em análise” e transições.
+- **Domínio:** DDD (entidades, value objects, serviços de domínio), regras de transição centralizadas — linguagem ubíqua e uma única fonte de verdade para "em análise" e transições.
 - **Validação:** FluentValidation nos commands — validação declarativa e mensagens claras.
 - **Segurança:** JWT (access + refresh), roles — API pronta para consumo por sistema interno com controle por papel.
 - **Persistência:** EF Core 10, repositórios, migrações — modelo consistente e esquema versionado.
@@ -157,7 +220,17 @@ Esta parte resume a stack, as escolhas técnicas e a metodologia de desenvolvime
 - **DevOps:** Docker Compose, `scripts/run-tests-docker.sh`, GitHub Actions (build, test, cobertura) — um comando para rodar e validar.
 - **Antecipação:** Cálculo e validação em serviços de domínio reutilizáveis (simulação vs. criação real); interface de cache de simulação preparada para evolução (ex.: Redis) — sem duplicação de regras.
 
+**Frontend**
+
+- **Stack:** Angular 20 / TypeScript 5.9, Angular Material + CDK — SPA com componentes standalone, design system consistente e suporte a acessibilidade via CDK.
+- **Arquitetura frontend:** Camadas domain → application → infrastructure → core → shared → features com Port/Adapter (DIP); facades com Signals para estado reativo; Typed Forms e a11y em todos os formulários. Ver `docs/architecture/ADR-003-*.md`.
+- **Testes frontend:** Vitest (unit/integration, configurado com jsdom) e Playwright (E2E, integrado ao backend real) — cobertura dos fluxos críticos de Creator, Analista e Admin.
+- **Qualidade:** ESLint com regras de acessibilidade de templates, Prettier — consistência de código garantida em CI.
+- **Dev sem Node local:** `./scripts/frontend-test-docker.sh` roda `npm ci` e `npm run test` em container Node 22.
+
 ### Visão geral da solução
+
+**Backend**
 
 | Camada / Projeto              | Responsabilidade principal                                                       |
 |------------------------------|-----------------------------------------------------------------------------------|
@@ -165,10 +238,21 @@ Esta parte resume a stack, as escolhas técnicas e a metodologia de desenvolvime
 | `LastTechTest.Aplicacao`     | Casos de uso (Commands/Queries/Handlers), validações, DTOs                        |
 | `LastTechTest.Persistencia`  | ApplicationDbContext, configurações EF Core 10, repositórios SQLite               |
 | `LastTechTest.Infrastrutura` | Serviços técnicos (TokenService, PasswordHasher, MFA, Email, KeyGenerator)        |
-| `LastTechTest.API`           | Endpoints HTTP (minimal API), autenticação JWT, Scalar/OpenAPI, wiring de DI       |
+| `LastTechTest.API`           | Endpoints HTTP (minimal API), autenticação JWT, Scalar/OpenAPI, wiring de DI      |
 | `LastTechTest.Testes`        | Testes unitários, integração e E2E                                                |
 
-Estrutura de pastas: `backend/` (API, Aplicacao, Dominio, Infrastrutura, Persistencia, Testes), `docker/docker-compose.yml`, `docs/architecture/`, `docs/tracability.md`.
+**Frontend**
+
+| Camada / Módulo               | Responsabilidade principal                                                            |
+|------------------------------|---------------------------------------------------------------------------------------|
+| `frontend/domain`            | Tipos, interfaces (ports) e entidades de UI (ex.: `AnticipationRequest`), sem I/O    |
+| `frontend/application`       | Facades com Signals, orquestração de casos de uso, sem acesso HTTP direto             |
+| `frontend/infrastructure`    | Implementações HTTP das portas (ex.: `AnticipationRequestsHttpService`), adaptadores  |
+| `frontend/core`              | Singletons: `AuthService`, guards (`AuthGuard`, `redirectIfAuthenticated`), interceptor JWT |
+| `frontend/shared`            | Componentes, pipes, diretivas e utils reutilizáveis (layout shell, error presentation) |
+| `frontend/features`          | Páginas e componentes por funcionalidade (auth, anticipation, home); rotas lazy-loaded |
+
+Estrutura de pastas: `backend/` (API, Aplicacao, Dominio, Infrastrutura, Persistencia, Testes), `frontend/` (domain, application, infrastructure, core, shared, features, areas), `docker/docker-compose.yml`, `docs/architecture/`, `docs/tracability.md`.
 
 ### Workflow rotina-completa e desenvolvimento assistido por IA
 
@@ -190,12 +274,18 @@ O projeto segue uma metodologia de **desenvolvimento assistido por IA** com vis�
 
 Pipeline em `.github/workflows/ci.yml`: roda em `ubuntu-latest` com .NET 10.0.x; `dotnet restore`, `dotnet build` (Release), `dotnet test` com cobertura; verificação de **cobertura mínima (30%)** a partir de `coverage.cobertura.xml`. Se a cobertura cair abaixo do limiar, o pipeline falha (fitness function de qualidade).
 
+Os testes de frontend (Vitest unit/integration e Playwright E2E) podem ser executados sem Node local via `./scripts/frontend-test-docker.sh`, que roda `npm ci` e `npm run test` dentro de um container Node 22. O pipeline de CI pode ser estendido para incluir `npm run test:coverage` e `npm run e2e` do frontend como etapas adicionais.
+
 ### Rastreamento requisitos → casos de uso → testes
 
-O arquivo `docs/tracability.md` descreve como requisitos de autenticação e de antecipação se ligam a Commands/Queries/Handlers, endpoints HTTP e testes (unit, integração, E2E), em diálogo com o fluxo das skills tradutor, maestro e quadro-de-recompensas.
+O arquivo `docs/tracability.md` descreve como requisitos de autenticação e de antecipação se ligam a Commands/Queries/Handlers, endpoints HTTP e testes (unit, integração, E2E), em diálogo com o fluxo das skills tradutor, maestro e quadro-de-recompensas. O arquivo também cobre os requisitos de frontend (RF-1 a RF-8) com rastreabilidade do card de demanda ao componente/rota Angular e aos testes correspondentes (Vitest unit/integration, Playwright E2E).
 
 ### Próximos passos sugeridos
 
-- Aumentar gradualmente a cobertura de testes acima de 30%.
+Demandas pendentes e evoluções técnicas planejadas:
+
+- **RC-2:** Persistir auditoria na criação de solicitações de antecipação (backend).
+- **RC-3:** Ativar `AnticipationAuditService` para persistir transições de estado (backend).
+- Aumentar gradualmente a cobertura de testes (backend e frontend) acima dos limiares atuais.
 - Evoluir MFA de stub para implementação real (ex.: TOTP).
-- Integrar métricas e tracing (OpenTelemetry) com a base de logs estruturados.
+- Integrar métricas e tracing (OpenTelemetry) com a base de logs estruturados (Serilog já configurado).
