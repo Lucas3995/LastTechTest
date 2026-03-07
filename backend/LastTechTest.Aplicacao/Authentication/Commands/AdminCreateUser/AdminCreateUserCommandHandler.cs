@@ -14,15 +14,18 @@ public sealed class AdminCreateUserCommandHandler : IRequestHandler<AdminCreateU
     private readonly IUserRepository _userRepository;
     private readonly IUserPasswordHasher _passwordHasher;
     private readonly UserManager<IdentityUser<Guid>> _userManager;
+    private readonly IUserCreationSettings _userCreationSettings;
 
     public AdminCreateUserCommandHandler(
         IUserRepository userRepository,
         IUserPasswordHasher passwordHasher,
-        UserManager<IdentityUser<Guid>> userManager)
+        UserManager<IdentityUser<Guid>> userManager,
+        IUserCreationSettings userCreationSettings)
     {
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
         _userManager = userManager;
+        _userCreationSettings = userCreationSettings;
     }
 
     public async Task<Guid> Handle(AdminCreateUserCommand request, CancellationToken cancellationToken)
@@ -70,7 +73,7 @@ public sealed class AdminCreateUserCommandHandler : IRequestHandler<AdminCreateU
             throw new InvalidOperationException("User with this email already exists.");
         }
 
-        const string defaultPassword = "Trocar@123";
+        var defaultPassword = _userCreationSettings.DefaultPassword;
 
         var identityUser = await _userManager.FindByEmailAsync(normalizedEmail);
         if (identityUser is null)

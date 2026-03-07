@@ -1,0 +1,14 @@
+# Prometheus scrape configuration for LastTechTest observability stack.
+# Expects the API to expose /metrics when Observability:Exporter=Prometheus.
+# When using OTLP exporter instead, Prometheus can still scrape if the API also
+# maps the Prometheus endpoint (dual export is supported by the OpenTelemetry SDK).
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: "lasttechtest-api"
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["api:8080"]

@@ -1,6 +1,7 @@
 using LastTechTest.Aplicacao.Anticipation.Simulation;
 using LastTechTest.Aplicacao.Common.Exceptions;
 using LastTechTest.Aplicacao.Common.Interfaces;
+using LastTechTest.Dominio.Authorization;
 using LastTechTest.Dominio.Entities;
 using LastTechTest.Dominio.Interfaces;
 using LastTechTest.Dominio.ValueObjects;
@@ -81,9 +82,9 @@ public sealed class ConvertSimulationToRealRequestCommandHandler : IRequestHandl
 
     private static bool CanConvert(Guid simulationCreatorId, Guid currentUserId, string? role)
     {
-        if (string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(role, KnownRoles.Admin, StringComparison.OrdinalIgnoreCase))
             return true;
-        if (string.Equals(role, "Creator", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(role, KnownRoles.Creator, StringComparison.OrdinalIgnoreCase))
             return simulationCreatorId == currentUserId;
         return false;
     }

@@ -1,35 +1,43 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <IsPackable>false</IsPackable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<IsPackable>false</IsPackable>
+		<IsTestProject>true</IsTestProject>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="coverlet.collector" Version="8.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.0" />
+	<ItemGroup>
+		<PackageReference Include="coverlet.collector" Version="8.0.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="FluentAssertions" Version="8.8.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.3" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.3" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.3.0" />
+		<PackageReference Include="Moq" Version="4.20.72" />
+		<PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="1.15.0" />
+		<PackageReference Include="Serilog.Enrichers.OpenTelemetry" Version="1.0.1" />
+		<PackageReference Include="xunit" Version="2.9.3" />
+		<PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
 
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.3.0" />
-    <PackageReference Include="xunit" Version="2.9.3" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
-    <PackageReference Include="FluentAssertions" Version="8.8.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.3" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.3" />
-    <PackageReference Include="Moq" Version="4.20.72" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\LastTechTest.API\LastTechTest.API.csproj" />
+		<ProjectReference Include="..\LastTechTest.Aplicacao\LastTechTest.Aplicacao.csproj" />
+		<ProjectReference Include="..\LastTechTest.Dominio\LastTechTest.Dominio.csproj" />
+		<ProjectReference Include="..\LastTechTest.Infrastrutura\LastTechTest.Infrastrutura.csproj" />
+		<ProjectReference Include="..\LastTechTest.Persistencia\LastTechTest.Persistencia.csproj" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Using Include="Xunit" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\LastTechTest.API\LastTechTest.API.csproj" />
-    <ProjectReference Include="..\LastTechTest.Aplicacao\LastTechTest.Aplicacao.csproj" />
-    <ProjectReference Include="..\LastTechTest.Dominio\LastTechTest.Dominio.csproj" />
-    <ProjectReference Include="..\LastTechTest.Infrastrutura\LastTechTest.Infrastrutura.csproj" />
-    <ProjectReference Include="..\LastTechTest.Persistencia\LastTechTest.Persistencia.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<Using Include="Xunit" />
+	</ItemGroup>
 
 </Project>

@@ -47,10 +47,7 @@ public sealed class AnticipationTransitionExecutor : IAnticipationTransitionExec
         }
 
         var isOwner = entity.CreatorId == userId;
-        if (!CanPerform(entity, action, role, isOwner))
-            throw new InvalidOperationException(PermissionMessage(action));
-
-        ApplyTransition(entity, action);
+        ApplyTransition(entity, action, role, isOwner);
         await _auditService.RecordTransitionAsync(
             requestId,
             action,
@@ -63,29 +60,18 @@ public sealed class AnticipationTransitionExecutor : IAnticipationTransitionExec
         return new AnticipationTransitionExecutorResult(entity, AlreadyCanceled: false);
     }
 
-    private static bool CanPerform(AnticipationRequest entity, string action, string? role, bool isOwner)
-    {
-        return action switch
-        {
-            AnticipationTransitionAction.Approve => AnticipationTransitionRules.CanApprove(entity.Status, role),
-            AnticipationTransitionAction.Reject => AnticipationTransitionRules.CanReject(entity.Status, role),
-            AnticipationTransitionAction.Cancel => AnticipationTransitionRules.CanCancel(entity.Status, role, isOwner),
-            _ => false
-        };
-    }
-
-    private static void ApplyTransition(AnticipationRequest entity, string action)
+    private static void ApplyTransition(AnticipationRequest entity, string action, string? role, bool isOwner)
     {
         switch (action)
         {
             case AnticipationTransitionAction.Approve:
-                entity.Approve();
+                entity.Approve(role);
                 break;
             case AnticipationTransitionAction.Reject:
-                entity.Reject();
+                entity.Reject(role);
                 break;
             case AnticipationTransitionAction.Cancel:
-                entity.Cancel();
+                entity.Cancel(role, isOwner);
                 break;
         }
     }
@@ -97,17 +83,6 @@ public sealed class AnticipationTransitionExecutor : IAnticipationTransitionExec
             AnticipationTransitionAction.Approve => "A solicitação já foi aprovada anteriormente.",
             AnticipationTransitionAction.Reject => "A solicitação já foi recusada anteriormente.",
             _ => "A transição não é permitida para o estado atual."
-        };
-    }
-
-    private static string PermissionMessage(string action)
-    {
-        return action switch
-        {
-            AnticipationTransitionAction.Approve => "Sem permissão para aprovar esta solicitação.",
-            AnticipationTransitionAction.Reject => "Sem permissão para recusar esta solicitação.",
-            AnticipationTransitionAction.Cancel => "Sem permissão para cancelar esta solicitação ou a solicitação não está mais pendente de análise.",
-            _ => "Sem permissão para esta ação."
         };
     }
 }
