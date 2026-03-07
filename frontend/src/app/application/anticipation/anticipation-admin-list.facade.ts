@@ -5,6 +5,7 @@ import {
   AnticipationRequest,
   ERROR_PRESENTATION_BUILDER,
   type ErrorPresentation,
+  formatErrorPresentation,
 } from '../../domain';
 import { firstValueFrom } from 'rxjs';
 
@@ -161,21 +162,9 @@ export class AnticipationAdminListFacade {
     }
   }
 
-  private setErrorFromPresentation(presentation: {
-    contextMessage: string;
-    detailMessage?: string;
-    supportId?: string;
-  }): void {
-    const parts: string[] = [presentation.contextMessage];
-    if (presentation.detailMessage) {
-      parts.push(`Motivo: ${presentation.detailMessage}`);
-    }
-    if (presentation.supportId) {
-      parts.push(`Codigo para suporte: ${presentation.supportId}`);
-      this._errorSupportId.set(presentation.supportId);
-    } else {
-      this._errorSupportId.set(null);
-    }
-    this._errorMessage.set(parts.join(' '));
+  private setErrorFromPresentation(presentation: ErrorPresentation): void {
+    const { message, supportId } = formatErrorPresentation(presentation);
+    this._errorMessage.set(message);
+    this._errorSupportId.set(supportId);
   }
 }

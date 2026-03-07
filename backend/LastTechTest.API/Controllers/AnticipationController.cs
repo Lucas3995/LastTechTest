@@ -91,7 +91,7 @@ public class AnticipationController : ControllerBase
         }
         catch (ValidationException ex)
         {
-            return BadRequest(new { error = ex.Message });
+            return ExceptionMapping.ToActionResult(ex);
         }
         catch (UnauthorizedAccessException ex)
         {
@@ -151,7 +151,7 @@ public class AnticipationController : ControllerBase
         }
         catch (ValidationException ex)
         {
-            return BadRequest(new { error = ex.Message });
+            return ExceptionMapping.ToActionResult(ex);
         }
         catch (UnauthorizedAccessException ex)
         {

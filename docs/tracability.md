@@ -195,6 +195,28 @@ Este arquivo funciona como ponto de apoio para o `maestro` e o `quadro-de-recomp
     - E2E/frontend: Creator/Analista troca senha e reloga; cenário de senha atual inválida com mensagem clara.
     - Referência backend já existente: `ChangePasswordE2ETests.cs`.
 
+### 5. Requisitos de observabilidade (cards RO-x)
+
+- **RO-1 – Integrar métricas e tracing (OpenTelemetry) com logs estruturados (Serilog)** (implementado)
+  - Demanda: `demandas/RO-1-observabilidade-opentelemetry-serilog.md`
+  - Artefatos criados / alterados:
+    - `LastTechTest.API/Configuration/ObservabilityOptions.cs` — classe de opções para seção `Observability` do appsettings
+    - `LastTechTest.API/Configuration/OpenTelemetryExtensions.cs` — método de extensão `AddLastTechTestObservability()` registrando tracing e métricas condicionalmente
+    - `LastTechTest.API/Program.cs` — bootstrap Serilog com enricher OTEL + chamada a `AddLastTechTestObservability()` + endpoint Prometheus condicional
+    - `LastTechTest.API/ExceptionMapping.cs` — `traceId` em todos os payloads de erro (CA-RO1-7)
+    - `LastTechTest.API/appsettings.json` — seção `Observability` com defaults seguros (`Enabled: false`)
+    - `LastTechTest.API/appsettings.Development.json` — override com `Enabled: true` e `Exporter: Console`
+    - `LastTechTest.API/LastTechTest.API.csproj` — pacotes OpenTelemetry + `Serilog.Enrichers.OpenTelemetry`
+    - `LastTechTest.Testes/LastTechTest.Testes.csproj` — `OpenTelemetry.Exporter.InMemory` + `Serilog.Enrichers.OpenTelemetry`
+    - `docs/architecture/ADR-003-observability-and-security.md` — atualização RO-1 (pacotes, estratégia de config, políticas)
+    - `docker/docker-compose.observability.yml` — Jaeger + Prometheus + Grafana para demonstração local
+    - `docker/prometheus.yml` — configuração de scrape Prometheus para o backend
+  - Testes:
+    - Unit: `LastTechTest.Testes/Unit/ObservabilityExtensionsTests.cs` (U1–U5) — DI registration, toggle, defaults
+    - Unit: `LastTechTest.Testes/Unit/SerilogOpenTelemetryEnrichmentTests.cs` (U6–U7) — TraceId/SpanId em logs
+    - Integração: `LastTechTest.Testes/Integration/ObservabilityIntegrationTests.cs` (I1–I5) — spans, EF Core, log correlation, toggle off, traceId em erros
+  - Critérios de aceitação cobertos: CA-RO1-1, CA-RO1-2, CA-RO1-3, CA-RO1-4, CA-RO1-5, CA-RO1-6, CA-RO1-7
+
 ### 4. Correções (cards RC-x)
 
 - **RC-1 – Corrigir validações no endpoint de criar solicitação de antecipação** (implementado)

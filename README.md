@@ -31,10 +31,13 @@ cd LastTechTest
 docker compose -f docker/docker-compose.yml up --build
 ```
 
-Com um único comando sobem **API e frontend**:
+Com um único comando sobem **API, frontend e stack de observabilidade**:
 
 - **API:** `http://localhost:5114` (HTTP), `http://localhost:5114/scalar` (Scalar API Reference)
 - **Frontend:** `http://localhost:4200`
+- **Jaeger (traces):** `http://localhost:16686`
+- **Prometheus (métricas):** `http://localhost:9090`
+- **Grafana (dashboards):** `http://localhost:3000`
 
 O banco SQLite fica em volume Docker `lasttechtest-data` (ver `docker/docker-compose.yml`). Se aparecer aviso de _orphan containers_, use `--remove-orphans` no comando acima.
 
@@ -183,7 +186,7 @@ A LastLink permite que criadores recebam receitas pela plataforma. Para ajudar n
 
 O escopo inicial do desafio (referência: `.cursor/escopo_inicial.txt`) previa: API para criar solicitação (creator_id, valor, data; taxa 5%); listar por creator_id; aprovar ou recusar; opcional simulação GET; regras valor > R$ 100, uma pendente por creator, taxa 5% fixa. Stack sugerida: C#/.NET Core, SQLite, README com como rodar.
 
-**Entregue além desse escopo — Backend:** Autenticação e autorização (JWT, roles Admin, Creator, Analista); cancelamento pelo creator (e por admin) em solicitações em análise; simulação como fluxo completo (POST, cache, conversão em real), não GET opcional; estados explícitos e regras de transição centralizadas; auditoria de transições; Clean Architecture, CQRS/MediatR, DDD; API versionada (`/api/v1/anticipations`); pirâmide de testes e CI com cobertura mínima; Docker e script para testes sem SDK local.
+**Entregue além desse escopo — Backend:** Autenticação e autorização (JWT, roles Admin, Creator, Analista); cancelamento pelo creator (e por admin) em solicitações em análise; simulação como fluxo completo (POST, cache, conversão em real), não GET opcional; estados explícitos e regras de transição centralizadas; auditoria de transições; Clean Architecture, CQRS/MediatR, DDD; API versionada (`/api/v1/anticipations`); observabilidade integrada (OpenTelemetry + Serilog — traces, métricas, logs correlacionados com `traceId` em erros, stack local Jaeger/Prometheus/Grafana); pirâmide de testes e CI com cobertura mínima; Docker e script para testes sem SDK local.
 
 **Entregue além desse escopo — Frontend:** SPA Angular 20 com Angular Material, autenticação JWT integrada e guardas de rota por role, cobrindo os principais fluxos do sistema:
 
@@ -217,6 +220,7 @@ Esta parte resume a stack, as escolhas técnicas e a metodologia de desenvolvime
 - **Persistência:** EF Core 10, repositórios, migrações — modelo consistente e esquema versionado.
 - **Testes:** xUnit, FluentAssertions, Coverlet, WebApplicationFactory (E2E), pirâmide unit → integração → E2E — confiança em refatoração; cobertura mínima (30%) no CI como fitness function.
 - **API e documentação:** Minimal API, Scalar/OpenAPI em `/scalar` — contrato visível e consumo facilitado.
+- **Observabilidade:** OpenTelemetry (tracing + métricas) + Serilog enricher (`TraceId`, `SpanId`) — três pilares (logs correlacionados, traces distribuídos, métricas por endpoint) com toggle por ambiente (`Observability:Enabled`), zero overhead em CI/Testing, exporters plugáveis (Console, OTLP, Prometheus), `traceId` em payloads de erro para suporte. Stack local (Jaeger + Prometheus + Grafana) integrada ao Docker Compose.
 - **DevOps:** Docker Compose, `scripts/run-tests-docker.sh`, GitHub Actions (build, test, cobertura) — um comando para rodar e validar.
 - **Antecipação:** Cálculo e validação em serviços de domínio reutilizáveis (simulação vs. criação real); interface de cache de simulação preparada para evolução (ex.: Redis) — sem duplicação de regras.
 
@@ -288,4 +292,3 @@ Demandas pendentes e evoluções técnicas planejadas:
 - **RC-3:** Ativar `AnticipationAuditService` para persistir transições de estado (backend).
 - Aumentar gradualmente a cobertura de testes (backend e frontend) acima dos limiares atuais.
 - Evoluir MFA de stub para implementação real (ex.: TOTP).
-- Integrar métricas e tracing (OpenTelemetry) com a base de logs estruturados (Serilog já configurado).

@@ -11,8 +11,13 @@ services:
       - Jwt__Secret=change-me-in-production-super-secret-key
       - Jwt__Issuer=LastTechTest
       - Jwt__Audience=LastTechTest-Users
+      - Observability__Enabled=true
+      - Observability__Exporter=Otlp
+      - Observability__OtlpEndpoint=http://jaeger:4317
     volumes:
       - lasttechtest-data:/data
+    depends_on:
+      - jaeger
 
   frontend:
     build:
@@ -22,6 +27,33 @@ services:
       - "4200:4200"
     environment:
       - API_URL=http://api:8080
+
+  # ── Observability stack ──────────────────────────────────────────────
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"   # Jaeger UI
+      - "4317:4317"     # OTLP gRPC
+      - "4318:4318"     # OTLP HTTP
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      - api
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+    depends_on:
+      - prometheus
 
 volumes:
   lasttechtest-data:

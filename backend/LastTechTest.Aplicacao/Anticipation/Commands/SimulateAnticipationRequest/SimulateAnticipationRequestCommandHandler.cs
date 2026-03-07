@@ -1,6 +1,7 @@
 using LastTechTest.Aplicacao.Anticipation.Simulation;
 using LastTechTest.Aplicacao.Common.Interfaces;
 using LastTechTest.Dominio.Interfaces;
+using LastTechTest.Dominio.Services;
 using LastTechTest.Dominio.ValueObjects;
 
 using MediatR;
@@ -40,7 +41,7 @@ public sealed class SimulateAnticipationRequestCommandHandler : IRequestHandler<
         if (userId is null)
             throw new UnauthorizedAccessException("User not authenticated.");
 
-        var creatorId = ResolveCreatorId(request.CreatorId, userId.Value, role);
+        var creatorId = CreatorResolution.ResolveCreatorId(request.CreatorId, userId.Value, role);
         if (creatorId is null)
             throw new InvalidOperationException("Creator is not allowed to act on behalf of another creator.");
 
@@ -78,15 +79,5 @@ public sealed class SimulateAnticipationRequestCommandHandler : IRequestHandler<
             result.GrossAmount,
             result.FeesAmount,
             result.NetAmount);
-    }
-
-    private static Guid? ResolveCreatorId(Guid? requestCreatorId, Guid userId, string? role)
-    {
-        if (string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(role, "Analista", StringComparison.OrdinalIgnoreCase))
-            return requestCreatorId ?? userId;
-        if (string.Equals(role, "Creator", StringComparison.OrdinalIgnoreCase))
-            return requestCreatorId.HasValue && requestCreatorId.Value != userId ? null : userId;
-        return userId;
     }
 }

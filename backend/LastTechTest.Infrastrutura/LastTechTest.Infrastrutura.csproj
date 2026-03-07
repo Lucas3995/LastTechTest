@@ -10,7 +10,6 @@
   <ItemGroup>
     <ProjectReference Include="..\LastTechTest.Aplicacao\LastTechTest.Aplicacao.csproj" />
     <ProjectReference Include="..\LastTechTest.Dominio\LastTechTest.Dominio.csproj" />
-    <ProjectReference Include="..\LastTechTest.Persistencia\LastTechTest.Persistencia.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

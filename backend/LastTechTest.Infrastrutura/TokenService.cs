@@ -1,12 +1,10 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
 
 using LastTechTest.Dominio.Entities;
 using LastTechTest.Dominio.Interfaces;
 
-using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
@@ -102,112 +100,5 @@ public sealed class TokenService : ITokenService
         {
             return null;
         }
-    }
-}
-
-public interface IKeyGenerator
-{
-    string GenerateSecureToken(int length);
-}
-
-public sealed class KeyGenerator : IKeyGenerator
-{
-    public string GenerateSecureToken(int length)
-    {
-        var bytes = new byte[length];
-        RandomNumberGenerator.Fill(bytes);
-        return WebEncoders.Base64UrlEncode(bytes);
-    }
-}
-
-public sealed class PasswordHasher : IUserPasswordHasher
-{
-    public string HashPassword(User user, string password)
-    {
-        ArgumentNullException.ThrowIfNull(user);
-        ArgumentException.ThrowIfNullOrEmpty(password);
-
-        var salt = Guid.NewGuid().ToByteArray();
-        var hash = Rfc2898DeriveBytes.Pbkdf2(
-            password,
-            salt,
-            100_000,
-            HashAlgorithmName.SHA256,
-            32);
-
-        var result = new byte[salt.Length + hash.Length];
-        Buffer.BlockCopy(salt, 0, result, 0, salt.Length);
-        Buffer.BlockCopy(hash, 0, result, salt.Length, hash.Length);
-
-        return Convert.ToBase64String(result);
-    }
-
-    public bool VerifyHashedPassword(User user, string hashedPassword, string providedPassword)
-    {
-        ArgumentNullException.ThrowIfNull(user);
-        ArgumentException.ThrowIfNullOrEmpty(hashedPassword);
-        ArgumentException.ThrowIfNullOrEmpty(providedPassword);
-
-        var decoded = Convert.FromBase64String(hashedPassword);
-        var salt = new byte[16];
-        var storedHash = new byte[decoded.Length - salt.Length];
-
-        Buffer.BlockCopy(decoded, 0, salt, 0, salt.Length);
-        Buffer.BlockCopy(decoded, salt.Length, storedHash, 0, storedHash.Length);
-
-        var computed = Rfc2898DeriveBytes.Pbkdf2(
-            providedPassword,
-            salt,
-            100_000,
-            HashAlgorithmName.SHA256,
-            storedHash.Length);
-
-        return CryptographicOperations.FixedTimeEquals(storedHash, computed);
-    }
-}
-
-public sealed class MfaService : IMfaService
-{
-    private readonly IKeyGenerator _keyGenerator;
-
-    public MfaService(IKeyGenerator keyGenerator)
-    {
-        _keyGenerator = keyGenerator;
-    }
-
-    public Task<string> GenerateSecretAsync(User user, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(user);
-        var secret = _keyGenerator.GenerateSecureToken(20);
-        return Task.FromResult(secret);
-    }
-
-    public Task<bool> VerifyCodeAsync(User user, string code, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(user);
-        ArgumentException.ThrowIfNullOrEmpty(code);
-
-        // Stub simplificado para o primeiro ciclo.
-        return Task.FromResult(true);
-    }
-}
-
-public sealed class SmtpEmailService : IEmailService
-{
-    private readonly IConfiguration _configuration;
-
-    public SmtpEmailService(IConfiguration configuration)
-    {
-        _configuration = configuration;
-    }
-
-    public Task SendAsync(string to, string subject, string body, CancellationToken cancellationToken = default)
-    {
-        // Implementação stub; pode ser ligada a SMTP real em ciclos futuros.
-        _ = to;
-        _ = subject;
-        _ = body;
-        _ = cancellationToken;
-        return Task.CompletedTask;
     }
 }

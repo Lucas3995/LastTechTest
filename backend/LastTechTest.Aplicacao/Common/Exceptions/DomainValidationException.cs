@@ -1,0 +1,6 @@
+namespace LastTechTest.Aplicacao.Common.Exceptions;
+
+public sealed class DomainValidationException : Exception
+{
+    public DomainValidationException(string message) : base(message) { }
+}

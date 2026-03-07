@@ -53,3 +53,4 @@ frontend/*_root_locked_*/
 frontend/dist_*/
 ## Ferramentas de configuração de IA (manter fora do controle de versão)
 .cursor/
+.aider*

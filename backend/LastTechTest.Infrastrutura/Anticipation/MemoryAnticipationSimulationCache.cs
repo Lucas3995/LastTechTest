@@ -4,14 +4,19 @@ using LastTechTest.Aplicacao.Anticipation.Simulation;
 
 namespace LastTechTest.Infrastrutura.Anticipation;
 
-/// <summary>RA-4: In-memory implementation of IAnticipationSimulationCache. One entry per creator (replaced on new Store). TTL and IsUsed supported. Ready for replacement with distributed cache (Redis, etc.) via same interface.</summary>
+/// <summary>RA-4: In-memory implementation of IAnticipationSimulationCache. One entry per creator (replaced on new Store). TTL and IsUsed supported. Periodic eviction prevents unbounded memory growth.</summary>
 public sealed class MemoryAnticipationSimulationCache : IAnticipationSimulationCache
 {
+    private const int EvictionIntervalSeconds = 300;
+
     private readonly ConcurrentDictionary<Guid, (string Code, CachedSimulationEntry Entry)> _byCreator = new();
     private readonly ConcurrentDictionary<string, Guid> _codeToCreator = new();
+    private DateTime _lastEviction = DateTime.UtcNow;
 
     public Task<string> StoreAsync(Guid creatorId, SimulationData data, TimeSpan ttl, CancellationToken cancellationToken = default)
     {
+        EvictExpiredIfDue();
+
         var code = Guid.NewGuid().ToString("N")[..8].ToUpperInvariant();
         var realExpiry = DateTime.UtcNow.Add(ttl);
         var entry = new CachedSimulationEntry(data, realExpiry, IsUsed: false);
@@ -44,5 +49,22 @@ public sealed class MemoryAnticipationSimulationCache : IAnticipationSimulationC
             _byCreator[creatorId] = (simulationCode, usedEntry);
         }
         return Task.CompletedTask;
+    }
+
+    private void EvictExpiredIfDue()
+    {
+        var now = DateTime.UtcNow;
+        if ((now - _lastEviction).TotalSeconds < EvictionIntervalSeconds)
+            return;
+
+        _lastEviction = now;
+        foreach (var kvp in _byCreator)
+        {
+            if (now > kvp.Value.Entry.RealExpiresAtUtc)
+            {
+                _codeToCreator.TryRemove(kvp.Value.Code, out _);
+                _byCreator.TryRemove(kvp.Key, out _);
+            }
+        }
     }
 }

@@ -1,0 +1,8 @@
+# ──────────────────────────────────────────────────────────────────────
+# DEPRECATED — Observability services were merged into docker-compose.yml.
+#
+# Everything now starts with:
+#   docker compose -f docker/docker-compose.yml up --build
+#
+# This file is kept for reference only.
+# ──────────────────────────────────────────────────────────────────────

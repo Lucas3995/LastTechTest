@@ -8,6 +8,7 @@ import {
   ChangePasswordPort,
   ERROR_PRESENTATION_BUILDER,
   type ErrorPresentation,
+  formatErrorPresentation,
 } from '../../domain';
 
 function defaultErrorPresentation(_error: unknown, contextMessage: string): ErrorPresentation {
@@ -99,19 +100,8 @@ export class ChangePasswordFacade {
   }
 
   private setErrorFromPresentation(presentation: ErrorPresentation): void {
-    const parts: string[] = [presentation.contextMessage];
-
-    if (presentation.detailMessage) {
-      parts.push(`Motivo: ${presentation.detailMessage}`);
-    }
-
-    if (presentation.supportId) {
-      parts.push(`Codigo para suporte: ${presentation.supportId}`);
-      this.errorSupportIdSignal.set(presentation.supportId);
-    } else {
-      this.errorSupportIdSignal.set(null);
-    }
-
-    this.errorMessageSignal.set(parts.join(' '));
+    const { message, supportId } = formatErrorPresentation(presentation);
+    this.errorMessageSignal.set(message);
+    this.errorSupportIdSignal.set(supportId);
   }
 }

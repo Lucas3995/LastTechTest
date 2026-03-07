@@ -34,6 +34,7 @@ using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
 
 using Serilog;
+using Serilog.Enrichers.OpenTelemetry;
 using Serilog.Events;
 
 // Keep in-memory connection alive for E2E tests (Testing environment).
@@ -42,6 +43,8 @@ SqliteConnection? testDbConnection = null;
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
     .Enrich.FromLogContext()
+    .Enrich.With(new OpenTelemetryTraceIdEnricher())
+    .Enrich.With(new OpenTelemetrySpanIdEnricher())
     .WriteTo.Console()
     .CreateLogger();
 
@@ -84,6 +87,8 @@ builder.Services.AddScoped<IAnticipationRequestRepository, AnticipationRequestRe
 builder.Services.AddScoped<IReceivableRepository, ReceivableRepository>();
 builder.Services.Configure<AnticipationCalculationOptions>(builder.Configuration.GetSection(AnticipationCalculationOptions.SectionName));
 builder.Services.AddSingleton<IAnticipationCalculationSettings, LastTechTest.API.Services.AnticipationCalculationSettingsAdapter>();
+builder.Services.Configure<UserCreationOptions>(builder.Configuration.GetSection(UserCreationOptions.SectionName));
+builder.Services.AddSingleton<IUserCreationSettings, LastTechTest.API.Services.UserCreationSettingsAdapter>();
 builder.Services.AddScoped<IAnticipationCalculationService, AnticipationCalculationService>();
 builder.Services.AddScoped<IEligibilityService, EligibilityService>();
 if (builder.Environment.IsEnvironment("Testing") || builder.Environment.IsDevelopment())
@@ -129,11 +134,13 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
+var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? ["http://localhost:4200"];
+
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins("http://localhost:4200")
+        policy.WithOrigins(corsOrigins)
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();
@@ -172,6 +179,8 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddHttpContextAccessor();
 
+builder.AddLastTechTestObservability();
+
 var app = builder.Build();
 
 // Ensure schema exists: Migrate() for file DB, EnsureCreated() for E2E in-memory.
@@ -189,6 +198,13 @@ if (app.Environment.IsDevelopment())
 {
     app.MapSwagger("/openapi/{documentName}.json");
     app.MapScalarApiReference(options => options.WithTitle("LastTechTest Auth API"));
+}
+
+var obsOptions = app.Configuration.GetSection("Observability").Get<ObservabilityOptions>();
+if (obsOptions?.Enabled == true && obsOptions.Exporter == ObservabilityExporter.Prometheus
+    && !app.Environment.IsEnvironment("Testing"))
+{
+    app.MapPrometheusScrapingEndpoint();
 }
 
 app.UseSerilogRequestLogging();
