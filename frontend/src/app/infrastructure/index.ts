@@ -5,3 +5,4 @@
 
 export { AnticipationRequestsHttpService } from './anticipation/anticipation-requests.http.service';
 export { AdminService } from './auth/admin.service';
+export { AuthChangePasswordService } from './auth/change-password.service';

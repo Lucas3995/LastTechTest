@@ -163,6 +163,38 @@ Este arquivo funciona como ponto de apoio para o `maestro` e o `quadro-de-recomp
   - Dependências: RF-1 (Minhas solicitações e botão "Nova solicitação").
   - Testes (a preencher na implementação): unit (port, facade, formulário — validação valor, cancelar); integração (HTTP create, facade + lista); E2E opcional (Creator cria e vê na lista).
 
+- **RF-7 – Operação de Analista na fila global de solicitações** (card criado; implementação pendente)
+  - Demanda: `demandas/RF-7-operacao-analista-fila-global-solicitacoes.md`
+  - Backend utilizado: RA-2 e RA-3 — leitura global e detalhe (`GET /api/v1/anticipations`, `GET /api/v1/anticipations/{id}`) + decisão (`POST /api/v1/anticipations/{id}/approve`, `.../reject`).
+  - Backend (a implementar):
+    - `AnticipationController`: incluir role `Analista` nos `Authorize` de leitura (lista e detalhe).
+    - `ListAnticipationRequestsQueryHandler`: tratar `Analista` com visão global (como papel interno, sem forçar filtro owner).
+    - `GetAnticipationRequestByIdQueryHandler`: permitir acesso global para `Analista`.
+  - Frontend (a implementar/ajustar):
+    - Consolidar cópia e contexto de tela para “Operações internas (Admin/Analista)” na lista global.
+    - Garantir jornada completa para `Analista` na lista global e detalhe com ações de RF-4.
+  - Dependências: RF-2, RF-4, RA-2, RA-3.
+  - Testes (a preencher na implementação):
+    - Unit/backend: handlers de lista/detalhe para role `Analista`.
+    - Integração/backend: GET list/detalhe com token `Analista`.
+    - Unit/frontend: rota/guard/menu e estado de tela para `Analista`.
+    - E2E/frontend: login `Analista` → lista global → detalhe → aprovar/recusar.
+
+- **RF-8 – Tela de alteração de senha para usuários não-admin** (card criado; implementação pendente)
+  - Demanda: `demandas/RF-8-alteracao-senha-usuarios-nao-admin.md`
+  - Backend utilizado: autenticação R2 + `ChangePasswordCommand` (`POST /auth/change-password`), sem alteração de contrato/autorização neste card.
+  - Frontend (a implementar):
+    - Nova rota protegida para alteração de senha com `requiredRoles: ['Creator', 'Analista']`.
+    - Nova página/formulário para senha atual, nova senha e confirmação.
+    - Serviço/facade para chamada do endpoint `POST /auth/change-password` com tratamento padronizado de erro (`message`, `code`, `traceId` quando disponível).
+    - Navegação no shell visível para `Creator`/`Analista` e oculta para `Admin`.
+  - Dependências: módulo de autenticação frontend, endpoint backend de troca de senha já existente.
+  - Testes (a preencher na implementação):
+    - Unit/frontend: validação de formulário e facade/service.
+    - Integração/frontend: chamada HTTP do endpoint e feedback de sucesso/erro.
+    - E2E/frontend: Creator/Analista troca senha e reloga; cenário de senha atual inválida com mensagem clara.
+    - Referência backend já existente: `ChangePasswordE2ETests.cs`.
+
 ### 4. Correções (cards RC-x)
 
 - **RC-1 – Corrigir validações no endpoint de criar solicitação de antecipação** (implementado)

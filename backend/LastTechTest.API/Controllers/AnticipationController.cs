@@ -28,7 +28,7 @@ public class AnticipationController : ControllerBase
     public AnticipationController(ISender sender) => _sender = sender;
 
     [HttpGet("")]
-    [Authorize(Roles = LastTechTest.Dominio.Authorization.KnownRoles.Creator + "," + LastTechTest.Dominio.Authorization.KnownRoles.Admin)]
+    [Authorize(Roles = LastTechTest.Dominio.Authorization.KnownRoles.Creator + "," + LastTechTest.Dominio.Authorization.KnownRoles.Analista + "," + LastTechTest.Dominio.Authorization.KnownRoles.Admin)]
     public async Task<IActionResult> List(
         [FromQuery] Guid? creatorId,
         [FromQuery] int? status,
@@ -57,7 +57,7 @@ public class AnticipationController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
-    [Authorize(Roles = LastTechTest.Dominio.Authorization.KnownRoles.Creator + "," + LastTechTest.Dominio.Authorization.KnownRoles.Admin)]
+    [Authorize(Roles = LastTechTest.Dominio.Authorization.KnownRoles.Creator + "," + LastTechTest.Dominio.Authorization.KnownRoles.Analista + "," + LastTechTest.Dominio.Authorization.KnownRoles.Admin)]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
         try

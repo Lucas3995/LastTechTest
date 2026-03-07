@@ -98,21 +98,36 @@ describe('AuthGuard', () => {
     expect(createUrlTree).toHaveBeenCalledWith(['/']);
   });
 
-  it('RF-2 T8: deve permitir Admin e Analista na rota anticipation/list', () => {
+  it('RF-7 CA-RF7-3: deve permitir Admin na rota anticipation/list', () => {
     isAuthenticatedFn.mockReturnValue(true);
+    currentUserFn.mockReturnValue({ role: 'Admin' } as AuthUser);
 
-    for (const role of ['Admin', 'Analista']) {
-      currentUserFn.mockReturnValue({ role } as AuthUser);
-      const result = TestBed.runInInjectionContext(() =>
-        AuthGuard(
-          {
-            data: { requiredRoles: ['Admin', 'Analista'] },
-          } as unknown as ActivatedRouteSnapshot,
-          { url: '/anticipation/list' } as unknown as RouterStateSnapshot,
-        ),
-      );
-      expect(result).toBe(true);
-    }
+    const result = TestBed.runInInjectionContext(() =>
+      AuthGuard(
+        {
+          data: { requiredRoles: ['Admin', 'Analista'] },
+        } as unknown as ActivatedRouteSnapshot,
+        { url: '/anticipation/list' } as unknown as RouterStateSnapshot,
+      ),
+    );
+
+    expect(result).toBe(true);
+  });
+
+  it('RF-7 CA-RF7-3: deve permitir Analista na rota anticipation/list', () => {
+    isAuthenticatedFn.mockReturnValue(true);
+    currentUserFn.mockReturnValue({ role: 'Analista' } as AuthUser);
+
+    const result = TestBed.runInInjectionContext(() =>
+      AuthGuard(
+        {
+          data: { requiredRoles: ['Admin', 'Analista'] },
+        } as unknown as ActivatedRouteSnapshot,
+        { url: '/anticipation/list' } as unknown as RouterStateSnapshot,
+      ),
+    );
+
+    expect(result).toBe(true);
   });
 
   it('RF-6 T6 / CA5: deve negar Creator na rota /admin/users com requiredRoles Admin', () => {
@@ -145,5 +160,53 @@ describe('AuthGuard', () => {
     );
 
     expect(result).toBe(true);
+  });
+
+  it('RF-8 T-RF8-05 / CA-RF8-1: deve permitir Creator na rota change-password com requiredRoles Creator e Analista', () => {
+    isAuthenticatedFn.mockReturnValue(true);
+    currentUserFn.mockReturnValue({ role: 'Creator' } as AuthUser);
+
+    const result = TestBed.runInInjectionContext(() =>
+      AuthGuard(
+        {
+          data: { requiredRoles: ['Creator', 'Analista'] },
+        } as unknown as ActivatedRouteSnapshot,
+        { url: '/auth/change-password' } as unknown as RouterStateSnapshot,
+      ),
+    );
+
+    expect(result).toBe(true);
+  });
+
+  it('RF-8 T-RF8-05 / CA-RF8-1: deve permitir Analista na rota change-password com requiredRoles Creator e Analista', () => {
+    isAuthenticatedFn.mockReturnValue(true);
+    currentUserFn.mockReturnValue({ role: 'Analista' } as AuthUser);
+
+    const result = TestBed.runInInjectionContext(() =>
+      AuthGuard(
+        {
+          data: { requiredRoles: ['Creator', 'Analista'] },
+        } as unknown as ActivatedRouteSnapshot,
+        { url: '/auth/change-password' } as unknown as RouterStateSnapshot,
+      ),
+    );
+
+    expect(result).toBe(true);
+  });
+
+  it('RF-8 T-RF8-05 / CA-RF8-2: deve negar Admin na rota change-password com requiredRoles Creator e Analista', () => {
+    isAuthenticatedFn.mockReturnValue(true);
+    currentUserFn.mockReturnValue({ role: 'Admin' } as AuthUser);
+
+    TestBed.runInInjectionContext(() =>
+      AuthGuard(
+        {
+          data: { requiredRoles: ['Creator', 'Analista'] },
+        } as unknown as ActivatedRouteSnapshot,
+        { url: '/auth/change-password' } as unknown as RouterStateSnapshot,
+      ),
+    );
+
+    expect(createUrlTree).toHaveBeenCalledWith(['/']);
   });
 });

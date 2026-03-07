@@ -254,6 +254,81 @@ public class AnticipationE2ETests : IClassFixture<CustomWebApplicationFactory>
         list.Items.Should().NotBeNull();
     }
 
+    /// <summary>CA-RF7-1 – GET list as Analista returns 200 with global data.</summary>
+    [Fact]
+    public async Task E7b_RF7_GetAnticipationsList_AsAnalista_Should_ReturnGlobalList()
+    {
+        var client = _factory.CreateClient();
+        var adminId = Guid.NewGuid();
+        var creatorA = Guid.NewGuid();
+        var creatorB = Guid.NewGuid();
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", CreateJwt(adminId, "Admin"));
+        await client.PostAsJsonAsync("/api/v1/anticipations", new { RequestedAmount = 101m, CreatorId = creatorA });
+        await client.PostAsJsonAsync("/api/v1/anticipations", new { RequestedAmount = 202m, CreatorId = creatorB });
+
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", CreateJwt(Guid.NewGuid(), "Analista"));
+        var listResponse = await client.GetAsync("/api/v1/anticipations");
+
+        listResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var list = await listResponse.Content.ReadFromJsonAsync<ListAnticipationResponseDto>();
+        list.Should().NotBeNull();
+        list!.Items.Should().NotBeNull();
+        list.Items!.Should().Contain(i => i.CreatorId == creatorA);
+        list.Items.Should().Contain(i => i.CreatorId == creatorB);
+    }
+
+    /// <summary>CA-RF7-2 – GET by id as Analista returns 200 for request from another creator.</summary>
+    [Fact]
+    public async Task E7c_RF7_GetAnticipationById_AsAnalista_OtherCreatorRequest_Should_Return200()
+    {
+        var client = _factory.CreateClient();
+        var adminId = Guid.NewGuid();
+        var creatorId = Guid.NewGuid();
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", CreateJwt(adminId, "Admin"));
+        var createResponse = await client.PostAsJsonAsync("/api/v1/anticipations",
+            new { RequestedAmount = 180m, CreatorId = creatorId });
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var created = await createResponse.Content.ReadFromJsonAsync<AnticipationResponseDto>();
+        created.Should().NotBeNull();
+
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", CreateJwt(Guid.NewGuid(), "Analista"));
+        var detailResponse = await client.GetAsync($"/api/v1/anticipations/{created!.Id}");
+
+        detailResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var detail = await detailResponse.Content.ReadFromJsonAsync<AnticipationDetailDto>();
+        detail.Should().NotBeNull();
+        detail!.CreatorId.Should().Be(creatorId);
+    }
+
+    /// <summary>CA-RF7-3 – Creator remains restricted to own data and cannot read global queue.</summary>
+    [Fact]
+    public async Task E7d_RF7_GetAnticipationsList_AsCreator_Should_NotReturnOtherCreatorsData()
+    {
+        var client = _factory.CreateClient();
+        var adminId = Guid.NewGuid();
+        var creatorA = Guid.NewGuid();
+        var creatorB = Guid.NewGuid();
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", CreateJwt(adminId, "Admin"));
+        await client.PostAsJsonAsync("/api/v1/anticipations", new { RequestedAmount = 103m, CreatorId = creatorA });
+        await client.PostAsJsonAsync("/api/v1/anticipations", new { RequestedAmount = 204m, CreatorId = creatorB });
+
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", CreateJwt(creatorA, "Creator"));
+        var listResponse = await client.GetAsync("/api/v1/anticipations");
+
+        listResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var list = await listResponse.Content.ReadFromJsonAsync<ListAnticipationResponseDto>();
+        list.Should().NotBeNull();
+        list!.Items.Should().NotBeNull();
+        list.Items!.Should().NotBeEmpty();
+        list.Items.Should().OnlyContain(i => i.CreatorId == creatorA);
+    }
+
     /// <summary>CA2 – GET by id as Creator for other creator's request: acesso negado (500 ou falha enquanto GetById não mapear InvalidOperationException).</summary>
     [Fact]
     public async Task E8_GetAnticipationById_AsCreator_OtherCreatorRequest_Should_Return500()

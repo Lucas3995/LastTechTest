@@ -75,6 +75,54 @@ test.describe('RF-2 Lista global Admin — E2E', () => {
   });
 });
 
+test.describe('RF-7 Operação Analista na fila global — E2E', () => {
+  const adminListUrl = '/anticipation/list';
+
+  test('CA-RF7-1/2/4/5: Analista accesses global queue, opens detail and can decide pending request', async ({
+    page,
+  }) => {
+    const analistaEmail = process.env.ANALISTA_E2E_EMAIL ?? 'analista@example.com';
+    const analistaPassword = process.env.ANALISTA_E2E_PASSWORD ?? 'password';
+
+    await page.goto(`/?returnUrl=${encodeURIComponent(adminListUrl)}`);
+    await page.getByLabel(/Email corporativo/i).fill(analistaEmail);
+    await page.getByLabel(/Senha/i).fill(analistaPassword);
+    await page.getByRole('button', { name: /Entrar/i }).click();
+
+    await expect(page).toHaveURL(new RegExp(`.*${adminListUrl.replace(/\//g, '\\/')}`));
+    await expect(page.getByRole('heading', { name: /Operações internas/i })).toBeVisible({
+      timeout: 10000,
+    });
+    await expect(page.getByText(/Admin e Analista/i)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(/acesso negado/i)).not.toBeVisible();
+
+    const firstRow = page.locator('[data-testid="admin-requests-table-row"]').first();
+    await firstRow.click({ timeout: 10000 });
+
+    const detailPanel = page.getByTestId('request-detail');
+    await expect(detailPanel).toBeVisible({ timeout: 5000 });
+
+    const approveButton = page.getByRole('button', { name: /Aprovar/i });
+    const rejectButton = page.getByRole('button', { name: /Recusar/i });
+    await expect(approveButton.or(rejectButton)).toBeVisible({ timeout: 5000 });
+  });
+
+  test('CA-RF7-3: Creator remains blocked when trying to access global queue route', async ({
+    page,
+  }) => {
+    const creatorEmail = process.env.CREATOR_E2E_EMAIL ?? 'creator@example.com';
+    const creatorPassword = process.env.CREATOR_E2E_PASSWORD ?? 'password';
+
+    await page.goto(`/?returnUrl=${encodeURIComponent(adminListUrl)}`);
+    await page.getByLabel(/Email corporativo/i).fill(creatorEmail);
+    await page.getByLabel(/Senha/i).fill(creatorPassword);
+    await page.getByRole('button', { name: /Entrar/i }).click();
+
+    await expect(page).not.toHaveURL(new RegExp(`.*\\/anticipation\\/list\\/?.*`));
+    await expect(page.getByTestId('anticipation-admin-requests-page')).not.toBeVisible();
+  });
+});
+
 // RF-4 Aprovar/Recusar — Admin aprova e recusa; estado atualizado na UI (CA-RF4-4, CA-RF4-6, CA-RF4-7).
 test.describe('RF-4 Aprovar/Recusar — E2E', () => {
   const adminListUrl = '/anticipation/list';
